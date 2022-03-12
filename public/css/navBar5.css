@@ -1,0 +1,107 @@
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    text-decoration: none;
+    margin: 0;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgb(247, 247, 247);
+}
+
+.location .blog .menu .order .profile {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    border: 5px;
+    height: 50px;
+    flex: 1;
+}
+
+.icon {
+    display: inline-block;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
+#location {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#blog {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#menu {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#order {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#profile {
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+.ext_link {
+    text-decoration: none;
+    color: black;
+}
+
+.location {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.blog {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.menu {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.order {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.profile {
+    width: 30%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 15px;
+    background-color: orange;
+    vertical-align: middle;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}

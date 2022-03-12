@@ -1,0 +1,106 @@
+.header-bar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    height: 70px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #32312f;
+}
+
+/* navigation bar css */
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    text-decoration: none;
+    margin: 0;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgb(247, 247, 247);
+}
+
+.location .blog .menu .order .profile {
+    text-decoration: none;
+    border: 5px;
+    height: 50px;
+    flex: 1;
+}
+
+.icon {
+    display: inline-block;
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+span {
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#location {
+    font-size: 0px;
+}
+
+#blog {
+    font-size: 0px;
+}
+
+#menu {
+    font-size: 12px;
+}
+
+#order {
+    font-size: 0px;
+}
+
+#profile {
+    font-size: 0px;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+.location {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.blog {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.menu {
+    width: 20%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 15px;
+    background-color: orange;
+    vertical-align: middle;
+}
+
+.order {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.profile {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}

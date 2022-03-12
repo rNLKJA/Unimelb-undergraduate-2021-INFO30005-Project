@@ -1,0 +1,676 @@
+/* @media only screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape) { */
+
+.content-section {
+    margin: 1em;
+}
+.container-header {
+    color: white;
+    background-color: darkslategrey;
+    font-family: Arial, Helvetica, sans-serif;
+    display: block;
+    text-align: center;
+    padding: 0.67em 0.67em;
+    font-weight: bold;
+    margin: 0;
+    border-style: solid;
+    border-color: black;
+    border-radius: 25px;
+}
+
+.history-item {
+    color: white;
+    font-family: sans-serif;
+    background-color: dimgrey;
+    text-decoration: none;
+    font-weight: bold;
+    display: block;
+    text-align: center;
+    padding: 0.5em 0.5em;
+    display: inline-block;
+    border-radius: 25px;
+}
+.history-item:hover {
+    background-color: rgb(112, 130, 177);
+}
+
+.navigation-button {
+    background-color: dimgrey;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    padding: 0.67em 0.67em;
+    border-style: solid;
+    border-color: black;
+    border-radius: 25px;
+}
+.navigation-button:hover {
+    background-color: rgb(112, 130, 177);
+}
+
+/* block of an outstanding item  */
+.outstanding-item {
+    height: 95%;
+    width: 20%;
+    margin: 10px;
+    border-style: solid;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-x: scroll;
+}
+/* text within an outstanding item block  */
+.item {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: small;
+    color: #333;
+    text-align: center;
+    /* font-size: 1em; */
+    margin: 0;
+}
+
+/* history  */
+.hist-header {
+    text-align: left;
+}
+.hist-row {
+    text-align: left;
+}
+.input [type="submit"] {
+    color: white;
+    font-family: sans-serif;
+    background-color: dimgrey;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    padding: 0.67em 0.67em;
+    border-style: solid;
+    border-color: black;
+    border-radius: 25px;
+    width: 15%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+.order-search-status {
+    display: inline-block;
+    margin-left: 10px;
+}
+.search-container {
+    display: inline-block;
+}
+
+/* Single Order Details page */
+.details-container {
+    display: flex;
+    flex-direction: column;
+    border-style: solid;
+    border-radius: 25px;
+    height: 75vh;
+}
+
+.block {
+    border-style: solid;
+    border-radius: 25px;
+    display: block;
+    padding-left: 30px;
+    height: 50%;
+    flex-flow: column wrap;
+}
+
+.items {
+    font-family: sans-serif;
+}
+
+.details {
+    font-family: sans-serif;
+}
+
+.additional {
+    font-family: sans-serif;
+}
+
+.order-items {
+    border-style: solid;
+    border-radius: 30px;
+    overflow-y: scroll;
+}
+.order-items-outstanding {
+    height: 25%;
+}
+.order-items-details {
+    height: 80%;
+}
+
+/* unused */
+.countdown {
+    border-style: solid;
+    background-color: green;
+    font-weight: bolder;
+    border-radius: 100px;
+    font-size: x-large;
+    margin: 0;
+}
+
+.history-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    border-style: solid;
+    border-radius: 25px;
+    padding: 0.67em 0.67em;
+    overflow: scroll;
+}
+.container-main {
+    height: 73vh;
+}
+.container-search {
+    height: 61vh;
+}
+
+.history-headers {
+    display: flex;
+}
+.one-history-header {
+    font-size: large;
+}
+
+.header-container {
+    justify-content: space-between;
+    padding: 0.67em 0.67em;
+    /* background-color: #333; */
+    display: flex;
+    border: 5px inset #78a2ff;
+}
+
+.header-element {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    font-size: large;
+    color: white;
+    border: solid;
+    border-color: black;
+}
+
+.header-location {
+    text-align: left;
+}
+
+.header-username {
+    text-align: right;
+}
+
+.body {
+    display: flex;
+}
+
+.order-hist-section {
+    width: 15vw;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
+
+/* } */
+
+.navigation-button {
+    border: aqua;
+    color: #003a3a;
+    background-color: rgb(175 190 246 / 50%);
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 0;
+    height: 43px;
+}
+
+.section-container {
+    height: 768px;
+    width: 1024px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin: 0px;
+    padding: 0px;
+    transform: translate(-50%, -50%);
+}
+
+.order-hist-section {
+    border-radius: 0px;
+    border: aqua 2px inset;
+    height: 684px;
+}
+
+.outstanding-section {
+    border-radius: 0px;
+    border: 5px inset #78a2ff;
+    height: 684px;
+    width: 820px;
+}
+
+.container-header {
+    border-radius: 0px;
+    border: rgb(54, 54, 54) dashed 2px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    background: rgb(94, 115, 122);
+}
+
+.outstanding-container {
+    width: 800px;
+    height: 643px;
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-auto-flow: column;
+    justify-content: space-evenly;
+    /* overflow-y: scroll; */
+}
+
+.outstanding-item {
+    width: 240px;
+    height: 605px;
+    border: lightblue double 2px;
+    border-width: 5px;
+}
+
+.navigation-button {
+    border-radius: 5px;
+}
+
+.history-container {
+    height: 600px;
+}
+
+#view-all-order {
+    width: 174px;
+    margin: 0px;
+    text-align: center;
+    height: 20px;
+    padding: 5px;
+    font-size: 14px;
+    vertical-align: middle;
+    color: white;
+}
+
+.history-container {
+    border-radius: 5px;
+    border: lightblue dashed 2px;
+}
+
+#van_id_1 {
+    padding: 0;
+    margin: 0;
+
+    font-size: 14px;
+    text-align: center;
+    /* top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute; */
+    background-color: transparent;
+    border: none;
+}
+
+#van_id {
+    width: 180px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    align-items: center;
+    height: 18px;
+    background-color: rgba(240, 128, 128, 0.6);
+    justify-content: center;
+    vertical-align: middle;
+    border-radius: 5px;
+    border: lightcoral 2px inset;
+}
+
+.navigation-button {
+    background-color: lightblue;
+}
+
+#location {
+    line-height: 3px;
+    line-height: 35px;
+    border: inset;
+}
+
+#status {
+    background: lightsalmon;
+    border: none;
+    font-size: 14px;
+    text-align: center;
+    justify-content: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 18px;
+    border: inset;
+}
+
+.order-hist-section {
+    border: 5px inset #78a2ff;
+    width: 200px;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.container-header {
+    background-color: rgba(32, 178, 171, 0.581);
+    border: none;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 20px;
+    vertical-align: middle;
+    font-size: 18px;
+}
+
+.outstanding-container {
+    border: rgba(112, 130, 177, 0.5) dashed 2px;
+    border-radius: 15px;
+    margin: 5px;
+    /* justify-content: space-around; */
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.history-container {
+    border: lightskyblue dashed 2px;
+    height: 595px;
+    border-radius: 15px;
+    margin: 5px;
+}
+
+#order-display-box {
+    border: 1px black solid;
+    width: 143px;
+    height: auto;
+    border: lightyellow double 1px;
+    align-items: center;
+    justify-content: space-around;
+    border: rgba(112, 130, 177, 0.5) dashed 2px;
+    padding: 1px;
+    border-radius: 15px;
+}
+
+.history-container {
+    width: 150px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    overflow-x: scroll;
+    justify-content: space-between;
+}
+
+.item {
+    width: 140px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.history-item {
+    width: 130px;
+    background-color: rgba(119, 136, 153, 0.363);
+    color: rgb(112, 130, 177);
+}
+
+.item-info {
+    width: 140px;
+    color: rgb(23 43 87);
+    font-size: 8px;
+    overflow: scroll;
+}
+
+.header-element {
+    color: rgb(37 66 129);
+}
+
+#order-id {
+    font-size: 15px;
+    height: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+#order-items-box {
+    border: rgb(140, 172, 214) 1px dotted;
+    border: lightsteelblue 1px dotted;
+    width: 230px;
+    height: 550px;
+    overflow-y: scroll;
+}
+
+.outstanding-item {
+    justify-content: space-between;
+    align-items: center;
+}
+
+#customer_id {
+    width: 200px;
+    font-size: 14px;
+    text-align: left;
+}
+
+#order_date {
+    width: 200px;
+    font-size: 14px;
+    text-align: left;
+}
+
+#order_time {
+    width: 200px;
+    font-size: 14px;
+    text-align: left;
+}
+
+#discount_time {
+    width: 200px;
+    font-size: 14px;
+    text-align: left;
+}
+
+#items-1 {
+    padding-top: 10px;
+    font-size: 14px;
+    width: 103px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#items-items {
+    font-size: 14px;
+    width: 158px;
+    text-align: left;
+    font-weight: bold;
+    padding-left: 30px;
+}
+
+i {
+    color: black;
+    font-size: 18px;
+}
+
+#fulfilled {
+    width: 230px;
+    font-size: 16px;
+    background-color: yellow;
+    border: 2px solid white;
+}
+
+#delivered {
+    font-size: 16px;
+    width: 230px;
+    border: 2px solid white;
+}
+
+#his-navi {
+    width: 1024px;
+    display: flex;
+    height: 40px;
+    justify-content: center;
+}
+
+#hist-contain {
+    height: 560px;
+    width: 996px;
+    flex-direction: column;
+}
+
+#home-btn {
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-right: 10px;
+    margin-top: 11px;
+    width: 100px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    font-size: 20px;
+    background-color: rgb(112, 130, 177);
+    color: white;
+}
+
+#order_search {
+    width: 500px;
+    border: none;
+    border-bottom: rgb(230, 151, 151) 2px solid;
+    border-radius: 20px;
+    line-height: 25px;
+}
+
+#order_search_submit {
+    font-size: 14px;
+    width: 100px;
+    line-height: 25px;
+    border-radius: 15px;
+    border: none;
+    background-color: lightcoral;
+}
+
+#hist-title {
+    margin-top: 20px;
+}
+
+#home-btn-2 {
+    padding-right: 10px;
+    /* padding-top: 10px; */
+    padding-bottom: 10px;
+    margin-right: 10px;
+    /* margin-top: 11px; */
+    width: 100px;
+    height: 20px;
+    text-align: center;
+    color: white;
+    background-color: rgb(112, 130, 177);
+    line-height: 15px;
+    font-size: 20px;
+}
+
+.title-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#header-order {
+    width: 80%;
+    line-height: 30px;
+    height: 30px;
+    margin: 10px;
+    font-size: 20px;
+    border-radius: 5px;
+}
+
+#info-container {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    border: none;
+    border: rgb(37 66 129) double 10px;
+    height: 610px;
+}
+
+#info-block-details {
+    margin-top: 3px;
+    margin-left: 5px;
+    display: grid;
+    justify-content: space-between;
+    grid-template-columns: 1fr;
+    height: 600px;
+    /* width: 974px; */
+    border: rgba(140, 172, 214, 0.596) dashed 2px;
+    /* background-color: rgba(255, 182, 193, 0.17); */
+    border-radius: 10px;
+    top: 50%;
+}
+
+.info-tag {
+    width: 200px;
+    font-size: 20px;
+    font-weight: bold;
+    color: rgb(112, 130, 177);
+    text-align: left;
+}
+
+.info-tag-1 {
+    width: 200px;
+    font-size: 20px;
+    font-weight: bold;
+    color: rgb(112, 130, 177);
+    text-align: left;
+    margin-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+
+#info-item-block {
+    height: 597px;
+    width: 707px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border: none;
+    border: dotted 2px lightblue;
+}
+
+#info-items-items {
+    width: 666px;
+    height: 532px;
+    font-size: 30px;
+    font-weight: 30px;
+    color: rgb(112, 130, 177);
+    margin-top: 10px;
+    padding: 0;
+    margin-bottom: 10px;
+}
+
+#subtotal {
+    width: 646px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 22px;
+    height: 23px;
+    line-height: 12px;
+    border: 0;
+    padding: 0;
+    color: lightcoral;
+}
+
+.found-tag {
+    line-height: 20px;
+    font-size: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.outstanding-container {
+    width: 100%;
+}
+
+.container-container {
+    overflow-y: scroll;
+}

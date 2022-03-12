@@ -1,0 +1,165 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: lightgray;
+}
+
+.header-container {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 50px;
+    background-color: rgb(255, 245, 228);
+    display: flex;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.processing .completed {
+    flex: 1;
+}
+
+.order-icon {
+    display: inline-block;
+    font-size: 30px;
+    vertical-align: middle;
+}
+
+.inbox-text {
+    vertical-align: middle;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+    font-size: 16px;
+    font-family: "Segoe UI";
+}
+
+.processing {
+    padding: 5px;
+    border-bottom: 2px solid orange;
+}
+
+.order-container {
+    position: absolute;
+    width: 95%;
+    height: 650px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: lightslategrey;
+    border: 5px solid white;
+    border-radius: 5px;
+}
+/* with navigation bar css */
+
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    text-decoration: none;
+    margin: 0;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgb(247, 247, 247);
+}
+
+.location .blog .menu .order .profile {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    border: 5px;
+    height: 50px;
+    flex: 1;
+}
+
+.icon {
+    display: inline-block;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
+#location {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#blog {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#menu {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#order {
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#profile {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+.ext_link {
+    text-decoration: none;
+    color: black;
+}
+
+.location {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.blog {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.menu {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.order {
+    width: 25%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 15px;
+    background-color: orange;
+    vertical-align: middle;
+}
+
+.profile {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}

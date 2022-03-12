@@ -1,0 +1,572 @@
+html {
+    margin-bottom: 85px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: lightgray;
+}
+
+.header-container {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 50px;
+    background-color: rgb(255, 245, 228);
+    display: flex;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    justify-content: space-evenly;
+    align-items: center;
+    z-index: 1;
+}
+
+.processing .completed {
+    flex: 1;
+}
+
+.order-icon {
+    display: inline-block;
+    font-size: 30px;
+    vertical-align: middle;
+}
+
+.inbox-text {
+    vertical-align: middle;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+    font-size: 16px;
+    font-family: "Segoe UI";
+}
+
+.completed {
+    padding: 5px;
+    border-bottom: 2px solid orange;
+}
+
+/* .order-container {
+    position: absolute;
+    width: 95%;
+    height: 650px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: lightslategrey;
+    border: 5px solid white;
+    border-radius: 5px;
+} */
+/* with navigation bar css */
+
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    text-decoration: none;
+    margin: 0;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgb(247, 247, 247);
+}
+
+.location .blog .menu .order .profile {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    border: 5px;
+    height: 50px;
+    flex: 1;
+}
+
+.icon {
+    display: inline-block;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
+#location {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#blog {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#menu {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#order {
+    font-size: 12px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+#profile {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Segoe UI";
+}
+
+.ext_link {
+    text-decoration: none;
+    color: black;
+}
+
+.location {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.blog {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.menu {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.order {
+    width: 25%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 15px;
+    background-color: orange;
+    vertical-align: middle;
+}
+
+.profile {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* main {
+    position:relative;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+} */
+/* .navbar {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    grid-template-rows: auto;
+    background-color: white;
+    overflow: hidden;
+    position: fixed;
+    justify-items: center;
+    padding: 20px;
+    padding-left: 0%;
+    padding-right: 0%;
+    bottom: 0px;
+    width: 100%;
+    height: 35px;
+}
+
+.navbar span {
+    display: none;
+}
+
+.navbar > .order span {
+    display: inline;
+} */
+
+/* .navbar > .blog, .location, .menu, .profile{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing:border-box;
+} */
+
+/* .navbar > .order {
+    border-radius: 55px;
+    background-color: #dba321;
+    width: 70%;
+    height: 130%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+ion-icon,
+span {
+    vertical-align: middle;
+} */
+
+/* .navbar a:hover{ */
+/* background-color: #DBA321; */
+/* border-radius: 20px; */
+/* color: black; */
+/* } */
+
+/* .navbar > .order a:hover {
+    color: black;
+    font-weight: bold;
+}
+
+.navbar a {
+    display: block;
+    color: #000;
+    text-decoration: none;
+} */
+
+/* ion-icon {
+    font-size: 35px;
+} */
+
+/* .statusbar ion-icon {
+    font-size: 35px;
+} */
+
+/* .statusbar {
+    position: fixed;
+    overflow: hidden;
+    z-index: 1;
+    width: 100%;
+} */
+
+/* #orderstatus {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-self: center;
+    justify-content: space-evenly;
+    background-color: white;
+    text-align: center;
+    width: 100%;
+} */
+
+/* .Completed {
+    width: 50%;
+}
+
+.Processing {
+    width: 50%;
+} */
+
+.orderinfo {
+    display: grid;
+    grid-template-columns: 2fr 0.5fr;
+    grid-template-rows: auto minmax(auto, 30vh);
+    justify-content: center;
+    /* border-color: black; */
+    border-style: double;
+    border-width: 10px;
+    border-color: rgba(90, 106, 145, 0.9);
+    border-radius: 10px;
+    margin: 10px;
+    width: 80%;
+    /* box-sizing: border-box; */
+    /* top: 10%;
+    left: 10%; */
+    background-color: white;
+    margin: auto;
+    margin-top: 1.5%;
+    /* max-height: 45vh; */
+}
+
+.orderId {
+    display: flex;
+    border-radius: 5px;
+    background-color: #dba321;
+    width: 150%;
+    height: 20%;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 2%;
+}
+
+.orderTime,
+.Status,
+.PickupLocation {
+    width: 300%;
+}
+
+.bigScreen {
+    grid-column: 1/3;
+    grid-row: 2/3;
+}
+
+.orderDetail {
+    width: 100%;
+    height: 90%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.orderDetailtitle {
+    display: flex;
+    position: relative;
+    border-radius: 5px;
+    background-color: #dba321;
+    width: 23%;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    /* text-align: center; */
+    left: 8.2%;
+    margin-top: 2%;
+}
+
+table {
+    font-size: 30px;
+    position: relative;
+    width: 80%;
+    justify-self: center;
+    align-self: center;
+    text-align: left;
+    margin: auto;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+
+.Price {
+    align-items: right;
+    justify-content: right;
+    text-align: right;
+    right: 3%;
+    padding-right: 5%;
+}
+
+#orderRelate {
+    position: relative;
+    grid-column: 1/2;
+    grid-row: 1/2;
+    width: 25%;
+    justify-self: center;
+    align-self: center;
+    right: 30%;
+}
+
+#detailLink {
+    grid-column: 2/3;
+    grid-row: 1/2;
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.image {
+    display: inline;
+    margin-left: auto;
+    margin-right: auto;
+    width: 35px;
+    height: 35px;
+}
+
+p {
+    color: rgb(0, 0, 0);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+#orderstatus p {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.orderinfo p {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.orderTime p {
+    font-size: 20px;
+    text-align: left;
+}
+
+.Processing p {
+    font-weight: bold;
+}
+
+.ListOfCustomerOrders {
+    margin-bottom: 50px;
+    /* padding-top: 85px; */
+    padding-bottom: 2%;
+    position: relative;
+    width: 95%;
+    justify-self: center;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    margin-top: 85px;
+    background-color: rgba(118, 135, 152, 0.3);
+    border: 5px solid white;
+    border-radius: 5px;
+    min-height: 80vh;
+}
+
+.ListOfCustomerOrders a,
+#orderstatus a {
+    text-decoration: none;
+    font-size: 30px;
+    line-height: 20px;
+    color: rgb(0, 0, 0);
+}
+
+/* .MoreDetail a{
+    text-decoration: none;
+    font-size: 20px;
+} */
+
+.ListOfCustomerOrders a:hover {
+    color: rgb(90, 106, 145);
+    font-weight: bold;
+}
+
+#orderstatus a:hover {
+    color: rgb(90, 106, 145);
+    font-weight: bold;
+}
+
+hr {
+    color: #dba321;
+    border: 2px solid;
+    margin-bottom: 0%;
+    margin-top: 0%;
+    margin-right: 100%;
+    width: 50%;
+    /* position: inherit; */
+    /* z-index: 1; */
+    /* align-self: center; */
+}
+
+.statusbar > hr {
+    position: fixed;
+    margin-top: auto;
+}
+
+.split {
+    color: #dba321;
+    border: 1px solid;
+    /* position: unset; */
+    margin-top: 0%;
+    margin-bottom: 1%;
+    width: 99.9%;
+    /* align-self: center; */
+}
+
+@media only screen and (min-width: 1440px) {
+    .ListOfCustomerOrders {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: auto;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .orderId {
+        width: 200%;
+        height: 20%;
+    }
+    .orderinfo {
+        display: grid;
+        grid-template-columns: 2fr 0.5fr;
+        grid-template-rows: auto;
+    }
+
+    .bigScreen {
+        display: none;
+        grid-column: 1/3;
+        grid-row: 2/3;
+    }
+
+    .orderinfo p {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .MoreDetail a {
+        text-decoration: none;
+        font-size: 20px;
+    }
+
+    /* .navbar > .order {
+        height: 110%;
+        width: 100%;
+    } */
+}
+
+@media only screen and (max-width: 550px) {
+    .orderinfo {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    .orderId {
+        width: 300%;
+        height: 20%;
+    }
+
+    .MoreDetail {
+        width: 200%;
+    }
+
+    #orderstatus a {
+        font-size: 20px;
+    }
+}
+
+@media only screen and (max-width: 360px) {
+    .orderTime,
+    .Status,
+    .PickupLocation {
+        display: none;
+    }
+
+    ion-icon {
+        font-size: 25px;
+    }
+    .orderId {
+        width: 100%;
+        height: 20%;
+        right: unset;
+        margin: 0%;
+    }
+
+    .orderinfo p {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    #orderRelate {
+        width: 90%;
+        right: unset;
+    }
+
+    .MoreDetail a {
+        text-decoration: none;
+        font-size: 15px;
+    }
+}

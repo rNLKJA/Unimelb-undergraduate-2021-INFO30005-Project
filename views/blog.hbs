@@ -1,0 +1,82 @@
+<script>
+    // script use to generate random quote
+    const url = 'https://api.quotable.io/random'
+    function generateQuote() {
+            fetch(url)
+                .then(function (data) {
+                    return data.json();
+                })
+                .then(function (data) {
+                    document.getElementById("quote").innerHTML = data.content; 
+                    document.getElementById("author").innerHTML = " - " + data.author;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+    setInterval(generateQuote(), 10000);
+
+    function togglePopup() {
+            document.getElementById("popup-1").classList.toggle("active");
+        }
+</script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cookie&display=swap');
+</style>
+
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100&display=swap" rel="stylesheet">
+
+<div class="quote-box">
+    <div class="quote">
+        <div class="quoteq" id="quote">
+            Don't forget: life is a race, if you don't run fast, you'll get trampled
+        </div>
+        <div class="quoteq" id='author'>
+            - Anonymous
+        </div>
+    </div>
+</div>
+
+<div class="blog-container">
+    {{#each blog}}
+        <div class="content-box">
+            <p id="user">From : {{ this.customer_id }}</p>
+            <div class="blog-box">
+            
+                <p id="content">{{ this.content }}</p>
+            
+            </div>
+            <p id='date'>@ {{ this.date }}</p>
+        </div>
+    {{/each}}
+</div>
+
+
+
+<div class="popup" id='popup-1'>
+    <div class="overlay"></div>
+    <div class="blog-post-container">
+        <button class="close-btn" onclick="togglePopup()">&times;</button>
+        <form action="/customer/blog" class="post-blog" method="POST">
+            <input id='customer' type="hidden" name="customer_id" value="Anonymous">
+            <script>
+                const customer_id = sessionStorage.getItem('customer_id')
+                document.getElementById('customer').value = customer_id;
+            </script>
+            <textarea type="text" name="content" wrap="soft" placeholder="Share your story at here! Please enter less than 300 words." required></textarea>
+            <div class="btn">
+    
+                <button class='submit' type='submit'><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </form>
+    
+    </div>
+</div>
+
+
+
+
+<button class='show-btn' onclick='togglePopup()'><i class="fas fa-paper-plane"></i></button>
+

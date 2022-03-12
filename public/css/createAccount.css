@@ -1,0 +1,261 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
+    justify-content: center;
+    align-items: center;
+    background: url(https://source.unsplash.com/Cdz_lvnl37k);
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-family: "Noto Sans Kannada";
+    background-color: rgb(244, 243, 241);
+}
+
+a {
+    text-decoration: none;
+    text-align: center;
+    font-size: 12px;
+    font-weight: normal;
+    padding: 10px;
+    color: rgb(90, 106, 145);
+}
+
+a:hover {
+    color: rgb(90, 106, 185);
+}
+
+@media only screen and (min-width: 300px) {
+    .container {
+        position: absolute;
+
+        padding: 10px;
+
+        border: 10px;
+
+        margin-top: 20px;
+        margin-bottom: 20px;
+
+        width: 80%;
+        height: auto;
+        background-color: rgb(211, 211, 211);
+        opacity: 0.98;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        align-items: center;
+        text-align: left;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .container input[type="submit"] {
+        width: 100%;
+        margin-bottom: 20px;
+        border: none;
+        outline: none;
+        height: 40px;
+        background: #ffffff;
+        color: rgb(90, 106, 145);
+        font-size: 12px;
+        border-radius: 20px;
+    }
+
+    .container input[type="submit"]:hover {
+        cursor: pointer;
+        background: rgb(90, 96, 105);
+        opacity: 0.5;
+        color: #fff;
+    }
+
+    .container input[type="customer_id"],
+    input[type="password"],
+    input[type="name"] {
+        width: 100%;
+        margin-bottom: 20px;
+        border: none;
+        border-bottom: 1px solid #fff;
+        background: transparent;
+        outline: none;
+        height: 20px;
+        color: rgb(90, 106, 145);
+        font-size: 12px;
+    }
+
+    h2 {
+        text-shadow: 0 0 10px white;
+        text-align: center;
+        border-color: white;
+
+        color: rgb(219, 143, 1);
+    }
+
+    p {
+        color: rgb(90, 106, 145);
+    }
+
+    .error {
+        text-align: center;
+        color: red;
+        font-size: 14px;
+    }
+
+    #notes {
+        text-align: center;
+        font-size: 12px;
+        font-weight: normal;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .container {
+        position: absolute;
+
+        padding: 10px;
+
+        width: 50%;
+        height: auto;
+        background-color: rgb(211, 211, 211);
+        opacity: 0.98;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        align-items: center;
+        text-align: left;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .container input[type="submit"] {
+        width: 100%;
+        margin-bottom: 20px;
+        border: none;
+        outline: none;
+        height: 40px;
+        background: #ffffff;
+        color: rgb(90, 106, 145);
+        font-size: 12px;
+        border-radius: 20px;
+    }
+
+    .container input[type="submit"]:hover {
+        cursor: pointer;
+        background: rgb(90, 96, 105);
+        opacity: 0.5;
+        color: #fff;
+    }
+
+    .container input[type="customer_id"],
+    input[type="password"],
+    input[type="name"] {
+        width: 100%;
+        margin-bottom: 20px;
+        border: none;
+        border-bottom: 1px solid #fff;
+        background: transparent;
+        outline: none;
+        height: 20px;
+        color: rgb(90, 106, 145);
+        font-size: 14px;
+    }
+
+    h2 {
+        text-align: center;
+        color: rgb(219, 143, 1);
+    }
+
+    p {
+        color: rgb(90, 106, 145);
+    }
+
+    .error {
+        text-align: center;
+        color: red;
+        font-size: 14px;
+    }
+
+    #notes {
+        text-align: center;
+        font-size: 12px;
+        font-weight: normal;
+    }
+}
+
+@media only screen and (min-width: 1200px) {
+    .container {
+        position: absolute;
+
+        padding: 10px;
+
+        width: 388px;
+        height: auto;
+        background-color: rgb(211, 211, 211);
+        opacity: 0.98;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        align-items: center;
+        text-align: left;
+
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .container input[type="submit"] {
+        width: 100%;
+        margin-bottom: 20px;
+        border: none;
+        outline: none;
+        height: 40px;
+        background: #ffffff;
+        color: rgb(90, 106, 145);
+        font-size: 12px;
+        border-radius: 20px;
+    }
+
+    .container input[type="submit"]:hover {
+        cursor: pointer;
+        background: rgb(90, 96, 105);
+        opacity: 0.5;
+        color: #fff;
+    }
+
+    .container input[type="customer_id"],
+    input[type="password"],
+    input[type="name"] {
+        width: 100%;
+        margin-bottom: 20px;
+        border: none;
+        border-bottom: 1px solid #fff;
+        background: transparent;
+        outline: none;
+        height: 20px;
+        color: rgb(90, 106, 145);
+        font-size: 14px;
+    }
+
+    h2 {
+        text-align: center;
+        color: rgb(219, 143, 1);
+    }
+
+    p {
+        color: rgb(90, 106, 145);
+    }
+
+    .error {
+        text-align: center;
+        color: red;
+        font-size: 14px;
+    }
+
+    #notes {
+        text-align: center;
+        font-size: 12px;
+        font-weight: normal;
+    }
+}

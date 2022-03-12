@@ -1,0 +1,45 @@
+<script src=""></script>
+
+<div class='login-container'>
+    <img class="image" src="https://i.ibb.co/YNTskhx/van.png" alt="">
+
+
+    <h3 id="login-message">Snacks in a Van</h3>
+
+    {{#if loginMessage}}
+    <div class="error">{{loginMessage}}</div>
+    {{/if}}
+
+    <form action="/customer/login" method="POST">
+        <p>Snacker ID</p>
+        <input type="text" name="customer_id" placeholder="Please Enter Username" required>
+
+        <p>Password</p>
+        <input type="password" name="password" placeholder="Please Enter Password" required>
+        <input type="submit" value="Login">
+
+        <script type="text/javascript">
+            function forget_pw_alert() {
+                alert('To Change Your Password, Please Contact the Customer Service!')
+            }
+        </script>
+        <div>
+            <a class="link" href="" onclick=forget_pw_alert()>Forget your password?</a>
+        </div>
+        <div>
+            <a class="link" href="/customer/newSnacker">Don't have an account?</a>
+        </div>
+    </form>
+
+    <script>
+
+        // once return back to the login page, considered the customer has logged out
+        if (sessionStorage.getItem("customer_id")){
+            window.location.replace("/customer/logout")
+        }
+
+        sessionStorage.clear()
+        
+    </script>
+
+</div>

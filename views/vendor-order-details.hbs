@@ -1,0 +1,38 @@
+<div class="section-container">
+    {{> vendor-header van_name=van_name van_status=van_status}}
+    <script>
+        var vendor_id = sessionStorage.getItem("vendor_id")
+        function back() {
+            var vendor_id = sessionStorage.getItem("vendor_id")
+            window.location.replace("/vendor/" + vendor_id + "/outstanding")
+        }
+    </script>
+    
+    <section>
+        <div class="title-box">
+            <a class="navigation-button" id="home-btn-2" onclick=back()>
+                HOME
+            </a>
+            <p class="container-header" id="header-order">Order #{{thisOrder.0.order_id}}</p>
+        </div>
+    
+        <div class="details-container" id="info-container">
+            <div class="block details" id="info-block-details">
+                <p class="info-tag">Customer ID: {{thisOrder.0.customer_id}}</p>
+                <p class="info-tag">Van ID: {{thisOrder.0.van_id}}</p>
+                <p class="info-tag">Status: {{thisOrder.0.status}}</p>
+                <p class="info-tag">Order Date: {{thisOrder.0.order_date}}</p>
+                <p class="info-tag">Start Time: {{thisOrder.0.start_time}}</p>
+                {{!-- <p>Discount Time: {{thisOrder.0.discount_time}}</p> --}}
+            </div>
+            <div class="block items" id='info-item-block'>
+                <div class="order-items order-items-details" id="info-items-items">
+                    {{#each thisOrder.0.order_items}}
+                    <p class="item info-tag-1">{{this.food}} : {{this.quantity}}</p>
+                    {{/each}}
+                </div>
+                <p id="subtotal">Subtotal: ${{thisOrder.0.price}}</p>
+            </div>
+        </div>
+    </section>
+</div>

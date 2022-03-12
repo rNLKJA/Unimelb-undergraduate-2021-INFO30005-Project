@@ -1,0 +1,23 @@
+<section id="snackDetail">
+    <head>
+        <title>{{thisSnack.product}}</title>
+    </head>
+    <div class="top-navbar">
+        <img class="snack-image" src="https://i.ibb.co/YNTskhx/van.png" alt="">
+        <div class="snack-name">Snacks in a Van</div>
+    </div>
+
+    <div class = "back" style="margin-top: 100px;">
+        <a href = "/customer/menu">
+            <button class="back-btn" type="button">BACK</button>
+        </a>
+    </div>
+
+    <div class = "detail-item" style="margin-top: auto;">
+            <span class="detail-item-title">{{thisSnack.product}}</span>
+            <img class="detail-item-image" src="https://{{thisSnack.photo}}" width ="150" height="100">
+            <span class = "detail-item-price">Price: ${{thisSnack.price}}</span>
+            <span class = "detail-item-details">Description: {{thisSnack.description}}</span>
+    </div>
+
+</section>

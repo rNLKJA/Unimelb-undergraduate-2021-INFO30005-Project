@@ -1,0 +1,23 @@
+<script>
+    setTimeout(() => {
+        sessionStorage.setItem('customer_id', document.getElementById("customer_id").innerHTML)
+        window.location.replace('/customer/map');
+    }, 1680)
+</script>
+
+<div class='welcome'>
+    <img class="image" src="https://i.ibb.co/YNTskhx/van.png" alt="">
+
+    <h3>Wominjeka</h3>
+    <h2 id="customer_id">{{ customer_id }}</h2>
+    <h2>Snacks in a Van</h2>
+
+    {{!-- <script type="text/javascript">
+        sessionStorage.setItem('customer_id', document.getElementById("customer_id").innerHTML)
+    </script> --}}
+
+
+    {{!-- <a id="login" class='url' href="/customer/map"><button>Select a Van to Start</button></a> --}}
+   
+</div>
+

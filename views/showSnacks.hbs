@@ -1,0 +1,65 @@
+<div class="top-navbar">
+    <img class="snack-image" src="https://i.ibb.co/YNTskhx/van.png" alt="">
+    <div class="snack-name">Snacks in a Van</div>
+</div>
+
+
+<div class="navigation" id = "logout btn" style="display: none;">
+  
+	<a class="button-logout" href="/customer/logout">
+  	<img src="https://source.unsplash.com/1Kp3z9pdEsw/100x80">
+  
+    <div class="logout">LOGOUT</div>
+	</a>
+    
+</div>
+
+<script>
+    if (sessionStorage.getItem("customer_id")!=null){
+        const btn = document.getElementById("logout btn")
+        btn.style.display = "block"
+    }
+    const cart = JSON.parse(sessionStorage.getItem("cart"))
+
+
+    // if there exists some items in cart, menu page will redirect to cart automatically
+    if (cart && cart.length != 0){
+        window.location.replace("/customer/cart")
+    }
+
+</script>
+
+<section class="container content-section">
+
+
+    <div class="shop-items">
+
+        {{#each products}}
+
+        <div class="shop-item">
+            <img class="shop-item-image" src="https://{{this.photo}}" width="300" height="250">
+            <span class="shop-item-title">{{this.product}}</span>
+            <div class="shop-item-details">
+                <span class="shop-item-price">${{this.price}}</span>
+                <a href="/customer/menu/{{this.product}}">
+                    <button class="btn btn-primary shop-item-button" type="button">VIEW ITEM</button>
+                </a>
+            </div>
+        </div>
+
+        {{/each}}
+
+    </div>
+
+</section>
+
+<div>
+    <button class="open-button btn-primary popup" onclick="startOrder()">START ORDER</button>
+</div>
+
+<script>
+
+    function startOrder() {
+            window.location.replace('/customer/cart')
+    }
+</script>

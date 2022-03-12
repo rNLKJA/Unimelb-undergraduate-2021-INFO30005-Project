@@ -1,0 +1,132 @@
+body {
+    padding: 0;
+    margin: 0;
+    width: 1024px;
+    height: 768px;
+}
+
+.login-container {
+    padding: 0px;
+    width: 1024px;
+    height: 768px;
+    background: url(http://source.unsplash.com/gkUqL-g63V8);
+    background-color: white;
+    background-size: cover;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+h1 {
+    color: #fff;
+    font-family: PilGi;
+    font-size: 82px;
+    line-height: 25px;
+}
+
+h2 {
+    color: #fff;
+    font-family: PilGi;
+    font-size: 70px;
+    line-height: 25px;
+}
+
+.text-box {
+    width: 300px;
+    left: 600px;
+    top: 100px;
+    position: fixed;
+    align-items: center;
+    text-align: center;
+}
+
+.login-box {
+    display: grid;
+    grid-template-columns: 1;
+    grid-auto-rows: 1;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 60%;
+    width: 300px;
+    height: 200px;
+    background-color: none;
+}
+
+.login-box input[type="text"],
+input[type="password"] {
+    display: grid;
+    align-items: center;
+    width: 300px;
+    margin-bottom: 20px;
+    border: none;
+    border-bottom: 1px solid #fff;
+    background-color: white;
+    outline: none;
+    height: 40px;
+    color: rgb(90, 106, 145);
+    font-size: 16px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.login-box input[type="submit"] {
+    position: absolute;
+    width: 100%;
+    margin-bottom: 20px;
+    border: none;
+    outline: none;
+    height: 40px;
+    background: #ffffff;
+    color: rgb(90, 106, 145);
+    font-size: 20px;
+    border-radius: 20px;
+}
+
+.login-box input[type="submit"]:hover {
+    cursor: pointer;
+    background: rgb(90, 96, 105);
+    opacity: 0.5;
+    color: #fff;
+}
+
+.error {
+    padding: 0px;
+    color: red;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    top: 50%;
+    left: 45%;
+    position: fixed;
+}
+
+.login-button {
+    position: absolute;
+    width: 400px;
+    margin-bottom: 0px;
+    border: none;
+    outline: none;
+    height: 40px;
+    background: #ffffff;
+    color: rgb(90, 106, 145);
+    font-size: 20px;
+    border-radius: 20px;
+}
+
+.login-button:hover {
+    cursor: pointer;
+    background: rgb(90, 96, 105);
+    color: #fff;
+}
+
+.text-box1 {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: fixed;
+    width: 800px;
+    text-align: center;
+}

@@ -1,0 +1,472 @@
+.top-navbar {
+    position: fixed;
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 50px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    top: 0px;
+
+    background-color: #32312f;
+    background: url(https://source.unsplash.com/ukvgqriuOgo);
+    background-position: 50% 90%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+ion-icon {
+    font-size: 35px;
+}
+
+.top-navbar-container {
+    display: inline-flex;
+    width: 500px;
+    align-items: center;
+    justify-content: center;
+    border: rgba(255, 255, 255, 1) 2px double;
+    border-width: 5px;
+}
+
+.snake-name {
+    text-align: center;
+    margin: 0;
+
+    font-family: "Lucida Console";
+    font-weight: normal;
+    color: rgb(241, 241, 241);
+    grid-row: 1;
+    font-size: 40px;
+    padding-left: 20px;
+}
+
+.snake-image {
+    display: block;
+    margin: 0;
+    width: 50px;
+    height: 50px;
+    grid-row: 1;
+}
+
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    text-decoration: none;
+    margin: 0;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgb(247, 247, 247);
+}
+
+.location .blog .menu .order .profile {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    border: 5px;
+    height: 50px;
+    flex: 1;
+}
+
+.icon {
+    display: inline-block;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
+#location {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#blog {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#menu {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#order {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#profile {
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+.ext_link {
+    text-decoration: none;
+    color: black;
+}
+
+.location {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.blog {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.menu {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    cursor: pointer;
+}
+
+.order {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    cursor: pointer;
+}
+
+.profile {
+    width: 25%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 15px;
+    background-color: orange;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    /* background: url(https://source.unsplash.com/7Y0NshQLohk); */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-color: rgba(207, 207, 207, 0.2);
+}
+
+.ext_link {
+    text-decoration: none;
+    color: black;
+}
+
+.cust_profile {
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 5em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 1200px;
+    /* margin: 100px auto; */
+    padding: 0 1.5em;
+    height: 900px;
+    overflow-y: scroll;
+    margin-bottom: 150px;
+    margin-top: 110px;
+}
+
+input[type="submit"] {
+    width: 100%;
+    align-items: center;
+
+    background-color: #dba321;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: rgb(112, 130, 177);
+}
+
+.password-change {
+    border: 1px solid rgb(112, 130, 177);
+    display: grid;
+    grid-template-columns: 1fr;
+
+    width: 250px;
+    height: 300px;
+    justify-content: space-between;
+
+    font-size: 1em;
+    position: relative;
+    color: rgb(90, 106, 145);
+    font-weight: bold;
+    border: rgba(90, 106, 145, 0.3) 2px inset;
+    border-width: 5px;
+    border-radius: 15px;
+    margin: 5px;
+    padding: 5px;
+}
+
+.error {
+    padding-bottom: 20px;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+    position: relative;
+    color: rgb(255, 115, 0);
+    font-weight: bold;
+}
+
+.profile-img {
+    position: relative;
+    height: 250px;
+    width: 250px;
+    border-radius: 50%;
+    border: rgb(112, 130, 177) double 1px;
+    border-width: 5px;
+}
+
+.portfolio-img-change {
+    display: inline-block;
+    width: 300px;
+    height: 50px;
+    /* background-color: rgb(90, 106, 145); */
+    padding-top: 50px;
+    /* margin-top: 100px; */
+    text-align: center;
+    justify-content: center;
+    vertical-align: middle;
+    align-items: center;
+}
+
+i {
+    width: 45px;
+    height: 45px;
+    font-size: 35px;
+
+    color: orange;
+}
+
+.submit-1 {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+}
+
+i:hover {
+    color: rgb(112, 130, 177);
+}
+
+#img-url {
+    width: 200px;
+    line-height: 2em;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px rgb(90, 106, 145) solid;
+    /* border-top: 1px rgb(112, 130, 177) solid; */
+    border-radius: 5px;
+}
+
+.info {
+    display: block;
+    width: 100%;
+    font-weight: bold;
+    font-size: 1em;
+    color: rgb(90, 106, 145);
+    margin-bottom: 5px;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 5em;
+    position: relative;
+    padding-top: 20px;
+}
+
+.info button {
+    width: 20%;
+    background-color: #dba321;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.info button:hover {
+    background-color: rgb(112, 130, 177);
+}
+
+.change-img {
+    color: rgb(90, 106, 145);
+    font-size: 12px;
+}
+
+@media only screen and (min-width: 375px) {
+    .profile-img {
+        width: 180px;
+        height: 180px;
+    }
+
+    .portfolio-img-change {
+        margin-top: 20px;
+        padding: 0;
+        margin-bottom: 80px;
+        padding-bottom: 20px;
+    }
+
+    .info {
+        margin-bottom: 0px;
+        padding-bottom: 0;
+    }
+
+    .password-change {
+        border: 1px inset rgba(112, 130, 177, 0.4);
+    }
+
+    .cust-profile {
+        margin: 150px;
+    }
+
+    .snake-name {
+        line-height: 80px;
+        font-size: 24px;
+        padding-left: 10px;
+    }
+}
+
+/* @media only screen and (max-width: 800px) {
+    .top-navbar {
+        height: 60px;
+    }
+
+    ion-icon {
+        font-size: 30px;
+    }
+
+    .snake-name {
+        line-height: 80px;
+        font-size: 24px;
+        padding-left: 10px;
+    }
+
+    .info {
+        font-size: 80%;
+    }
+
+    .password-change {
+        font-size: 80%;
+    }
+
+    .info button {
+        width: 30%;
+    }
+
+    .top-navbar-container {
+        display: inline-flex;
+        width: 320px;
+        height: 60px;
+        align-items: center;
+        justify-content: center;
+        border: rgba(255, 255, 255, 1) 2px double;
+        border-width: 5px;
+    }
+
+    .profile-img {
+        width: 200px;
+        height: 200px;
+    }
+} */
+
+input {
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border-radius: 12px;
+}
+
+.boxes {
+    position: relative;
+    width: 242px;
+    padding: 0;
+    margin: 0;
+    padding-left: 5px;
+    border: none;
+    border-bottom: rgb(112, 130, 177) 1px solid;
+    border-radius: 4px;
+}
+
+form {
+    width: 100%;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+}
+
+.password-change {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    margin-bottom: 50px;
+}
+
+@media only screen and (min-width: 1024px) {
+    .cust_profile {
+        margin-top: 75px;
+        margin-bottom: 200px;
+        padding-top: 300px;
+        overflow-y: scroll;
+        height: 1000px;
+    }
+
+    .portfolio-img-change {
+        margin-bottom: 250px;
+    }
+
+    .portfolio-img {
+        padding-top: 200px;
+    }
+}
+
+@media only screen and (min-width: 1920px) {
+    .cust_profile {
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding-top: 250px;
+        height: 600px;
+    }
+
+    .portfolio-img-change {
+        margin-bottom: 250px;
+    }
+
+    .portfolio-img {
+        padding-top: 0px;
+    }
+}
+
+.password-change {
+    padding: 10px;
+}

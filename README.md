@@ -1,4 +1,4 @@
-<img align="center" style="width: 200px; height: 150px;" src="https://source.unsplash.com/K0WGia1XDJA">
+<img align="center" style="width: 100%" src="https://source.unsplash.com/K0WGia1XDJA">
 
 <a href="https://snacks-in-a-van-4399.herokuapp.com/"><img align="left" src="https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/public/images/van.png" width="6%"></a>
 # [Web Information Technologies](https://handbook.unimelb.edu.au/2021/subjects/info30005) :: Group 4399

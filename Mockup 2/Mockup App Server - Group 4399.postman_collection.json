@@ -1,0 +1,312 @@
+{
+	"info": {
+		"_postman_id": "9bab1c83-ba96-44ab-87f6-80efb6c636af",
+		"name": "Mockup App Server - Group 4399",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Customer task 1 : View menu of snacks (including pictures and prices)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/customer/menu",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"customer",
+						"menu"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer task 2 : View details of a snack Cappuccino",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Cappuccino",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"customer",
+						"menu",
+						"Cappuccino"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer task 3 : Customer starts a new order by requesting a snack",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"van_id\" : \"Elsie Julie\",\n    \"cart\" : {\n        \"Flat White\" : 3,\n        \"Small Cake\" : 2,\n        \"Plain Biscuit\" : 2,\n        \"Fancy Biscuit\" : 5 \n    },\n    \n    \"confirm\" : true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/customer/RU3777776/cart",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"customer",
+						"RU3777776",
+						"cart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer task 3 : Customer starts a new order by requesting a snack (without push to database)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"van_id\" : \"Elsie Julie\",\n    \"cart\" : {\n        \"Flat White\" : 3,\n        \"Small Cake\" : 2,\n        \"Plain Biscuit\" : 1,\n        \"Fancy Biscuit\" : 5,\n        \"Latte\" : 20 \n    },\n    \n    \"confirm\" : false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/customer/RU3777776/cart",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"customer",
+						"RU3777776",
+						"cart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 1 : Setting van status (vendor sendslocation,marksvan as ready-for-orders)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"_id\": \"607954ba3d56fb1c3bdc867a\",\r\n        \"Van_id\": \"Genevieve Adele\",\r\n        \"x_coord\": \"127.11254\",\r\n        \"y_coord\": \"-36.63644\",\r\n        \"address\": \"hehe\",\r\n        \"status\": \"0\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/setStatus",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"setStatus"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 1.1 : Setting van location",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"_id\": \"607954ba3d56fb1c3bdc867a\",\r\n        \"Van_id\": \"Genevieve Adele\",\r\n        \"x_coord\": \"127.11254\",\r\n        \"y_coord\": \"-36.63644\",\r\n        \"address\": \"hehe\",\r\n        \"status\": \"0\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/Genevieve Adele/setLocation",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"Genevieve Adele",
+						"setLocation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 1.2 : mark a  van is ready-for-order",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/Gwendolyn Cecilia/turnOn",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"Gwendolyn Cecilia",
+						"turnOn"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 1.3 : mark a  van is off",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/Gwendolyn Cecilia/turnOff",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"Gwendolyn Cecilia",
+						"turnOff"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 2 1: Show list of all outstanding orders by van id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/Elsie Julie/outstanding",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"Elsie Julie",
+						"outstanding"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 2 2: Show list of ALL outstanding orders",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/AllOrders",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"AllOrders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Vendor task 3 : Mark an orderas \"fulfilled\" (ready to be picked up by customer)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"order_id\" : \"ARD4391846\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://snacks-in-a-van-4399.herokuapp.com/vendor/Phyllis Jeanette/changeStatusToFulfilled",
+					"protocol": "https",
+					"host": [
+						"snacks-in-a-van-4399",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"vendor",
+						"Phyllis Jeanette",
+						"changeStatusToFulfilled"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

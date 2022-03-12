@@ -1,0 +1,84 @@
+<div class="header-container">
+    {{!-- <a class="navigation-button header-element" href = "/vendor/{{van_name}}/details/">REFRESH</a> --}}
+    <button class="navigation-button header-element" onclick = "location.reload()">REFRESH</button>
+    <div id="van_id"><p class="container-header" id="van_id_1">{{van_name}}</p></div>
+    <button class="navigation-button header-element" onclick="locationUpdate('{{van_name}}')">Update Location</button>
+    <form id='ratingForm'>
+        <input type="text" id="location" name="location" placeholder="Enter Current Location">        
+    </form>
+    {{#if van_status}}
+    <p id="status" class="container-header" >STATUS: OPEN</p>
+    {{else}}
+    <p id="status" class="container-header">STATUS: CLOSED</p>
+    {{/if}}
+    <button class="header-element header-username navigation-button" onclick="toggleVanStatus('{{van_name}}', '1')">OPEN</button>
+    <button class="header-element header-username navigation-button" onclick="toggleVanStatus('{{van_name}}', '0')">CLOSE</button>
+    {{!-- <a class="navigation-button header-element" href = "/vendor/orderSearch/">SEARCH</a> --}}
+    <button class="header-element header-username navigation-button" onclick="logout()">LOGOUT</button>
+</div>
+
+<script>
+    var updated = false
+    function toggleVanStatus(van_name, new_status) {
+        if (updated == false){
+            return alert('You need update location first')
+        }
+        else{
+            const xhr = new XMLHttpRequest()
+            var path = "/vendor/setStatus/"
+            var data = {"van_id" : van_name, "status" : new_status}
+            var status
+            xhr.open("POST", path, true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.send(JSON.stringify(data))
+            if(new_status == "0") {
+                status = "CLOSED"
+                alert('Van Offline!')
+                updated = false
+            } else {
+                status = "OPEN"
+                alert('Van Online!')
+            }
+            document.getElementById('status').innerHTML = "STATUS: " + status
+        }
+        //location.reload()
+    }
+
+    function logout() {
+        window.location.replace("/vendor/logout");
+    }
+
+    function getVanCoords() {
+        return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject)
+        }
+        )    
+    }
+
+    async function locationUpdate(van_id){
+        let position = await getVanCoords();
+        try {
+            const xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.status == 200) {
+                    console.log("posted")
+                }
+            }
+            var data = {
+                "van_lat": position.coords.latitude,
+                "van_lng": position.coords.longitude,
+                "address": document.getElementById('location').value
+            }
+            console.log(data)
+            data = JSON.stringify(data)
+            xhr.open("POST", '/vendor/'+van_id+'/getLocation',  true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.send(data)
+            alert("Location updated")
+            updated = true;
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+</script> 

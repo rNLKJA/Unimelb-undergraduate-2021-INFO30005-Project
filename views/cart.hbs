@@ -1,0 +1,66 @@
+<script type="text/javascript" src="/cartController.js"></script>
+
+<div class="top-navbar">
+    <img class="snack-image" src="https://i.ibb.co/YNTskhx/van.png" alt="">
+    <div class="snack-name">Snacks in a Van</div>
+</div>
+
+
+<section class="container content-section">
+    <div class="shop-items">
+
+        {{#each products}}
+
+        <div class="shop-item">
+            <img class="shop-item-image" src="https://{{this.photo}}" width="300" height="200">
+            <a href="/customer/menu/{{this.product}}"><span class="shop-item-title">{{this.product}}</span></a>
+            <div class="shop-item-details">
+                <span class="shop-item-price">${{this.price}}</span>
+                <button class="btn btn-primary shop-item-button" type="button"><ion-icon name="add-outline"></ion-icon></button>
+            </div>
+        </div>
+
+        {{/each}}
+
+    </div>
+
+</section>
+
+
+<div class="open-button btn-primary popup" id="openbtn" onclick="openCart()">
+
+    <ion-icon name="cart"></ion-icon>
+    <div class = "nav-counter nav-counter-blue" style="display: none;">0</div>
+</div>
+
+
+<section class="content-section-cart" id='Cart'>
+    <h2 class="section-header">CART</h2>
+    <hr>
+    <div class="cart-items">
+        <ul class="item-rows">
+
+        </ul>
+    </div>
+    
+    <div class="cart-footer">
+        <div class="cart-total">
+            <div class="cart-total-title">Total</div>
+            <span class="cart-total-price">$0</span>
+        </div>
+        <button class="btn btn-purchase" type="button"><ion-icon class="purchase" style="font-size: 25px;" name="bag-check-outline"></ion-icon></button>
+        <button type="button" class="cancel-btn" id="closebtn" onclick="closeCart()"><ion-icon class="purchase" style="font-size: 25px;" name="close-outline"></ion-icon></button>
+    </div>
+</section>
+
+<script>
+    function openCart() {
+        document.getElementById("Cart").style.display = "block";
+        document.getElementById("openbtn").style.display = "none";
+    }
+
+    function closeCart() {
+        document.getElementById("Cart").style.display = "none";
+        document.getElementById("openbtn").style.display = "block";
+    }
+</script>

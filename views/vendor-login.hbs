@@ -1,0 +1,32 @@
+<div class="login-container">
+    <div class="text-box">
+        <h2>Snacks</h2>
+        <h2>in a</h2>
+        <h2>Van</h2>
+    </div>
+
+    
+
+    <div class="login-box">
+        <form action="/vendor/login" method="POST">
+            <input type="text" name="van_id" placeholder="Please Enter Van ID" required>
+            <input type="Password" name="password" placeholder="Please Enter Password" required>           
+            <input type="submit" value="Login"> 
+        </form>
+    </div>
+</div>
+
+{{#if error6}}
+        {{>login_error6}}
+{{/if}}
+
+<script>
+    // once return back to the login page, considered the vendor has logged out
+
+    if (sessionStorage.getItem('vendor_id')){
+
+        sessionStorage.clear()
+        window.location.replace("/vendor/logout")
+    }
+    sessionStorage.clear()
+</script>

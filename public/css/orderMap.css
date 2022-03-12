@@ -1,0 +1,173 @@
+/* body */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* temp h1 */
+h1 {
+    text-align: center;
+    color: orange;
+}
+
+/* map */
+#map {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    margin: 10px solid orange;
+    padding: 10px solid orange;
+    height: calc(100% - 200px);
+    width: 90%;
+    top: 50px;
+    left: 50%;
+    transform: translate(-50%);
+    border-radius: 10px;
+}
+
+.notice {
+    position: absolute;
+    top: 65px;
+    color: orange;
+    text-align: center;
+    font-family: "Oriya MN";
+    align-items: center;
+    width: 100%;
+    font-size: 12px;
+}
+
+.close {
+    position: absolute;
+    align-items: center;
+    align-self: center;
+    justify-content:center;
+    justify-items: center;
+    left: 50%;
+    transform: translate(-50%);
+    bottom: 90px
+}
+
+/* navigation bar */
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    text-decoration: none;
+    margin: 0;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgb(247, 247, 247);
+}
+
+.location .blog .menu .order .profile {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    border: 5px;
+    height: 50px;
+    flex: 1;
+}
+
+.icon {
+    display: inline-block;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
+#location {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#blog {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#menu {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#order {
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+#profile {
+    font-size: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Oriya MN";
+}
+
+.ext_link {
+    text-decoration: none;
+    color: black;
+}
+
+.location {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.blog {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.menu {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.order {
+    width: 25%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 15px;
+    background-color: orange;
+    vertical-align: middle;
+}
+
+.profile {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+    font-size: 16px;
+    font-family: "Segoe UI";
+}
+
+ion-icon {
+    font-size: 35px;
+}
+
+@media only screen and (min-width: 384px) {
+    #map {
+    }
+}

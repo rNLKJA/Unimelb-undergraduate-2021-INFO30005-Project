@@ -1,0 +1,34 @@
+<div class="header-container">
+    <div class="processing">
+        <a onclick=linkJump('processingOrder')>
+            <ion-icon class="order-icon" name="fast-food-outline"></ion-icon>
+            <span class="inbox-text"> Processing </span>
+        </a>
+    </div>
+
+    <div class="completed">
+        <a onclick=linkJump('completedOrder')>
+            <ion-icon class="order-icon" name="checkmark-circle-outline"></ion-icon>
+            <span class="inbox-text"> Completed </span>
+        </a>
+    </div>
+</div>
+
+
+<script>
+    function linkJump(orderType){
+    if (sessionStorage.getItem("customer_id") != null){
+        const url = window.location.pathname
+        const urlArray = url.split("/")
+        customer_id = urlArray[urlArray.length - 2]
+        if (customer_id == sessionStorage.getItem("customer_id")){
+            window.location.href = `/customer/${customer_id}/${orderType}`
+        }else{
+            alert('unexpect Id!')
+        }
+    }else{
+            alert('log in needed!')
+            window.location.href = '/customer/login'
+    }
+    }
+</script>

@@ -1,0 +1,24 @@
+
+{{> header}}
+<h2>Hello world</h2>
+<p>Welcome</p>
+
+<!-- express handlebars built in helpers-->
+
+{{#if statement}}
+    <p>display name {{ name }}</p>
+
+    {{ else }}
+    <p>No name found!</p>    
+
+{{/if}}
+
+{{ date }}
+
+<p>{{calculation 50}}</p>
+
+{{#list people}}
+    {{firstName}} {{lastName}}
+{{/list}}
+
+{{> footer}}

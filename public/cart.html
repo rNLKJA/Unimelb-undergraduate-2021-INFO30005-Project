@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Snack in a Van</title> 
+    <link rel="shortcut icon" type="image/png/svg" href="https://img.icons8.com/cotton/2x/van.png">
+    <link rel="stylesheet" href="../css/cartstyle.css">
+    <script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div></div>
+        <nav>
+            <h2>Snacks in a Van 4399</h2>
+            <ul>
+                <li><a href="./index.html">Home</a></li>
+                <li class="cart">
+                    <a href="./cart_index.html">Cart <span>0</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="products-container">
+        <div class="product-header">
+            <h5 class=product-title>PRODUCT</h5>
+            <h5 class="price">PRICE</h5>
+            <h5 class="quantity">QUANTITY</h5>
+            <h5 class="total">TOTAL</h5>
+        </div>
+
+        <div class="products">
+
+        </div>
+    </div>
+
+
+    <script src="../js/cart.js"></script>
+
+    <div class="button-container">
+        <button class="checkout" onclick=generateOrder()>Checkout</button>
+    </div>
+</body>
+
+</html>

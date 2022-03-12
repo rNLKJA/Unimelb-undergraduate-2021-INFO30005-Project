@@ -1,0 +1,78 @@
+body 
+{
+	background-image:url('../../src/customer_login.jpg');
+    background-repeat: no-repeat;
+    background-attachment:fixed;
+    /* background-size: 100% 100%; */
+}
+
+div.welcome {
+    position:fixed;
+    /* bottom:200px; */
+    top: 150px;
+    right:0;
+    left: 200px;
+}
+
+div.welcome1{
+    position:fixed;
+    /* bottom:200px; */
+    top: 150px;
+    right:0;
+    left: 200px; 
+}
+
+div.welcome2{
+    position:fixed;
+    /* bottom:200px; */
+    top: 200px;
+    right:0;
+    left: 200px; 
+}
+
+div.info-email {
+    position:fixed;
+    top: 420px;
+    left: 130px;
+}
+
+div.info-passwd {
+    position:fixed;
+    top: 540px;
+    left: 130px;
+}
+
+div.signin {
+    position:fixed;
+    top:655px;
+    left:309px;
+}
+
+.title1 {
+    color: #DBA321;
+    font-size: 40px;
+    font-family: "PilGi";
+}
+
+.title2 {
+    color: #DBA321;
+    font-size: 30px;
+    font-family: "Noto Sans Kannada";
+}
+
+input {
+    background-color: transparent;
+    border: 0px solid;
+    height: 35px;
+    font-size: 18px;
+}
+
+button {
+    background-color: transparent;
+    border: 0px solid;
+    /* margin: 20px 0px; */
+    font-size: 25px;
+    font-family: "Segoe UI Historic";
+    color: white;
+    cursor: pointer;
+}

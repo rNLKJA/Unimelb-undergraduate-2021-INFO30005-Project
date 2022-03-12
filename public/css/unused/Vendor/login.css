@@ -1,0 +1,42 @@
+body {
+    background-image: url('../../src/vender_login.jpg');
+    background-repeat: no-repeat;
+}
+
+input {
+    background-color: transparent;
+    border: 0px solid;
+    height: 35px;
+    font-size: 20px;
+    font-family: "GungSeo";
+
+}
+
+button {
+    background-color: transparent;
+    border: 0px solid;
+    padding: 9px 45px;
+    /* margin: 20px 0px; */
+    font-size: 25px;
+    font-family: "Segoe UI Historic";
+    color: #408499;
+    cursor: pointer;
+}
+
+div.info-email {
+    position: fixed;
+    top: 420px;
+    left: 597px;
+}
+
+div.info-passwd {
+    position: fixed;
+    top: 498px;
+    left: 597px;
+}
+
+div.signin {
+    position: fixed;
+    top: 570px;
+    left: 640px;
+}

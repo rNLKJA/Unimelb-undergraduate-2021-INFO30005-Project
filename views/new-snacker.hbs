@@ -1,0 +1,47 @@
+<div class="container">
+    <div class='welcome header'>
+        <h2>Welcome, our NEW Snacker!</h2>
+    </div>
+
+    <form action="/customer/newSnacker" , method="POST">
+        <p>First Name</p>
+        <input type="name" name="first_name" placeholder="Please Enter Your First Name" required>
+
+        <p>Last Name</p>
+        <input type="name" name="last_name" placeholder="Please Enter Your Last Name" required>
+
+        {{#if error5}}
+        {{>login_error5 }}
+        {{/if}}
+
+        <p>Email / Customer ID</p>
+        <input type="customer_id" name="customer_id" placeholder="Please Enter Your Email as Your Login ID" required>
+
+        {{!-- error 4 2 passwords are not the same --}}
+        {{#if error4}}
+        {{>login_error4 }}
+        {{/if}}
+
+        {{#if error7}}
+        {{>login_error7}}
+        {{/if}}
+
+        <p>Password with Minimum Length 8 with any punctuation</p>
+        <input type="password" name="password1" placeholder="Please Enter the Password" minlength="8" required>
+
+        <p>Confirm Your Password</p>
+        <input type="password" name="password2" placeholder="Please Confirm the Password" minlength="8" required>
+
+        <input type="submit" value="Create a New Account">
+
+    </form>
+
+    <hr>
+
+    <p id='notes'>The page will automatically jump to the Login Page if nothing goes wrong ~ </p>
+
+    <hr>
+
+    <a href="/customer/login">Already have account? Click here to login!</a>
+
+</div>

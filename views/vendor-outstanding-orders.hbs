@@ -1,0 +1,191 @@
+<div class="section-container">
+    {{> vendor-header van_name=van_name_id van_status=van_status}}
+    
+    <div class="body">
+        <div class="order-hist-section">
+            <p class="container-header">ORDER HISTORY</p>
+            <div class="history-container container-main">
+                {{#each all-orders}}
+                <div class="item" id="order-display-box">
+                    <a class="history-item" href="/vendor/Allorders/{{this.order_id}}">{{this.order_id}}</a>
+                    <div class="item-info">{{this.customer_id}}</div>
+                    <div class="item-info">{{this.order_date}}</div>
+                    <div class="item-info">{{this.start_time}}</div>
+                    <div class="item-info">{{this.status}}</div>
+                    <br>
+                </div>
+                {{/each}}
+            </div>
+            <a class="navigation-button" id="view-all-order" href="/vendor/orderList">SEE ALL</a>
+        </div>
+    
+        <div class="outstanding-section">
+            {{!-- <p class="section-header">Outstanding Orders</p> --}}
+            <p class="container-header">OUTSTANDING ORDERS</p>
+            <div class="container-container">
+                <div class="outstanding-container">
+                    {{#each outstanding-orders}}
+                    <div class="outstanding-item">
+                        <a class="navigation-button" id="order-id" href="/vendor/Allorders/{{this.order_id}}/">ORDER
+                            {{this.order_id}}</a>
+                        <p class="item" id="customer_id">{{this.customer_id}}</p>
+                        <p class="item" id="order_date">{{this.order_date}}</p>
+                        <p class="item" id="order_time">Order Time {{this.start_time}}</p>
+                        <p class="item" id="discount_time">Discount Time {{this.discount_time}}</p>
+                        <div class="order-items order-items-outstanding" id="order-items-box">
+                            <p class="item" id="items-1">Items:</p>
+                            {{#each this.order_items}}
+                            <p class="item" id="items-items">{{this.food}} : {{this.quantity}}</p>
+                            {{/each}}
+                        </div>
+                        {{!-- <p class="item">Subtotal {{this.price}}</p> --}}
+                        <div class="item">
+                            <p id={{@index}}>Check Order Status</p>
+                            {{!-- <p id="countdown">10M Remaining</p> --}}
+                        </div>
+                
+                
+                        <button class="navigation-button" id="fulfilled"
+                            onclick="changeStatus('{{../van_name_id}}', '{{this.order_id}}', 'fulfilled', '{{this.status}}', {{@index}})">
+                            <i class="fas fa-check-square"></i> &nbsp Fulfilled
+                        </button>
+                        <button class="navigation-button" id="delivered"
+                            onclick="changeStatus('{{../van_name_id}}', '{{this.order_id}}', 'collected', '{{this.status}}', {{@index}})">
+                            <i class="fas fa-truck"></i> &nbsp Delivered
+                        </button>
+                
+                        <p class="item" id="status{{@index}}">Status: {{this.status}}</p>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    
+    const fulfilBtn = document.getElementById('fulfil')
+    const collectBtn = document.getElementById('collect')
+
+    function changeStatus(van_name, order_id, new_status, current_status, order_index) {
+        const xhr = new XMLHttpRequest()
+
+        if(new_status == "fulfilled") {
+            if(current_status == "outstanding") {
+                var path = "/vendor/" + van_name + "/changeStatusToFulfilled/"
+            } else {
+                return
+            }
+        } else if (new_status == "collected") {
+            if(current_status == "fulfilled") {
+                var path = "/vendor/" + van_name + "/changeStatusToCollected/"
+            } else {
+                return
+            }
+        }
+        var data = {"order_id" : order_id}
+
+        xhr.open("POST", path, true)
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.send(JSON.stringify(data))
+
+        if(new_status == "fulfilled") {
+            alert(order_id + ' Fulfilled!')
+        } else if(new_status == "collected") {
+            alert(order_id + ' Collected!')
+        }
+
+        location.reload()
+        
+        //document.getElementById("status" + order_index).innerHTML = "Status: " + new_status;
+    }
+
+    function tester(order_id) {
+        const xhr = new XMLHttpRequest()
+        var path = "/vendor/" + order_id + "/markOrderAsDiscounted"
+        var data = {"order_id" : order_id}
+        xhr.open("POST", path, true)
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.send(JSON.stringify(data))
+    }
+
+    if (document.getElementById("status0") === "Status: fulfilled") {
+        document.getElementById('0') = "The order has been fulfilled"
+    }
+
+    onload = function() {
+
+
+        setInterval(function(){
+            var clock = new Date()
+            var list = {{{orders}}}
+            for(i=0;i<list.length;i++) {
+                var block = document.getElementById(i)
+
+                //var current = clock.getSeconds()
+                var due_time_split = list[i].discount_time
+
+                var today = new Date()
+                // since the server is at US, we need to add 10 to hour
+                var hour = today.getUTCHours()
+                if (0 < hour && hour < 14) {
+                    hour += 10
+                } else if (14 < hour && hour < 24) {
+                    hour -= 10
+                } else {
+                    hour = 0
+                }
+
+                var current_seconds = parseInt(hour, 10) * 60 * 60 + parseInt(today.getMinutes(), 10) * 60 + parseInt(today.getSeconds(), 10)
+                
+                var start_time = list[i].start_time
+                var start_time = start_time.split(":")
+                var order_date = list[i].order_date
+
+                current_date = today.getDate() + "-" + (today.getMonth() + 1) + "-" + today.getFullYear()
+
+                var start_seconds;
+                start_seconds = parseInt(start_time[0], 10) * 60 * 60 + parseInt(start_time[1], 10) * 60 + parseInt(start_time[2])
+
+                var due_seconds; 
+                due_seconds = parseInt(due_time_split.split(":")[0], 10) * 60 * 60 + parseInt(due_time_split.split(":")[1], 10) * 60 + parseInt(due_time_split.split(":")[2])
+
+                
+
+                var minute_due = due_time_split[1]
+
+                if(current_seconds <= due_seconds && current_date === order_date) {
+                    var mins_remaining = Math.round(((due_seconds - current_seconds) / 60))
+                } else {
+                    var mins_remaining = 0
+                }
+
+                if(list[i].status == "outstanding") {
+                    if(mins_remaining <= 0) {
+                        block.innerHTML = "This Order is Overdue"
+                        /*if(list[i].discount_applied == false) {
+                            const xhr = new XMLHttpRequest()
+                            var path = "/vendor/" + list[i].order_id + "/markOrderAsDiscounted"
+                            var data = {"order_id" : list[i].order_id}
+                            xhr.open("POST", path, true)
+                            xhr.setRequestHeader("Content-Type", "application/json")
+                            xhr.send(JSON.stringify(data))
+                            alert('Discount Applied to Order ID: ' list[i].order_id + ' ' + list[i].customer_id)
+                        }*/
+                    } else {
+                        if(list[i].discount_applied == false) {
+                            block.innerHTML = mins_remaining + " Minutes Remaining"
+                        } else if(list[i].discount_applied == true) {
+                            block.innerHTML = "This Order is Overdue"
+                        }
+                    }
+                }
+            }
+        }, 1000)
+
+        setInterval(function() {
+            location.reload()
+        }, 60000)
+    }
+</script>

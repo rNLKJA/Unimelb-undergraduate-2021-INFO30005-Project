@@ -1,0 +1,60 @@
+<h2>Welcome to the contact page</h2>
+
+{{#each people}} <!-- each people -->
+    <p>{{this}}</p> <!-- via using this object statement, or -->
+    
+{{/each}}
+
+<hr>
+
+{{#each people}} <!-- each people -->
+
+    <p>{{.}}</p>
+{{/each}}
+
+<hr>
+
+{{#each people as |value key|}} <!-- each people -->
+    <p>{{key}}</p> <!-- key is the index of the object / element in an array -->
+    <p>{{value}}</p>
+{{/each}}
+
+<hr>
+
+{{#each user}}
+    <!-- print key of a object -->
+    {{@key}} 
+    {{!-- print value of a object --}}
+    {{this}}
+{{/each}}
+
+<hr>
+
+{{#each lists}}
+    {{!-- use the log to check the object value --}}
+    {{log this}}
+
+    {{!-- this.items only access the value --}}
+    {{#each this.items}}
+        {{!-- this statement is vague --}}
+        <p>{{this}}</p>
+    {{/each}}
+{{/each}}
+
+<hr>
+
+{{#each lists as |xValue xkey|}}
+    {{!-- provide a new name for this object --}}
+    {{#each xValue.items as |yValue yKey|}}
+        <p>{{yValue}}</p>
+    {{/each}}
+{{/each}}
+
+<hr>
+
+{{#each lists as |xValue xkey|}}
+    {{!-- using slash to access the value --}}
+    {{#each xValue/items as |yValue yKey|}}
+        <p>{{yValue}}</p>
+    {{/each}}
+{{/each}}

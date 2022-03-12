@@ -40,11 +40,11 @@ Last commit at 30th May 2021 : _4cc0648c1125916172a025ad51c22fe987dc2e3b_
 
 | Participant | Main Task |
 | :----: | :---- | 
-| Bin | Deliverable 2: Database Schema Design<br>Deliverable 2: View details of a snack <br> Deliverable 2: Mark an order as "fullfilled" (ready to picked up by customer) <br> Deliverable 3: View Order Details <br> Deliverable 4: View Completed Order - Customer <br> Bouns 3: Rating Function| 
-| Declan | Deliverable 1: Customer App Foundation Design <br> Deliverable 2 & 3: View menu of snacks (including pictures and prices) CSS <br> Deliverable 4: Customer Profile Page <br> Deliverable 4: Vendor Order Search Function <br> Project Report <br> Application Test Functions| 
-| Khin | Deliverable 1: Customer App Foundation Design, Mockup Annotations<br> Deliverable 2: Customer starts a new order by requesting a snack <br> Deliverable 4: Vendor outstanding order page <br> Deliverable 4: History page <br> Deliverable 4: Order Details <br>| 
+| [Bin](https://github.com/BinLiang-Eric) | Deliverable 2: Database Schema Design<br>Deliverable 2: View details of a snack <br> Deliverable 2: Mark an order as "fullfilled" (ready to picked up by customer) <br> Deliverable 3: View Order Details <br> Deliverable 4: View Completed Order - Customer <br> Bouns 3: Rating Function| 
+| [Declan](https://github.com/djgannon) | Deliverable 1: Customer App Foundation Design <br> Deliverable 2 & 3: View menu of snacks (including pictures and prices) CSS <br> Deliverable 4: Customer Profile Page <br> Deliverable 4: Vendor Order Search Function <br> Project Report <br> Application Test Functions| 
+| [Khin](https://github.com/kvliew) | Deliverable 1: Customer App Foundation Design, Mockup Annotations<br> Deliverable 2: Customer starts a new order by requesting a snack <br> Deliverable 4: Vendor outstanding order page <br> Deliverable 4: History page <br> Deliverable 4: Order Details <br>| 
 | Rin | Deliverable 1: Vendor App Design, Customer App Design optimization <br> Deliverable 2: Customer starts a new order by requesting a snack <br> Deliverable 2: Show list of all outstanding orders <br> Deliverable 3 & 4: Customer Login, Vendor Login <br> Bouns 1 & 2: Map function, Blog Function <br> Deliverable 4: Vendor CSS Refine|
-| Eric | Deliverable 1: Customer App Design optimization  <br> Deliverable 2: Setting van status <br> Deliverable 3: Order three different snacks <br> Deliverable 4: More cart function and CSS <br> Deliverable 4: Password encryption improvement (security practice) <br> Deliverable 4: Application of passport-local strategies and router authenticating management|
+| [Eric](https://github.com/EcZww) | Deliverable 1: Customer App Design optimization  <br> Deliverable 2: Setting van status <br> Deliverable 3: Order three different snacks <br> Deliverable 4: More cart function and CSS <br> Deliverable 4: Password encryption improvement (security practice) <br> Deliverable 4: Application of passport-local strategies and router authenticating management|
 
 ---
 

@@ -1,0 +1,47 @@
+{{>order_header_bar}}
+<div class="ListOfCustomerOrders">
+    {{#each orders}}
+    <div class='orderinfo'> 
+        <section id='orderRelate'> 
+        <div class="orderId">
+            <p>Order ID:{{this.order_id}}</p>
+        </div> 
+        <div class="orderTime">
+            <p>Ordered On {{this.order_date}}</p>
+        </div>
+        <div class="Status">
+            <p>Status: {{this.status}}</p>
+        </div>
+        <div class="PickupLocation">
+            <p>Pick up Location: {{this.address}}</p>
+        </div>
+        </section>
+        <section id='detailLink'>
+        <div class="MoreDetail">
+        <p>
+            <a href="/customer/{{this.customer_id}}/{{this.order_id}}")><ion-icon name="cart-outline"></ion-icon>Detail</a>
+        </p> 
+        <p> 
+            <a href="/customer/{{this.customer_id}}/{{this.order_id}}/map"><ion-icon name="navigate-outline"></ion-icon>Map</a>
+        </p>
+        </div>
+        </section>
+        <div class="bigScreen">
+            <hr class='split'>
+            <div class="orderDetail">
+                <div class="orderDetailtitle">
+                    <p>Order Details:</p>    
+                </div>
+                <table>
+                    {{#each this.order_items}}
+                    <tr><td>{{this.food}}</td><td>&times;{{this.quantity}}</td></tr>
+                    {{/each}}
+                </table>
+                <div class='Price'>
+                <p>Total Price: ${{this.price}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</div>

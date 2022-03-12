@@ -1,0 +1,160 @@
+<script>
+
+    if (sessionStorage.getItem("user_lat") === null) {
+        alert("Please Select a Van Before Start Your Order (❁´▽`❁)*✲ﾟ* \n\nClick the ORANGE Check Buttom to Confirm the Van Location \n\nIf the your location or vans location doesn't appear right, please click the Orange Refresh Bottom TWICE until the right location displayed")
+    }
+    
+</script>
+
+<div class="header">
+    <div class="search-box">
+
+        <form id="search_van" action="/customer/map" method="POST">
+            <a href="javascript: {}" onclick="document.getElementById('search_van').submit()" class='refresh-btn'>
+                <ion-icon id='refresh' name="refresh"></ion-icon>
+            </a>
+
+            <select name="selected_van" id="selected_van">
+                <optgroup>
+                    {{#each vans}}
+                    <option value="{{this.content}}">{{this.content}}</option>
+                    {{/each}}
+                </optgroup>
+            </select>
+
+
+
+            <input type="hidden" id="user_lat" name="user_lat" , value="0">
+            <input type="hidden" id="user_lng" name="user_lng" , value="0">
+
+            <a href="javascript: {}" onclick="document.getElementById('search_van').submit();" class="confirm_btn">
+                <i id="search-btn" class="far fa-check-circle"></i>
+            </a>
+        </form>
+
+    </div>
+
+</div>
+
+{{#if set_location}}
+<script>
+    sessionStorage.setItem("selected_van", "{{ selected_van }}")
+
+</script>
+{{/if }}
+
+
+<p class='notice'>⚠️ Click the Refresh Button Twice to View the Nearest Vans</p>
+
+<div id="map">
+</div>
+
+{{!-- <script>
+    function wait(ms) {
+        var start = new Date().getTime();
+        var end = start;
+        while (end < start + ms) {
+            end = new Date().getTime();
+        }
+    }
+
+    wait(3000);
+</script> --}}
+
+
+<script>
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(success, error)
+
+        } else {
+            alert('Please enable the Geo Location function')
+        }
+    }
+
+    function success(position) {
+        const { latitude, longitude } = position.coords
+        sessionStorage.setItem('user_lat', latitude)
+        sessionStorage.setItem('user_lng', longitude)
+    }
+
+    function error(error) {
+        alert(error.message)
+    }
+
+    // get user geolocation coordinates
+    getLocation()
+
+    const user_coords = { lat: parseFloat(sessionStorage.getItem('user_lat')), lng: parseFloat(sessionStorage.getItem('user_lng')) }
+
+    document.getElementById('user_lat').value = user_coords.lat
+    document.getElementById('user_lng').value = user_coords.lng    
+
+    function wait(ms) {
+            var start = new Date().getTime();
+            var end = start;
+            while (end < start + ms) {
+                end = new Date().getTime();
+            }
+        }
+
+    wait(1000);
+</script>
+
+<script async defer
+    src='https://maps.googleapis.com/maps/api/js?key=AIzaSyAnAG6rUvcErrpmobXaLE_rsn5bfDFhLCU&region=AU&callback=initMap'>
+    </script>
+
+<script>
+    let van_url = "https://i.ibb.co/JtC9j1H/van.png"
+
+    let markers = {{{ marker }}}
+
+    function initMap() {
+        
+        var options = {
+            zoom: 12,
+            center: { lat: -37.7963, lng: 144.9614 }
+        }
+
+        // new map 
+        var map = new google.maps.Map(document.getElementById('map'), options)
+
+        // add marker
+        function addMarker(props) {
+            var marker = new google.maps.Marker({
+                position: props.coords,
+                map: map,
+            })
+
+            // avoid undefined error
+            if (props.iconImage) {
+                marker.setIcon(props.iconImage)
+
+            }
+
+            if (props.content) {
+                var infoWindow = new google.maps.InfoWindow({
+                    content: props.content
+                })
+
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker)
+                })
+            }
+        }
+
+        // display user position icon
+        addMarker({ coords: user_coords, content: "You currently at HERE!", iconImage: "https://i.ibb.co/8sYjxQT/user-location-icon-1.png" })
+
+        for (var i = 0; i < markers.length; i++) {
+            addMarker(markers[i])
+        }
+    }
+</script>
+
+<script>
+    if (sessionStorage.getItem("selected_van")) {
+        alert(`Your Choosen Van is :: ${sessionStorage.getItem("selected_van")}`)
+    }
+</script>

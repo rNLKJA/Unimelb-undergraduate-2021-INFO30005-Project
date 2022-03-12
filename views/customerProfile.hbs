@@ -1,0 +1,68 @@
+
+    <div class="top-navbar">
+        <div class="top-navbar-container">
+            <img class="snake-image" src="https://i.ibb.co/YNTskhx/van.png" alt="">
+            <div class="snake-name">Snacks in a Van</div>
+            </div>
+        </div>
+    <br>
+<div class = "cust_profile">
+    {{#if thisCustomer.photo}}
+        <img class = "profile_img" src="{{thisCustomer.photo}}" width="200" height="150">
+    {{else}}
+        <img class = "profile-img" src="https://source.unsplash.com/{{ thisCustomer.portfolio_img}}" width="300" height="250">
+    {{/if}}
+    <div class = "info">
+        <p>Customer ID: {{thisCustomer.customer_id}}</p>
+        <p>First Name: {{thisCustomer.first_name}}</p>
+        <p>Last Name: {{thisCustomer.last_name}}</p>
+    </div>
+    
+    <br>
+    <div class = "error">
+       {{#if error_old}}
+        <p>Old password incorrect</p>
+        {{/if}}
+
+        {{#if error_mismatch}}
+            <p>New password confirmation does not match</p>
+        {{/if}}
+
+        {{#if success}}
+            <p>Password successfully changed</p>
+        {{/if}}
+        {{#if error_reg}}
+        <p>Password must contain at least one alphabetic character and one numeric character</p>
+        {{/if}}
+    </div>
+
+    
+ 
+    <div class = "password-change">
+        <form action="/customer/profile/{{thisCustomer.customer_id}}" method="POST">
+            <p> Change Password</p>
+            <p> Old Password:</p>
+            <input class="boxes" type="password" name="old_password" placeholder="Old Password" required>
+            <p> New Password:</p>
+            <input class="boxes" type="password" name="new_password" placeholder="New Password" minlength="8" required>
+            <p> Confirm New Password</p>
+            <input class="boxes" type="password" name="confirm_password" placeholder="New Password" minlength="8" required>
+            <input class="submit" type="submit" value="Change">
+        </form>
+    </div>  
+
+    <div class="portfolio-img-change">
+        <form action="/customer/profile/img/{{thisCustomer.customer_id}}" method="POST" id="img-up" align="center">
+            <p class="change-img">Change ur profile image?</p>
+            <input id="img-url" type="text" name="img_url" placeholder="Please Enter the Unsplash image ID" required>
+        </form>
+        <button class="submit-1" type="submit" onclick="document.getElementById('img-up').submit();" class="confirm_btn"><i class="fas fa-chevron-circle-up"></i></button>
+    </div>
+    
+</div>
+
+
+
+
+
+

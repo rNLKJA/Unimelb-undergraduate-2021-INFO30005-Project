@@ -1,0 +1,70 @@
+<div class="navbar">
+    <div class="location">
+        <a class="ext_link" href="/customer/map">
+            <ion-icon class="icon" name="location-outline"></ion-icon>
+            <span id="location"> Location </span>
+        </a>
+    </div>
+    <div class="blog">
+        <a class="ext_link" onclick=blogPageLink()>
+            <ion-icon class="icon" name="globe-outline"></ion-icon>
+            <span id="blog"> Blog </span>
+        </a>
+    </div>
+    <div class="menu">
+        <a class="ext_link" onclick=menuPagelink()>
+            <ion-icon class="icon" name="menu-outline"></ion-icon>
+            <span id="menu"> Menu </span>
+        </a>
+    </div>
+    <div class="order">
+        <a class="ext_link" onclick=orderPagelink()>
+            <ion-icon class="icon" name="reader-outline"></ion-icon>
+            <span id="order"> Order </span>
+        </a>
+    </div>
+    <div class="profile">
+        <a class="ext_link" onclick=profilePagelink()>
+            <ion-icon class="icon" name="person-outline"></ion-icon>
+            <span id="profile"> Profile </span>
+        </a>
+    </div>
+</div>
+
+<script>
+    function blogPageLink() {
+       if (sessionStorage.getItem("customer_id") != null) {
+            window.location.href = `/customer/${sessionStorage.getItem("customer_id")}/blog`
+        }
+        else {
+            alert('log in needed!')
+            window.location.href = '/customer/login'
+        } 
+    }
+
+    function orderPagelink() {
+        if (sessionStorage.getItem("customer_id") != null) {
+            window.location.href = `/customer/${sessionStorage.getItem("customer_id")}/processingOrder`
+        }
+        else {
+            alert('log in needed!')
+            window.location.href = '/customer/login'
+        }
+    }
+
+    function menuPagelink() {
+         
+        window.location.href = '/customer/menu'
+        
+    }
+
+    function profilePagelink() {
+        if (sessionStorage.getItem("customer_id") != null) {
+            window.location.href = `/customer/profile/${sessionStorage.getItem("customer_id")}`
+        }
+        else {
+            alert('log in needed!')
+            window.location.href = '/customer/login'
+        }
+    }
+</script>

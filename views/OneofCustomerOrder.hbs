@@ -1,0 +1,249 @@
+<div class="OneOrder">
+    <div class="orderSummary">
+        <div class="orderRemainder">
+            <P><span>DiDi!</span> Here is your Order Summary</p>
+        </div>
+        <div class="orderId">
+            <p>Order ID: {{thisOrder.order_id}}</p>
+        </div> 
+        <div class="orderTime">
+            <P>Ordered at {{thisOrder.start_time}} on {{thisOrder.order_date}}</P>
+        </div>
+        <div class="PickupLocation">
+            <P>Van address: {{thisOrder.address}}</P>
+        </div>
+        <div class='rating'>
+            {{#if thisOrder.rating }}
+                <p>Thanks for your Rating</p>
+            {{else }}
+                <form id='ratingForm'>
+                <label for='rating'>Rating to this order</label>
+                <select name="rating" id="rating">
+                    <optgroup>
+                        <option value= 1>1</option>
+                        <option value= 2>2</option>
+                        <option value= 3>3</option>
+                        <option value= 4>4</option>
+                        <option value= 5>5</option>
+                    </optgroup>
+                </select>
+                {{!-- <input type="number" name="rating" placeholder="Please rating to this Order" min=0 max=5 required>  --}}
+                <input type="text" id="commet"   name="commet" placeholder="Please commet if you need">
+                <input type="hidden" id="order_id" name="order_id" value="{{thisOrder.order_id}}">          
+                </form>
+                <button id='sbt-btn' onclick=hideInput()>Submit</button>
+            {{/if}}
+            <p id='afterRating'>Thanks for your Rating</p>
+        </div>
+    </div>
+    <div class="orderEstimation">
+        <div class="estimationInfo">
+        <p>Delivery Estimation: {{thisOrder.estimateTime}}</p>
+        <p id='orderedTime'></p>
+        </div>
+    </div>
+    <div class="OrderDetails">
+        <div class="orderDetailtitle">
+            <p>Order Details:</p>    
+        </div>
+            <table>
+                {{#each thisOrder.order_items}}
+                <tr><td>{{this.food}}</td><td id="quanlity">x{{this.quantity}}</td></tr>
+                {{/each}}
+            </table>
+    </div>
+    <div class="totalPrice">
+        <p>Total: ${{thisOrder.price}}</p>
+    </div>
+    <div class="otherAction"> 
+        <p class="close"><a onclick="goBack()"><ion-icon name="close-circle-outline"></ion-icon>Closing the tag</a></p>
+        <p class="cancel"><a onclick="cancelOrder('{{thisOrder.customer_id}}', '{{thisOrder.order_id}}')">Cancel the Order</a></p>
+    </div>
+</div>
+
+<script type="text/javascript" src="/updateOrderController.js"></script>
+
+
+<div class="open-button btn-primary popup" id="openbtn" onclick="updateOrder('[{{objectList thisOrder.order_items}}]')">
+    <p name="cart">Update Order</p>
+</div>
+
+
+<div class="content-section-cart" id='Cart'>
+    <h2 class="section-header">CART</h2>
+    <hr>
+    <div class="cart-items">
+        <ul class="item-rows">
+
+        </ul>
+    </div>
+    
+    <div class="cart-footer">
+        <div class="cart-total">
+            <strong class="cart-total-title">Total</strong>
+            <span class="cart-total-price">$0</span>
+        </div>
+        <span><button class="btn btn-purchase" type="button" onclick="updateClicked('{{thisOrder.order_id}}','{{thisOrder.customer_id}}')"><ion-icon style="font-size: 15px;" name="bag-check-outline"></ion-icon></button></span>
+        <span><button type="button" class="cancel-btn" id="closebtn" onclick="closeCart()"><ion-icon style="font-size: 15px;" name="close-outline"></ion-icon></button></span>
+    </div>
+</div>
+
+<script>
+    var changeRequest = false
+    document.addEventListener('DOMContentLoaded', function() {
+        countDate = timeConvert()
+        var timer = document.getElementById('orderedTime')
+        countdown(countDate, timer)
+        var menu = {{{json menu}}}
+        for (let i of menu){
+            addItemToCart(i.product, i.price)
+        }
+        if (timeAllow() == false || {{{json thisOrder}}}.status != 'outstanding'){
+            document.getElementById("Cart").style.display = "none";
+            document.getElementById("openbtn").style.display = "none";
+        }
+    }, false);
+
+    document.getElementById("afterRating").style.display = 'none';
+    function hideInput()  {
+        document.getElementById("ratingForm").style.display="none";
+        document.getElementById("afterRating").style.display = 'block';
+        document.getElementById('sbt-btn').style.display = 'none';
+        const data = {
+                        "order_id": document.getElementById('order_id').value,
+                        "rating": document.getElementById('rating').value,
+                        "commet": document.getElementById('commet').value
+                    }
+        sendRate(data)
+    }
+
+    function sendRate(data) {
+    try {
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.status == 200) {
+                console.log("posted")
+            }
+        }
+        
+        data = JSON.stringify(data)
+
+        xhr.open("POST", '/customer/' + sessionStorage.getItem('customer_id')+'/'+data.order_id+'/rating',  true)
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.send(data)
+    }catch(err){
+        console.log(err)
+    }
+    }
+
+    function goBack(){
+        window.history.back();
+    }
+
+    function cancelOrder(customer_id, order_id){
+        try {
+            if(timeAllow() && {{{json thisOrder}}}.status == 'outstanding'){
+            const xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.status == 200) {
+                    console.log("posted")
+                }
+            }
+            xhr.open("POST", '/customer/'+customer_id+'/'+order_id,  true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.send()
+            alert("order canceled")
+            window.location.replace(`processingOrder`)
+            }else{ alert('10mins past, not able to cancel this order')}
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    function timeConvert(){
+        var date = {{{json thisOrder}}}
+        order_date = String(date.order_date)
+        start_time = String(date.start_time)
+        order_date = order_date.split('-')
+        start_time = String(start_time).split(":")
+        var year = parseInt(order_date[2])
+        var month = parseInt(order_date[1])-1
+        var day = parseInt(order_date[0])
+        var hour = parseInt(start_time[0])
+        var min = parseInt(start_time[1])
+        var sec = parseInt(start_time[2])
+        var countDate = new Date(year, month, day, hour, min, sec).getTime()
+        return countDate
+    }
+
+    function countdown(start_date, timer){
+
+        var x = setInterval(function() {
+
+            var now = new Date().getTime();
+
+            var distance =  now - start_date;
+
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timer.innerHTML = 'Ordered time: '+ hours + ":" + minutes + ":" + seconds;
+
+
+            if (minutes > {{{overdueMin}}} || hours != 0 || days != 0) {
+            clearInterval(x);
+            timer.innerHTML = "Over Time, your discount apply";
+            }
+            }, 1000);
+    }
+    
+    function updateOrder(order_items){
+        if (timeAllow() && {{{json thisOrder}}}.status == 'outstanding'){
+        if (changeRequest == false){
+        changeRequest = true
+        const order_items_json = JSON.parse(order_items)
+        for (let i of order_items_json){
+            for (var j=0;j<i.quantity;j++){
+                addItemToCart(i.food, i.quantity)
+            }
+        updateCartTotal()    
+        }
+        document.getElementById("Cart").style.display = "block";
+        document.getElementById("openbtn").style.display = "none";
+        }else {
+            document.getElementById("Cart").style.display = "block";
+            document.getElementById("openbtn").style.display = "none";
+        }
+        }else {
+            alert("10mins past, not able to change your Order")
+        }
+    }
+
+    function closeCart() {
+        document.getElementById("Cart").style.display = "none";
+        document.getElementById("openbtn").style.display = "block";
+    }
+    function timeAllow(){
+        countDate = timeConvert()
+        var now = new Date().getTime();
+
+        var distance =  now - countDate;
+
+        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        if (minutes > {{{updateMin}}} || hours != 0 || days != 0) {
+            return false
+        }
+        return true
+    }
+
+    function updateClicked(order_id, customer_id){
+        purchaseClicked(order_id, customer_id)
+       changeRequest = false
+    }
+</script>

@@ -1,0 +1,21 @@
+<div class='login-container'>
+    <div class="text-box1">
+        <h2>Wominjeka</h2>
+        <h2 id="vendor_id">{{vendor_id}}</h2>
+        <h2>Snacks in a Van</h2>
+{{!-- 
+        <a href="/vendor/{{vendor_id}}/outstanding">
+            <button class="login-button">Outstanding Orders</button>
+        </a> --}}
+    </div>
+    
+    <script type="text/javascript">
+        sessionStorage.setItem('vendor_id', document.getElementById("vendor_id").innerHTML)
+
+        setTimeout(() => {
+                window.location.replace('/vendor/{{vendor_id}}/outstanding');
+            }, 3000)
+    </script>
+
+</div>
+

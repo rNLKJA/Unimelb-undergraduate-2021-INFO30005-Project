@@ -1,0 +1,93 @@
+<script>
+    
+    var vendor_id = sessionStorage.getItem("vendor_id")
+
+    function back() {
+        var vendor_id = sessionStorage.getItem("vendor_id")
+        window.location.replace("/vendor/" + vendor_id + "/outstanding")
+    }
+</script>
+
+<div class = "heading">
+    <span class = "page-title">Order Search</span>
+</div>
+<div class = "header-buttons">
+    <button class = "back-btn" onclick = back()>Back</button>
+    <a href = "/vendor/orderSearch">
+        <button class = "refresh">Refresh</button>
+    </a>
+</div>
+
+
+
+{{#if success}} 
+    <p>Order found!</p>
+{{/if}}
+{{#if not_success}}
+    <p>Order Not found</p>
+{{/if}}
+
+<form action="/vendor/orderSearch" method="POST">
+    <div class = "input">
+        <input type="text" name="order_id" placeholder="Order ID">
+        <input type="submit" value="Search">
+    </div>
+</form>
+
+{{#if no_search}}
+    {{#each orders}}
+
+    <div class = "order">
+        <span class = "order-field"> <b>Order ID: </b>{{this.order_id}} </span>
+        <span class = "order-field"> <b>Van ID: </b>{{this.van_id}} </span>
+        <span class = "order-field"> <b>Items: </b>{{this.order_items}} </span>
+        <span class = "order-field"> <b>Price: </b>{{this.price}} </span>
+        <span class = "order-field"> <b>Status: </b>{{this.status}} </span>
+        <span class = "order-field"> <b>Order Date: </b>{{this.order_date}} </span>
+        <span class = "order-field"> <b>Start Time: </b>{{this.start_time}} </span>
+        <span class = "order-field"> <b>Fulfilled Time: </b>{{this.fulfilled_time}} </span>
+        <span class = "order-field"> <b>End Time: </b>{{this.end_time}} </span>
+        <span class = "order-field"> <b>Period: </b>{{this.period}} </span>
+        <span class = "order-field"> <b>Comment: </b>{{this.comment}} </span>
+        <span class = "order-field"> <b>Rating: </b>{{this.rating}} </span>
+        <span class = "order-field"> <b>Discount Applied: </b>{{this.discount_applied}}</span>   
+    </div>
+    {{/each}}
+{{else if not_success}}
+     {{#each orders}}
+
+    <div class = "order">
+        <span class = "order-field"> <b>Order ID: </b>{{this.order_id}} </span>
+        <span class = "order-field"> <b>Van ID: </b>{{this.van_id}} </span>
+        <span class = "order-field"> <b>Items: </b>{{this.order_items}} </span>
+        <span class = "order-field"> <b>Price: </b>{{this.price}} </span>
+        <span class = "order-field"> <b>Status: </b>{{this.status}} </span>
+        <span class = "order-field"> <b>Order Date: </b>{{this.order_date}} </span>
+        <span class = "order-field"> <b>Start Time: </b>{{this.start_time}} </span>
+        <span class = "order-field"> <b>Fulfilled Time: </b>{{this.fulfilled_time}} </span>
+        <span class = "order-field"> <b>End Time: </b>{{this.end_time}} </span>
+        <span class = "order-field"> <b>Period: </b>{{this.period}} </span>
+        <span class = "order-field"> <b>Comment: </b>{{this.comment}} </span>
+        <span class = "order-field"> <b>Rating: </b>{{this.rating}} </span>
+        <span class = "order-field"> <b>Discount Applied: </b>{{this.discount_applied}}</span>
+    </div>
+    {{/each}}
+
+{{/if}}
+{{#if success}}
+<div class = "order">
+        <span class = "order-field"> <b>Order ID: </b>{{order.order_id}} </span>
+        <span class = "order-field"> <b>Van ID: </b>{{order.van_id}} </span>
+        <span class = "order-field"> <b>Items: </b>{{order.order_items}} </span>
+        <span class = "order-field"> <b>Price: </b>{{order.price}} </span>
+        <span class = "order-field"> <b>Status: </b>{{order.status}} </span>
+        <span class = "order-field"> <b>Order Date: </b>{{order.order_date}} </span>
+        <span class = "order-field"> <b>Start Time: </b>{{order.start_time}} </span>
+        <span class = "order-field"> <b>Fulfilled Time: </b>{{order.fulfilled_time}} </span>
+        <span class = "order-field"> <b>End Time: </b>{{order.end_time}} </span>
+        <span class = "order-field"> <b>Period: </b>{{order.period}} </span>
+        <span class = "order-field"> <b>Comment: </b>{{order.comment}} </span>
+        <span class = "order-field"> <b>Rating: </b>{{order.rating}} </span>
+        <span class = "order-field"> <b>Discount Applied: </b>{{order.discount_applied}}</span>
+    </div>
+{{/if}}

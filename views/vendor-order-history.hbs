@@ -1,0 +1,102 @@
+<div class="section-container">
+    {{> vendor-header van_name=van_name}}
+    <script>
+        var vendor_id = sessionStorage.getItem("vendor_id")
+        function back() {
+            var vendor_id = sessionStorage.getItem("vendor_id")
+            window.location.replace("/vendor/" + vendor_id + "/outstanding")
+        }
+
+        document.getElementById("van_id_1").innerHTML = vendor_id
+    </script>
+    
+    <section>
+        <div class="history-navigation" id="his-navi">
+            <a class="navigation-button" id="home-btn" onclick=back()>
+                HOME
+            </a>
+    
+            {{#if success}}
+            <p class="found-tag">Order found!</p>
+            {{/if}}
+            {{#if not_success}}
+            <p class="found-tag">Order Not found</p>
+            {{/if}}
+            <form action="/vendor/orderList" method="POST">
+                <div class="input">
+                    <input type="text" id="order_search" name="order_id" placeholder="Order ID">
+                    <input type="submit" id="order_search_submit" value="Search">
+                </div>
+            </form>
+        </div>
+    
+        <p class="container-header" id="hist-title">ORDER HISTORY</p>
+    
+        <div class="history-container container-search" id="hist-contain">
+            <table>
+                <thead class="hist-header">
+                    <th>Order ID</th>
+                    <th>Van Name</th>
+                    <th>Customer ID</th>
+                    <th>Order Date</th>
+                    <th>Start Time</th>
+                    <th>Fulfilled Time</th>
+                    <th>Collection Time</th>
+                    <th>Subtotal</th>
+                    <th>Status</th>
+                </thead>
+                <tbody>
+                    {{#if no_search}}
+                    {{#each all_orders}}
+                    <tr class="hist-row">
+                        <td>
+                            <a class="navigation-button" href="/vendor/Allorders/{{this.order_id}}/">{{this.order_id}}</a>
+                        </td>
+                        <td>{{this.van_id}}</td>
+                        <td>{{this.customer_id}}</td>
+                        <td>{{this.order_date}}</td>
+                        <td>{{this.start_time}}</td>
+                        <td>{{this.fulfilled_time}}</td>
+                        <td>{{this.collection_time}}</td>
+                        <td>${{this.price}}</td>
+                        <td>{{this.status}}</td>
+                    </tr>
+                    {{/each}}
+                    {{else if not_success}}
+                    {{#each all_orders}}
+                    <tr class="hist-row">
+                        <td>
+                            <a class="navigation-button" href="/vendor/Allorders/{{this.order_id}}/">{{this.order_id}}</a>
+                        </td>
+                        <td>{{this.van_id}}</td>
+                        <td>{{this.customer_id}}</td>
+                        <td>{{this.order_date}}</td>
+                        <td>{{this.start_time}}</td>
+                        <td>{{this.fulfilled_time}}</td>
+                        <td>{{this.collection_time}}</td>
+                        <td>${{this.price}}</td>
+                        <td>{{this.status}}</td>
+                    </tr>
+                    {{/each}}
+                    {{/if}}
+    
+                    {{#if success}}
+                    <tr class="hist-row">
+                        <td>
+                            <a class="navigation-button" href="/vendor/Allorders/{{order.order_id}}/">{{order.order_id}}</a>
+                        </td>
+                        <td>{{this.van_id}}</td>
+                        <td>{{order.customer_id}}</td>
+                        <td>{{order.order_date}}</td>
+                        <td>{{order.start_time}}</td>
+                        <td>{{this.fulfilled_time}}</td>
+                        <td>{{this.collection_time}}</td>
+                        <td>${{order.price}}</td>
+                        <td>{{order.status}}</td>
+                    </tr>
+                    {{/if}}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

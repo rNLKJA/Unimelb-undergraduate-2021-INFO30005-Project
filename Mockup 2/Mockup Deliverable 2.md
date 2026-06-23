@@ -19,17 +19,18 @@ Download the POSTMAN.json 👉 https://github.com/INFO30005-2021-SM1/project-t03
     - [Show list of all outstanding orders](#show-list-of-all-outstanding-orders)
     - [Mark an order as "fulfilled" (ready to be picked up by customer)](#mark-an-order-as-fulfilled)
 - [Other Features](#other-features)
+
 ---
 
 ## Team Members & Task Distribution
 
-| **Group Member**                                      | **Task**                                                     |
-| ----------------------------------------------------- | ------------------------------------------------------------ |
+| **Group Member**                                      | **Task**                                                                                                                    |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | [Bin Liang](https://github.com/BinLiang-Eric)         | Customer Task 2) View details of a snack<br />Vendor Task 3) Mark an order as "fullfilled" (ready to picked up by customer) |
-| [Declan Gannon](https://github.com/djgannon)          | Customer Task 1) View menu of snacks (including pictures and prices) |
-| [Khin Liew](https://github.com/kvliew)                | Customer Task 3) Customer starts a new order by requesting a snack |
-| [Sunchuangyu Huang](https://github.com/chuangyu-hscy) | Customer Task 3) Customer starts a new order by requesting a snack<br />Vendor Task 2) Show list of all outstanding orders |
-| [Wei Zhao](https://github.com/EcZww)                  | Vendor Task 1) Setting van status                            |
+| [Declan Gannon](https://github.com/djgannon)          | Customer Task 1) View menu of snacks (including pictures and prices)                                                        |
+| [Khin Liew](https://github.com/kvliew)                | Customer Task 3) Customer starts a new order by requesting a snack                                                          |
+| [Sunchuangyu Huang](https://github.com/chuangyu-hscy) | Customer Task 3) Customer starts a new order by requesting a snack<br />Vendor Task 2) Show list of all outstanding orders  |
+| [Wei Zhao](https://github.com/EcZww)                  | Vendor Task 1) Setting van status                                                                                           |
 
 ---
 
@@ -52,6 +53,7 @@ mongodb+srv://<username>:<password>@cluster0.gxwjq.mongodb.net/INFO30005?retryWr
 ## [Customer Features](https://snacks-in-a-van-4399.herokuapp.com/customer)
 
 ### View menu of snacks
+
 Use 🌐 https://snacks-in-a-van-4399.herokuapp.com/customer/menu to view the heroku web page.
 
 ![POSTMAN Customer Task 1](https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/Mockup%202/Customer%20task%201.png)
@@ -82,16 +84,16 @@ User could view the menu through <code>https://snacks-in-a-van-4399.herokuapp.co
 # Send a get request to https://snacks-in-a-van-4399.herokuapp.com/customer/menu/[product id]
 ```
 
-| Product name | URL |
-| :---- | :---- |
-| Cappuccino      |   https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Cappuccino    |
-| Latte      |   https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Latte    |
-|  Flat White     |  https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Flat%20White     |
-|  Long Black     |   https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Long%20Black    |
-| Plain Biscuit      |  https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Plain%20Biscuit     |
-| Fancy Biscuit      |   https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Fancy%20Biscuit    |
-| Small Cake      |  https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Small%20Cake     |
-| Large Cake | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Large%20Cake |
+| Product name  | URL                                                                      |
+| :------------ | :----------------------------------------------------------------------- |
+| Cappuccino    | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Cappuccino      |
+| Latte         | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Latte           |
+| Flat White    | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Flat%20White    |
+| Long Black    | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Long%20Black    |
+| Plain Biscuit | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Plain%20Biscuit |
+| Fancy Biscuit | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Fancy%20Biscuit |
+| Small Cake    | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Small%20Cake    |
+| Large Cake    | https://snacks-in-a-van-4399.herokuapp.com/customer/menu/Large%20Cake    |
 
 Similar to the customer task 1, but this time we render individual product information as an individual HTML file.
 
@@ -130,7 +132,7 @@ Once the order has been placed, we can query it from the database.
 
 ### Setting van status
 
-Set up the van status  via sending a post request to:
+Set up the van status via sending a post request to:
 
 ```bash
 https://snacks-in-a-van-4399.herokuapp.com/vendor/Genevieve Adele/setStatus
@@ -155,6 +157,7 @@ https://snacks-in-a-van-4399.herokuapp.com/vendor/Gwendolyn Cecilia/turnOn
 ![POSTMAN Vendor Task 1](https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/Mockup%202/Vendor%20task%201.2.png)
 
 Turn off the van (close the business) via sending a get request to:
+
 ```bash
 https://snacks-in-a-van-4399.herokuapp.com/vendor/Gwendolyn Cecilia/turnOff
 ```
@@ -169,6 +172,7 @@ https://snacks-in-a-van-4399.herokuapp.com/vendor/Gwendolyn Cecilia/turnOff
 ### Show list of all outstanding orders
 
 Check outstanding orders based on given van id：
+
 ```bash
 # send a get request to:
 https://snacks-in-a-van-4399.herokuapp.com/vendor/[van id]/outstanding
@@ -177,6 +181,7 @@ https://snacks-in-a-van-4399.herokuapp.com/vendor/[van id]/outstanding
 ![POSTMAN Vendor Task 2](https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/Mockup%202/Vendor%20Task%202.png)
 
 To use the web URL, please following the given format:
+
 ```
 https://snacks-in-a-van-4399.herokuapp.com/vendor/[van id]/outstanding
 ```
@@ -194,7 +199,7 @@ or https://snacks-in-a-van-4399.herokuapp.com/vendor/AllOrders
 Simply send a post request with an order id.
 
 ```
-# send post request to 
+# send post request to
 https://snacks-in-a-van-4399.herokuapp.com/vendor/[van id]/changeStatusToFulfilled
 ```
 
@@ -213,6 +218,7 @@ or https://snacks-in-a-van-4399.herokuapp.com/vendor/AllOrders
 Any outstanding order will perform the same result.
 
 ---
-## Other Features
-- **For more vendor features** ➡️ [Check the Vendor Main Page](https://snacks-in-a-van-4399.herokuapp.com/vendor)
 
+## Other Features
+
+- **For more vendor features** ➡️ [Check the Vendor Main Page](https://snacks-in-a-van-4399.herokuapp.com/vendor)

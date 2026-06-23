@@ -40,11 +40,11 @@ h1 {
     position: absolute;
     align-items: center;
     align-self: center;
-    justify-content:center;
+    justify-content: center;
     justify-items: center;
     left: 50%;
     transform: translate(-50%);
-    bottom: 90px
+    bottom: 90px;
 }
 
 /* navigation bar */

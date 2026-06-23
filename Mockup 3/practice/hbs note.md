@@ -11,6 +11,7 @@ npm install express express-handlebars -S # install required packages and added 
 Need to create a view folder to store handlebar objects.
 
 Need layouts folder
+
 ```bash
 mkdir .views
 mkdir .views/layout
@@ -22,32 +23,40 @@ touch .view/index.hbs
 ```
 
 **Adding the default layout**
-```javascript
-const express = require('express')
-const app = express()
-const exphbs = require('express-handlebars')
 
-app.engine('hbs', exphbs({
+```javascript
+const express = require("express");
+const app = express();
+const exphbs = require("express-handlebars");
+
+app.engine(
+    "hbs",
+    exphbs({
         // change the default name for handlebars file name to .hbs
-	extname: 'hbs',
-    defaultLayout : "main",
-    layoutDir : path.join(__dirname, 'views/layouts'), // change the layout folder if we don't want to use the default layouts folder
-    partialsDir: path.join(__dirname, 'views/partials') // change the partial folder if we don't want to use the default partials folder
-}))
+        extname: "hbs",
+        defaultLayout: "main",
+        layoutDir: path.join(__dirname, "views/layouts"), // change the layout folder if we don't want to use the default layouts folder
+        partialsDir: path.join(__dirname, "views/partials") // change the partial folder if we don't want to use the default partials folder
+    })
+);
 ```
 
-The express handlebar will inject the content in the 
+The express handlebar will inject the content in the
+
 ```html
 <main>
-    {{{ body }}} <!-- injection part -->
+    {{{ body }}}
+    <!-- injection part -->
 </main>
 ```
+
 ```bash
 npm install -g nodemon
 # may need sudo command
 ```
 
 **Dynamic Tab Name <header></header>**
+
 ```html
 <!-- use handlebars object -->
 {{ title }}
@@ -55,10 +64,11 @@ npm install -g nodemon
 
 ```javascript
 // send additional argument to let handlebar knows how to handle the new value
-app.get('/about', (req, res) => {
-    res.render('about', {title : 'Home Page'})
-})
+app.get("/about", (req, res) => {
+    res.render("about", { title: "Home Page" });
+});
 ```
+
 **Express Handlebars Helper**
 
 Helper allows handlebars to perform a logic statement.
@@ -68,7 +78,7 @@ Helper allows handlebars to perform a logic statement.
     <p>display name {{ name }}</p>
 
     {{ else }}
-    <p>No name found</p>    
+    <p>No name found</p>
 
 {{/if}}
 
@@ -84,7 +94,7 @@ Helper allows handlebars to perform a logic statement.
 
 {{#each people}} <!-- each people -->
     <p>{{this}}</p> <!-- via using this object statement, or -->
-    
+
 {{/each}}
 
 {{#each people}} <!-- each people -->
@@ -128,6 +138,7 @@ Helper allows handlebars to perform a logic statement.
 **Partials**
 
 Create a partial folder:
+
 ```bash
 mkdir ./views/partials
 
@@ -138,7 +149,8 @@ touch ./views/partials/header.hbs
 ```handlebars
 <!-- Example -->
 <!-- inside the header.hbs, added code like  -->
-{{#unless isListEnable}} <!-- if this is false-->
+{{#unless isListEnable}}
+    <!-- if this is false-->
     <ul>
         <li>Home</li>
         <li>About</li>
@@ -148,15 +160,17 @@ touch ./views/partials/header.hbs
 ```
 
 **Lookup**
+
 ```handlebars
 <p>{{lookup array index}}</p>
 <p>{{lookup people 0}}</p>
 
-<p>{{lookup object 'key'}}</p>
-<p>{{lookup user 'username'}}</p>
+<p>{{lookup object "key"}}</p>
+<p>{{lookup user "username"}}</p>
 ```
 
 **Custom Helper**
+
 ```javascript
 // create helper object
 helpers: {
@@ -180,9 +194,11 @@ helpers: {
 ```
 
 Call params :
+
 ```handlebars
 {{#list people}}
-    {{firstName}} {{lastName}}
+    {{firstName}}
+    {{lastName}}
 {{/list}}
 ```
 
@@ -191,11 +207,13 @@ Call params :
 {{{ }}} -> handlebars render the context as html content
 
 **How to use Comment**
+
 ```handlebars
 {{! This is a comment}}
 ```
 
 **<code>with</code> helper**
+
 ```handlebars
 {{! instance access to a variable}}
 <!-- Access the first layout variables -->
@@ -209,17 +227,19 @@ Call params :
 ```
 
 **Adding CSS to Handlebars**
+
 ```javascript
 // add the following code before using app
 
-app.use(express.static('public'))
+app.use(express.static("public"));
 ```
 
 CSS for the entire app?
+
 ```handlebars
 <!-- add the following code in the main.hbs file -->
- <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css" />
 
 <!-- Otherwise add -->
-<link rel="stylesheet" href="css/{{style}}">
+<link rel="stylesheet" href="css/{{style}}" />
 ```

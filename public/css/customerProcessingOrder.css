@@ -530,7 +530,6 @@ ion-icon {
         border: 1px double rgb(90, 106, 145);
         border-width: 3px;
     }
-
 }
 
 @media only screen and (max-width: 550px) {
@@ -552,9 +551,7 @@ ion-icon {
     #orderstatus a {
         font-size: 20px;
     }
-
 }
-
 
 @media only screen and (max-width: 375px) {
     .orderTime,
@@ -595,5 +592,4 @@ ion-icon {
     #orderRelate {
         background-color: rgba(219, 163, 33, 0.95);
     }
-
 }

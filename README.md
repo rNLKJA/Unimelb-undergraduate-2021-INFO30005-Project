@@ -55,32 +55,32 @@ as a portfolio record of early full-stack web development work.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js 14 |
-| Web framework | Express 4 |
-| Templating | express-handlebars (HBS) |
-| Database | MongoDB Atlas via Mongoose |
-| Authentication | Passport.js (passport-local), express-session, connect-flash |
-| Password hashing | bcrypt (customers), MD5 (vans) |
-| Geocoding | OpenCage API client |
-| Testing | Jest, Supertest, Taiko |
-| Deployment | Heroku (`Procfile`, `web: node app.js`) |
+| Layer            | Technology                                                   |
+| ---------------- | ------------------------------------------------------------ |
+| Runtime          | Node.js 14                                                   |
+| Web framework    | Express 4                                                    |
+| Templating       | express-handlebars (HBS)                                     |
+| Database         | MongoDB Atlas via Mongoose                                   |
+| Authentication   | Passport.js (passport-local), express-session, connect-flash |
+| Password hashing | bcrypt (customers), MD5 (vans)                               |
+| Geocoding        | OpenCage API client                                          |
+| Testing          | Jest, Supertest, Taiko                                       |
+| Deployment       | Heroku (`Procfile`, `web: node app.js`)                      |
 
 ## Project Structure
 
-| Path | Contents |
-|---|---|
-| `app.js` | Application entry point — middleware, Handlebars engine, route mounting. |
-| `routes/` | `customerRouter.js` and `vendorRouter.js` — URL routing for each portal. |
-| `controllers/` | `customerController.js` and `vendorController.js` — request handlers and business logic. |
-| `models/` | Mongoose schemas: `customerSchema`, `vanSchema`, `menuSchema`, `orderSchema`, `blogSchema`. |
-| `config/` | `passport.js` (auth strategies) and `checkAuthentication.js` (route guards). |
-| `views/` | Handlebars templates, partials and layouts for both portals. |
-| `public/` | Static assets — CSS, images and standalone HTML pages. |
-| `js/` | Client-side helpers — cart, order updates, Handlebars helpers, utilities. |
-| `__tests__/` | Jest unit and integration tests for vendor status flows. |
-| `Mockup 1`–`Mockup 4` | Design mockups, annotations and deliverable notes per milestone. |
+| Path                  | Contents                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| `app.js`              | Application entry point — middleware, Handlebars engine, route mounting.                    |
+| `routes/`             | `customerRouter.js` and `vendorRouter.js` — URL routing for each portal.                    |
+| `controllers/`        | `customerController.js` and `vendorController.js` — request handlers and business logic.    |
+| `models/`             | Mongoose schemas: `customerSchema`, `vanSchema`, `menuSchema`, `orderSchema`, `blogSchema`. |
+| `config/`             | `passport.js` (auth strategies) and `checkAuthentication.js` (route guards).                |
+| `views/`              | Handlebars templates, partials and layouts for both portals.                                |
+| `public/`             | Static assets — CSS, images and standalone HTML pages.                                      |
+| `js/`                 | Client-side helpers — cart, order updates, Handlebars helpers, utilities.                   |
+| `__tests__/`          | Jest unit and integration tests for vendor status flows.                                    |
+| `Mockup 1`–`Mockup 4` | Design mockups, annotations and deliverable notes per milestone.                            |
 
 ## Getting Started
 

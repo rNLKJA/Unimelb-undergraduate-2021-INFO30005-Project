@@ -1,61 +1,60 @@
-body 
-{
-	background-image:url('../../src/customer_login.jpg');
+body {
+    background-image: url("../../src/customer_login.jpg");
     background-repeat: no-repeat;
-    background-attachment:fixed;
+    background-attachment: fixed;
     /* background-size: 100% 100%; */
 }
 
 div.welcome {
-    position:fixed;
+    position: fixed;
     /* bottom:200px; */
     top: 150px;
-    right:0;
+    right: 0;
     left: 200px;
 }
 
-div.welcome1{
-    position:fixed;
+div.welcome1 {
+    position: fixed;
     /* bottom:200px; */
     top: 150px;
-    right:0;
-    left: 200px; 
+    right: 0;
+    left: 200px;
 }
 
-div.welcome2{
-    position:fixed;
+div.welcome2 {
+    position: fixed;
     /* bottom:200px; */
     top: 200px;
-    right:0;
-    left: 200px; 
+    right: 0;
+    left: 200px;
 }
 
 div.info-email {
-    position:fixed;
+    position: fixed;
     top: 420px;
     left: 130px;
 }
 
 div.info-passwd {
-    position:fixed;
+    position: fixed;
     top: 540px;
     left: 130px;
 }
 
 div.signin {
-    position:fixed;
-    top:655px;
-    left:309px;
+    position: fixed;
+    top: 655px;
+    left: 309px;
 }
 
 .title1 {
-    color: #DBA321;
+    color: #dba321;
     font-size: 40px;
     font-family: "PilGi";
 }
 
 .title2 {
-    color: #DBA321;
+    color: #dba321;
     font-size: 30px;
     font-family: "Noto Sans Kannada";
 }

@@ -1,5 +1,5 @@
 body {
-    background-image: url('../../src/vender_login.jpg');
+    background-image: url("../../src/vender_login.jpg");
     background-repeat: no-repeat;
 }
 
@@ -9,7 +9,6 @@ input {
     height: 35px;
     font-size: 20px;
     font-family: "GungSeo";
-
 }
 
 button {

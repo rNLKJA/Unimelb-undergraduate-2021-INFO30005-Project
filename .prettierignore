@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+
+# Build output
+build
+dist
+
+# Archived / original copies
+_archive
+
+# Minified and bundled assets
+*.min.*
+public/vendor
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# Handlebars templates (prettier 3.x errors on Handlebars partials)
+*.hbs

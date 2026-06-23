@@ -1,14 +1,12 @@
-
 body {
     padding: 200px 200px;
     background: url(https://source.unsplash.com/aLGiPJ4XRO4);
     background-repeat: no-repeat;
-    background-size:cover;
+    background-size: cover;
     background-position: center;
     font-family: "Noto Sans Kannada";
     background-color: rgb(244, 243, 241);
 }
-
 
 a {
     text-decoration: none;
@@ -89,7 +87,6 @@ body {
     font-size: 10px;
 }
 
-
 .nav-counter {
     position: absolute;
     top: 2px;
@@ -110,10 +107,14 @@ body {
     background-image: -moz-linear-gradient(top, #e8616c, #dd202f);
     background-image: -o-linear-gradient(top, #e8616c, #dd202f);
     background-image: linear-gradient(to bottom, #e8616c, #dd202f);
-    -webkit-box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.1), 0 1px rgba(0, 0, 0, 0.12);
-    box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.1), 0 1px rgba(0, 0, 0, 0.12);
-  }
-  .nav-counter-blue {
+    -webkit-box-shadow:
+        inset 0 0 1px 1px rgba(255, 255, 255, 0.1),
+        0 1px rgba(0, 0, 0, 0.12);
+    box-shadow:
+        inset 0 0 1px 1px rgba(255, 255, 255, 0.1),
+        0 1px rgba(0, 0, 0, 0.12);
+}
+.nav-counter-blue {
     background: #e8616c;
     border: 1px solid #dd202f;
     background-image: -webkit-linear-gradient(top, #e8616c, #dd202f);
@@ -122,14 +123,11 @@ body {
     background-image: linear-gradient(to bottom, #e8616c, #dd202f);
 }
 
-
 .reduce-btn {
     display: block;
     opacity: 0.8;
     font-size: 10px;
 }
-
-
 
 .snack-image {
     display: block;
@@ -155,7 +153,7 @@ body {
     max-width: 440px;
     height: 60%;
     max-height: 80%;
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     display: none;
 }
 
@@ -251,7 +249,6 @@ body {
     margin-right: 10%;
     margin-left: 10%;
     opacity: 0.8;
-
 }
 
 .cancel-btn {
@@ -325,8 +322,6 @@ ion-icon.arrow-right {
     align-self: right;
 }
 
-
-
 .popup {
     right: 10px;
 }
@@ -371,7 +366,7 @@ ion-icon.arrow-right {
 }
 
 .cart-footer {
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
@@ -395,12 +390,10 @@ ion-icon.arrow-right {
     display: flex;
 }
 
-
-
 .cart-items {
     flex-grow: 1;
     overflow: scroll;
-    max-height:max-content;
+    max-height: max-content;
     -webkit-overflow-scrolling: touch;
     height: -webkit-calc(100% - 150px);
     height: calc(100% - 150px);
@@ -411,7 +404,6 @@ ul.item-rows {
     margin-block-start: 0;
     padding-inline-start: 25px;
     margin-inline-end: 10px;
-
 }
 
 .cart-item {
@@ -479,7 +471,6 @@ h4.qty-title {
 }
 
 .cart-quantity-input {
-
     text-align: center;
     height: 34px;
     width: 50px;
@@ -490,28 +481,25 @@ h4.qty-title {
 }
 
 .cart-total {
-
     opacity: 1;
 }
 
 .cart-total-title {
-
     opacity: 1;
     font-weight: bold;
     font-size: 1.2em;
     color: black;
 }
 
-.reduce-btn:hover{
+.reduce-btn:hover {
     color: #dba321;
 }
 
-.add-btn:hover{
+.add-btn:hover {
     color: #dba321;
 }
 
 .cart-total-price {
-
     opacity: 1;
     color: rgb(0, 0, 0);
     font-size: 1em;
@@ -771,7 +759,6 @@ body {
     .content-section {
         margin: 50px auto;
     }
-
 }
 
 @media only screen and (max-width: 1024px) {
@@ -881,7 +868,6 @@ body {
         height: 60px;
     }
 
-
     .cart-item {
         width: 45%;
         font-size: 0.8em;
@@ -944,19 +930,16 @@ body {
     .username {
         display: none;
     }
-
 }
 
 @media only screen and (max-width: 550px) {
-
     ion-icon.purchase {
         font-size: 20px;
     }
 
-    .cart-total-title{
+    .cart-total-title {
         font-size: 1em;
     }
-
 
     .top-navbar {
         height: 40px;
@@ -966,7 +949,6 @@ body {
         margin-top: 10px;
         margin-bottom: 10px;
     }
-
 
     ul.item-rows {
         padding-inline-start: 10px;
@@ -1005,11 +987,11 @@ body {
         display: none;
     }
 
-    .btn-purchase{
+    .btn-purchase {
         padding: 4px 4px;
     }
 
-    .cancel-btn{
+    .cancel-btn {
         padding: 4px 4px;
     }
 
@@ -1065,7 +1047,6 @@ body {
 }
 
 @media only screen and (max-width: 360px) {
-
     .section-header {
         font-size: 1.5em;
         margin-top: 10px;
@@ -1140,6 +1121,4 @@ body {
     h4.qty-title {
         font-size: 0.5em;
     }
-
-
 }

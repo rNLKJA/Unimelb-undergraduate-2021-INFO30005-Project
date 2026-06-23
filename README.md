@@ -1,122 +1,130 @@
-<img align="center" style="width: 100%" src="https://source.unsplash.com/K0WGia1XDJA">
+<div align="center">
 
-<a href="https://snacks-in-a-van-4399.herokuapp.com/"><img align="left" src="https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/public/images/van.png" width="6%"></a>
-# [Web Information Technologies](https://handbook.unimelb.edu.au/2021/subjects/info30005) :: Group 4399
+# Snacks in a Van
+
+### A dual-portal food ordering web application for a roving snack van
+
+[![University of Melbourne](https://img.shields.io/badge/University-of%20Melbourne-002145)](https://www.unimelb.edu.au)
+[![Subject](https://img.shields.io/badge/INFO30005-Web%20Information%20Technologies-00529B)](https://handbook.unimelb.edu.au/2021/subjects/info30005)
+[![Node.js](https://img.shields.io/badge/Node.js-14-339933?logo=node.js&logoColor=fff)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=fff)](https://expressjs.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=fff)](https://www.mongodb.com)
+[![Handlebars](https://img.shields.io/badge/Handlebars-Templates-f0772b?logo=handlebarsdotjs&logoColor=fff)](https://handlebarsjs.com)
+[![Passport](https://img.shields.io/badge/Passport.js-Auth-34E27A?logo=passport&logoColor=fff)](https://www.passportjs.org)
+
+</div>
+
+> University of Melbourne, INFO30005 Web Information Technologies, Semester 1 2021.
+> Group 4399 (T03) team project. Contributor: **Sunchuangyu (Rin) Huang**.
+
+## Overview
+
+**Snacks in a Van** is a web application for a mobile snack van business. It serves two
+distinct audiences from a single Express server, each with its own login and interface:
+
+- **Customers** browse the snack menu, add items to a cart, place orders, track their
+  outstanding and completed orders, locate the van on a live map, leave ratings, and
+  post to a shared blog.
+- **Vendors** (the van operators) log in to manage incoming orders — viewing
+  outstanding, fulfilled, collected, cancelled and completed orders — set the van's
+  status (open or closed) and broadcast its current location, which is reverse-geocoded
+  into a street address for customers to see.
+
+A core piece of business logic is **time-based discounting**: orders carry a discount
+window so the van can clear stock as closing time approaches. The app was built and
+delivered across four mockup milestones during the semester and deployed to Heroku.
+
+This project was completed for **INFO30005 Web Information Technologies** and is retained
+as a portfolio record of early full-stack web development work.
+
+## Features
+
+- **Two authenticated portals** — separate customer and vendor login flows, handled by a
+  single Passport setup with two local strategies and a custom session serialiser.
+- **Menu and cart** — snack catalogue with images, prices and detail pages; per-customer
+  cart with multi-item ordering.
+- **Order lifecycle** — orders move through outstanding → fulfilled → collected, with
+  cancellation, ratings and a time-based discount window.
+- **Vendor dashboard** — filter and search orders by van and status; toggle van
+  availability; mark orders as fulfilled, collected or discounted.
+- **Live van location** — vendors push GPS coordinates that are reverse-geocoded via the
+  OpenCage API; customers see the van plotted on a map.
+- **Customer blog** — authenticated customers can post and read short blog entries.
+- **Secure passwords** — customer credentials hashed with bcrypt; route-level
+  authentication guards protect per-user resources.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js 14 |
+| Web framework | Express 4 |
+| Templating | express-handlebars (HBS) |
+| Database | MongoDB Atlas via Mongoose |
+| Authentication | Passport.js (passport-local), express-session, connect-flash |
+| Password hashing | bcrypt (customers), MD5 (vans) |
+| Geocoding | OpenCage API client |
+| Testing | Jest, Supertest, Taiko |
+| Deployment | Heroku (`Procfile`, `web: node app.js`) |
+
+## Project Structure
+
+| Path | Contents |
+|---|---|
+| `app.js` | Application entry point — middleware, Handlebars engine, route mounting. |
+| `routes/` | `customerRouter.js` and `vendorRouter.js` — URL routing for each portal. |
+| `controllers/` | `customerController.js` and `vendorController.js` — request handlers and business logic. |
+| `models/` | Mongoose schemas: `customerSchema`, `vanSchema`, `menuSchema`, `orderSchema`, `blogSchema`. |
+| `config/` | `passport.js` (auth strategies) and `checkAuthentication.js` (route guards). |
+| `views/` | Handlebars templates, partials and layouts for both portals. |
+| `public/` | Static assets — CSS, images and standalone HTML pages. |
+| `js/` | Client-side helpers — cart, order updates, Handlebars helpers, utilities. |
+| `__tests__/` | Jest unit and integration tests for vendor status flows. |
+| `Mockup 1`–`Mockup 4` | Design mockups, annotations and deliverable notes per milestone. |
+
+## Getting Started
+
+**Prerequisites:** Node.js 14, npm, and access to a MongoDB instance (the project used
+MongoDB Atlas). An OpenCage API key is required for the van-location geocoding feature.
+
+**Environment:** the application reads configuration from a `.env` file (not committed)
+and a `models/db.js` module (gitignored) that holds the MongoDB connection. You will need
+to provide your own MongoDB connection URI and OpenCage API key, and may set `PORT`
+(defaults to `3000`).
+
+```bash
+# Clone
+git clone https://github.com/rNLKJA/Unimelb-undergraduate-2021-INFO30005-Project.git
+cd Unimelb-undergraduate-2021-INFO30005-Project
+
+# Install dependencies
+npm install
+
+# Provide your own models/db.js (MongoDB connection) and .env, then run
+npm start          # node app.js
+```
+
+The app starts on <http://localhost:3000> and redirects to the customer login. The two
+portals live at `/customer` and `/vendor`.
+
+```bash
+# Run the test suite
+npm test           # jest
+```
+
+## Notes
+
+- This is a **group project**; the README above describes the application as a whole.
+  Rin's contributions spanned the vendor app design, customer ordering and
+  outstanding-order views, customer and vendor login, and the bonus map and blog features.
+- The original deployment was hosted on Heroku at `snacks-in-a-van-4399.herokuapp.com`;
+  that free-tier instance is no longer live.
+- `models/db.js` and `.env` are intentionally excluded from version control. The app will
+  not connect to a database until you supply your own credentials.
+- The original course README, including the full team-member contribution table and
+  deliverable links, is preserved at [`_archive/README.original.md`](_archive/README.original.md).
 
 ---
 
-## General info
-
-This project ➡️ INFO30005 Web Information Technologies ➡️ Web application development ➡️ [Snacks in a Van](http://snacks-in-a-van-4399.herokuapp.com/)
-
-**<mark>For marking purpose, please visit:</mark>**
-
-- Customer Application via http://snacks-in-a-van-4399.herokuapp.com/customer
-  - For customer application functional testing, please create a new customer account (the team reset the customer collection after Mockup 3 deliverable).
-  - The customer password should contain at least one punctuation, e.g. <code>test-1234</code>.
-- Vendor Application via http://snacks-in-a-van-4399.herokuapp.com/vendor
-  - Vendors are not allowed to create a new account, for vendor login information, please visit https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/vendor%20login%20info.csv
-
-For CSS style consistence, please use _Google Chrome Browser_.
-
-For database connection, please use the following URI:
-- mongodb+srv://<username>:<password>@cluster0.gxwjq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
-- Replace the <username> and <password> before connect, please view the connection details from .env file.
-
-Last commit at 30th May 2021 : _4cc0648c1125916172a025ad51c22fe987dc2e3b_
-
----
-
-## Table of contents
-* [Team Members](#team-members)
-* [Mockup Deliverable 1](#mockup-deliverable-1)
-* [Mockup Deliverable 2](#mockup-deliverable-2)
-* [Mockup Deliverable 3](#mockup-deliverable-3)
-* [Mockup Deliverable 4](#mockup-deliverable-4)
-
----
-
-## Team Members
-
-| Participant | Main Task |
-| :----: | :---- | 
-| [Bin](https://github.com/BinLiang-Eric) | Deliverable 2: Database Schema Design<br>Deliverable 2: View details of a snack <br> Deliverable 2: Mark an order as "fullfilled" (ready to picked up by customer) <br> Deliverable 3: View Order Details <br> Deliverable 4: View Completed Order - Customer <br> Bouns 3: Rating Function| 
-| [Declan](https://github.com/djgannon) | Deliverable 1: Customer App Foundation Design <br> Deliverable 2 & 3: View menu of snacks (including pictures and prices) CSS <br> Deliverable 4: Customer Profile Page <br> Deliverable 4: Vendor Order Search Function <br> Project Report <br> Application Test Functions| 
-| [Khin](https://github.com/kvliew) | Deliverable 1: Customer App Foundation Design, Mockup Annotations<br> Deliverable 2: Customer starts a new order by requesting a snack <br> Deliverable 4: Vendor outstanding order page <br> Deliverable 4: History page <br> Deliverable 4: Order Details <br>| 
-| Rin | Deliverable 1: Vendor App Design, Customer App Design optimization <br> Deliverable 2: Customer starts a new order by requesting a snack <br> Deliverable 2: Show list of all outstanding orders <br> Deliverable 3 & 4: Customer Login, Vendor Login <br> Bouns 1 & 2: Map function, Blog Function <br> Deliverable 4: Vendor CSS Refine|
-| [Eric](https://github.com/EcZww) | Deliverable 1: Customer App Design optimization  <br> Deliverable 2: Setting van status <br> Deliverable 3: Order three different snacks <br> Deliverable 4: More cart function and CSS <br> Deliverable 4: Password encryption improvement (security practice) <br> Deliverable 4: Application of passport-local strategies and router authenticating management|
-
----
-
-<details><summary><b> Technologies & Dependencies </b></summary>
-  
-  ## Technologies
-  Project is created with:
-  
-  * "@babel/plugin-syntax-dynamic-import": "^7.8.3",
-  * "@babel/plugin-syntax-jsx": "^7.12.13",
-  * "@babel/plugin-transform-react-jsx": "^7.14.3",
-  * "@babel/preset-env": "^7.14.4",
-  * "@babel/preset-react": "^7.13.13",
-  * "babel": "^6.23.0",
-  * "bcrypt": "^5.0.1",
-  * "bcrypt-nodejs": "0.0.3",
-  * "blueimp-md5": "^2.18.0",
-  * "connect-flash-plus": "^0.2.1",
-  * "cookie-parser": "^1.4.5",
-  * "cors": "^2.8.5",
-  * "dotenv": "^8.6.0",
-  * "enzyme": "^3.11.0",
-  * "express": "^4.17.1",
-  * "express-handlebars": "^5.3.0",
-  * "express-session": "^1.17.1",
-  * "express-validator": "^6.10.0",
-  * "flash": "^1.1.0",
-  * "handlebar": "^1.0.0",
-  * "jest": "^27.0.1",
-  * "jsonwebtoken": "^8.5.1",
-  * "md5": "^2.3.0",
-  * "mongodb": "^3.6.6",
-  * "mongoose": "^5.12.7",
-  * "nodemon": "^2.0.7",
-  * "npm": "^7.11.2",
-  * "opencage-api-client": "^1.0.0",
-  * "passport": "^0.4.1",
-  * "passport-jwt": "^4.0.0",
-  * "passport-local": "^1.0.0",
-  * "password": "^0.1.1",
-  * "passwort": "^1.0.4",
-  * "popups": "^1.1.3",
-  * "react": "^17.0.2",
-  * "sha1": "^1.1.1",
-  * "supertest": "^6.1.3",
-  * "taiko": "^1.2.5"
-  
-</details>
-
----
-
-<a href="https://snacks-in-a-van-4399.herokuapp.com/"><img align="left" src="https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/public/images/van.png" width="6%"></a>
-## Mockup Deliverable 1
-
-[Mockup Deliverable 1 Github Folder](https://github.com/INFO30005-2021-SM1/project-t03-4399/tree/main/Mockup%201)
-
----
-
-<a href="https://snacks-in-a-van-4399.herokuapp.com/"><img align="left" src="https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/public/images/van.png" width="6%"></a>
-## Mockup Deliverable 2
-
-[Mockup Deliverable 2 README.md](https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/Mockup%202/Mockup%20Deliverable%202.md)
-
----
-
-<a href="https://snacks-in-a-van-4399.herokuapp.com/"><img align="left" src="https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/public/images/van.png" width="6%"></a>
-## Mockup Deliverable 3
-[Mockup Deliverable 3 README.md](https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/Mockup%203/Mockup3.md)
-
----
-
-<a href="https://snacks-in-a-van-4399.herokuapp.com/"><img align="left" src="https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/public/images/van.png" width="6%"></a>
-## Mockup Deliverable 4
-[Mockup Deliverable 4 README.md](https://github.com/INFO30005-2021-SM1/project-t03-4399/blob/main/Mockup%204/Mockup4.md)
-
+<sub>Coursework completed for INFO30005 Web Information Technologies. Retained as a portfolio
+record of early full-stack web development.</sub>

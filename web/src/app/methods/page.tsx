@@ -106,8 +106,8 @@ export default function MethodsPage() {
               original list (names only), 10 synthetic customers on reserved example domains, and
               three weeks of orders generated with the app&apos;s own pricing and order-id code.
               Minutes from order to ready are drawn uniformly between 4 and 21, so about a third of
-              orders are late by construction. Live activity adds to that on whichever server you
-              are using.
+              orders are late by construction. Live activity on the public site adds to that, and
+              since it moved to a shared database it persists.
             </p>
             <p>
               <strong>Consequence:</strong> the analytics demonstrate the methods; they are not
@@ -381,16 +381,24 @@ export default function MethodsPage() {
                 overstates east-west distances by about 27% at Melbourne&apos;s latitude.
               </li>
               <li>
-                <strong>Production storage.</strong> Until a shared Turso database is connected, the
-                public deployment keeps a separate copy of the database per serverless instance, so
-                new orders, audit entries and AI log rows there are temporary (
+                <strong>Production storage.</strong> The public deployment ran on a separate copy of
+                the database per serverless instance until 6 October 2026, so writes there were
+                temporary (
                 <Link
                   href="/methods/decisions/DR-004-turso-vs-tmp-fallback"
                   className="underline underline-offset-4"
                 >
                   DR-004
                 </Link>
-                ). Locally everything is durable.
+                ). It now uses a shared Turso database in Tokyo while the functions run in Sydney,
+                and the seeded history is no longer re-dated, so it ages in place (
+                <Link
+                  href="/methods/decisions/DR-007-production-on-turso"
+                  className="underline underline-offset-4"
+                >
+                  DR-007
+                </Link>
+                ).
               </li>
             </ul>
           </Section>

@@ -58,7 +58,7 @@ them; both portals poll the server every few seconds.
   `ai_audit_log` table (`/admin/ai-log`) after the server re-checks each record.
 - **Methods and decision records** (`/methods`): data provenance, methods, evaluation design,
   assumptions, limitations, the AI use statement, privacy and retention, a model and data
-  card and six decision records. Screenshots: [`docs/showcase`](docs/showcase).
+  card and seven decision records. Screenshots: [`docs/showcase`](docs/showcase).
 
 ### Ported business rules (with parity tests)
 
@@ -192,7 +192,7 @@ These are throwaway demo values stored as bcrypt hashes, not secrets.
 - **Locally**: `web/data/seed.db` is a plain SQLite file, so any SQLite browser can open it,
   or run `sqlite3 web/data/seed.db ".tables" "select count(*) from orders;"`. Your own local
   changes live in `web/data/app.db`; `pnpm db:studio` opens Drizzle Studio on it.
-- **Production with Turso** (once connected):
+- **Production (Turso)**:
   `turso db shell snacks-in-a-van "select count(*) from orders"`.
 - **The audit trail**: the `audit_log` table in the records area (or
   `sqlite3 web/data/app.db "select at, actor_role, actor_id, action, entity_id from audit_log order by id desc limit 20;"`).
@@ -222,14 +222,16 @@ connected to Git; `cd web && vercel deploy --prod` from the CLI).
   Browsing (map, menus, community, records, the seeded vendor board) works. Moving the
   polling into the pages' function was tried and does not help, because those instances
   don't share `/tmp` either; only a shared database does.
-  **The current production deployment runs in this mode until a Turso database is
-  connected**; locally both portals share `data/app.db` and the full cross-portal flow works.
-  The 2026 audit tables share the limitation: on production their rows are per instance and
-  temporary, so the audit trail is only durable locally or once Turso is connected
-  ([DR-004](docs/decisions/DR-004-turso-vs-tmp-fallback.md)). The showcase screenshots were
-  therefore taken against a local production build.
+  Production ran in this mode at first
+  ([DR-004](docs/decisions/DR-004-turso-vs-tmp-fallback.md)), which is why the showcase
+  screenshots were taken against a local production build. **Since 6 October 2026
+  production uses the shared Turso database** (`DATABASE_URL` and `DATABASE_AUTH_TOKEN` set
+  for Production), so orders reach the vendor board and the audit tables are durable
+  ([DR-007](docs/decisions/DR-007-production-on-turso.md)). The fallback now only applies to
+  deployments without those variables.
 - Functions run in Sydney (`syd1`, set in `web/vercel.json`), next to the Melbourne
-  visitors and to a Turso database created from Australia.
+  visitors. The Turso database is in `aws-ap-northeast-1` (Tokyo), so every query crosses
+  regions; DR-007 records the measured latency and what I'd change.
 - Place search autocompletes through Photon. If Photon is slow or down, it is skipped for a
   minute and typing only matches the bundled suburb list; pressing Enter then runs one
   explicit Nominatim search (allowed by its usage policy, unlike autocomplete).
@@ -280,8 +282,8 @@ uses AI, and without a key the app makes no AI calls.
   DR-001 MongoDB to libSQL/Drizzle, DR-002 MapLibre/OpenFreeMap/Photon instead of Google
   Maps, DR-003 porting the discount-window rule, DR-004 Turso versus the `/tmp` fallback
   (including what went wrong), DR-005 censoring housekeeping close-outs instead of counting
-  invented ready times, DR-006 reserving and re-verifying AI calls. Past records are never
-  edited; new ones supersede them.
+  invented ready times, DR-006 reserving and re-verifying AI calls, DR-007 running production
+  on the shared Turso database. Past records are never edited; new ones supersede them.
 - [`docs/privacy-and-retention.md`](docs/privacy-and-retention.md): demo data only, what each
   table holds, retention.
 

@@ -22,7 +22,7 @@ Snacks in a Van trains no machine-learning model. What it does contain are three
 | Van names (15) | The team's 2021 vendor list, names only | Locations are public landmarks; passwords are fresh bcrypt demo values |
 | Customers (10) | Synthetic, reserved example domains | No real person |
 | Orders (174), ratings (87), posts | Generated with seed 4399 over 21 days, using the app's own pricing and order-id code | Minutes to ready drawn uniformly from 4 to 21; each order cancelled with probability 0.12 (25 of 174 in the snapshot); ratings drawn from {5, 5, 5, 4, 4, 4, 3, 2} for 60% of collected orders |
-| Live rows | Whatever visitors do on a given server | Locally they persist in `data/app.db`; in production they are lost when an instance recycles ([DR-004](decisions/DR-004-turso-vs-tmp-fallback.md)) |
+| Live rows | Whatever visitors do | Locally they persist in `data/app.db`; in production they persist in the shared Turso database since 6 October 2026 ([DR-007](decisions/DR-007-production-on-turso.md)); before that they were lost when an instance recycled ([DR-004](decisions/DR-004-turso-vs-tmp-fallback.md)) |
 | Housekeeping close-outs | A demo login closes out demo orders still active after 90 minutes | An order closed out before anyone marked it ready gets an invented ready time (12 minutes) so the order screens stay coherent. The row is flagged (`orders.fulfilment_imputed`, with `closed_out_at`), the analytics exclude that time, and the Kaplan–Meier curve treats the order as censored at its age when it was closed out. `/admin/analytics` states how many were excluded. The committed snapshot has none |
 
 Because the generator draws minutes to ready uniformly between 4 and 21, about 35% of served orders are late by construction. The analytics recover that (31.5%, Wilson 95% CI 24.6% to 39.4%, n = 149 in the committed snapshot), which checks the pipeline but says nothing about real vans.
@@ -70,7 +70,7 @@ In the designer itself every interval is built at level 1 − α, so the interva
 - **Baselines.** The repeat-order baseline is an assumption: 10 synthetic customers cannot estimate it. A wrong baseline gives a wrong sample size. The rating 4+ baseline is estimated with the metric's own denominator (every non-cancelled order, unrated counting as "no": 63 of 149, 42% in the snapshot); an earlier version divided by rated orders only (72%) and under-sized that experiment by about a quarter.
 - **Demo housekeeping.** Orders nobody finished are closed out after 90 minutes with an invented ready time. Those times are excluded from the analytics and the orders are censored instead; if they were counted, every demo login would add fake 12-minute "observations" and pull the late rate down.
 - **The percentile bootstrap on small samples** (for example the mean orders per day over 20 days) tends to give intervals that are slightly too narrow.
-- **Production storage.** Until Turso is connected, live rows on the public site are per instance and temporary, so the live analytics there mostly reflect the seed.
+- **Production storage.** Since 6 October 2026 the public site writes to a shared Turso database, so live rows persist. The seeded history is no longer re-dated on each start, so over time the live analytics move from the seed's three weeks towards visitor activity, and the orders-per-day window holds only visitor activity from about 27 October 2026 ([DR-007](decisions/DR-007-production-on-turso.md)).
 
 ## Ethical considerations
 

@@ -67,8 +67,8 @@ export default async function AnalyticsPage() {
           Computed live from the demo database: {counts.total} orders
           {first ? <> since {formatDate(first)}</> : null} ({counts.cancelled} cancelled,{" "}
           {counts.active} still active). The history is <strong>synthetic seed data</strong> plus
-          whatever visitors did on this server, so read the numbers as a demonstration of the
-          method, not as facts about real vans.{" "}
+          whatever visitors have done on this deployment, so read the numbers as a demonstration of
+          the method, not as facts about real vans.{" "}
           <span id="imputed-note">
             Demo orders closed out by housekeeping without ever being marked ready: {counts.imputed}
             . Their invented ready times are left out of every figure, and the Kaplan–Meier curve

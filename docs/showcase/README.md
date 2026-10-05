@@ -1,6 +1,6 @@
 # Showcase: the 2026 upgrade
 
-These screenshots were taken on 6 October 2026 (and retaken after the review fixes the same day) against a **local production build** (`pnpm build && pnpm start`) using a local SQLite copy of the committed seed snapshot, with Playwright driving the system Chrome. They were not taken on the public deployment, because production still runs without a shared database and its writes do not survive between serverless instances ([DR-004](../decisions/DR-004-turso-vs-tmp-fallback.md)). All data is synthetic.
+These screenshots were taken on 6 October 2026 (and retaken after the review fixes the same day) against a **local production build** (`pnpm build && pnpm start`) using a local SQLite copy of the committed seed snapshot, with Playwright driving the system Chrome. They were not taken on the public deployment, because at the time production ran without a shared database and its writes did not survive between serverless instances ([DR-004](../decisions/DR-004-turso-vs-tmp-fallback.md); connected later that day, [DR-007](../decisions/DR-007-production-on-turso.md)). All data is synthetic.
 
 | Screenshot | What it shows |
 | --- | --- |

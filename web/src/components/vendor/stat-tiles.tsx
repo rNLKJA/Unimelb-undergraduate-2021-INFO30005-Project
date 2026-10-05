@@ -37,7 +37,13 @@ export function StatTiles({ stats, className }: { stats: DayStats; className?: s
           </dd>
           {t.note ? (
             <dd className="tabular mt-0.5 text-[0.65rem] leading-snug text-muted-foreground sm:text-[0.7rem]">
-              {t.note}
+              {/* Keep "3 of 3" and "95% CI 44–100%" whole when the tile is narrow. */}
+              {t.note.split(" · ").map((part, i) => (
+                <span key={part}>
+                  {i > 0 ? " · " : null}
+                  <span className="whitespace-nowrap">{part}</span>
+                </span>
+              ))}
             </dd>
           ) : null}
         </div>

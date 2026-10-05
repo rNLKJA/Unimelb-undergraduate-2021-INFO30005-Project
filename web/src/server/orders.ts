@@ -375,7 +375,8 @@ export async function vendorBoard(vanId: string, now: number = Date.now()): Prom
           price: o.price,
           startTime: o.startTime.getTime(),
           discountTime: o.discountTime.getTime(),
-          fulfilledTime: o.fulfilledTime?.getTime() ?? null,
+          // A ready time invented by demo housekeeping is not a real one.
+          fulfilledTime: o.fulfilmentImputed ? null : (o.fulfilledTime?.getTime() ?? null),
           rating: o.rating,
         })),
         now,
@@ -579,6 +580,11 @@ export async function simulateOrder(
  * login, close out active orders older than DEMO_STALE_AFTER_MINUTES as if the
  * van had served them on time (fulfilled 12 min and collected 20 min after
  * they were placed; a fulfilled one is collected 5 min after it was ready).
+ *
+ * Those invented times keep the order screens coherent, but they are not
+ * observations: the row records when it was closed out (`closed_out_at`) and,
+ * when the ready time was invented, `fulfilment_imputed`, so the analytics
+ * can leave the time out and treat the order as censored instead.
  * Returns how many orders were closed out.
  */
 export async function closeStaleDemoOrders(
@@ -608,6 +614,8 @@ export async function closeStaleDemoOrders(
           fulfilledTime: new Date(fulfilled),
           collectionTime: new Date(Math.max(fulfilled + 5 * MINUTE, start + 20 * MINUTE)),
           discountApplied: row.discountApplied || fulfilled > row.discountTime.getTime(),
+          closedOutAt: new Date(now),
+          fulfilmentImputed: row.fulfilledTime == null,
         })
         .where(eq(orders.orderId, row.orderId)),
       auditInsert(db, {
@@ -620,6 +628,7 @@ export async function closeStaleDemoOrders(
           to: "collected",
           van: row.vanId,
           reason: `demo order still active after ${DEMO_STALE_AFTER_MINUTES} minutes`,
+          fulfilment_imputed: row.fulfilledTime == null,
         },
         effectiveAt: now,
       }),

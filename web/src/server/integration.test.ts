@@ -6,14 +6,22 @@
  * collecting and rating orders, plus the records area.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { __setTestDb } from "@/db/client";
 import { createDb, enableForeignKeys, runMigrations, type DbHandle } from "@/db/connection";
 import { rebaseHistory } from "@/db/rebase";
 import * as schema from "@/db/schema";
 import { CUSTOMER_SEEDS, DEMO_CREDENTIALS, VAN_SEEDS } from "@/db/seed-data";
 import { seedDatabase } from "@/db/seed";
+import {
+  fulfilmentMinutes,
+  imputedOrders,
+  lateRateByVan,
+  timeToFulfil,
+  type OpsOrder,
+} from "@/lib/analytics/ops";
 import { MESSAGES } from "@/lib/validation";
+import { opsOrders } from "./analytics";
 import { authenticateCustomer, changePassword, createCustomer } from "./customers";
 import { listPosts, createPost, recentRatings } from "./community";
 import {
@@ -462,8 +470,53 @@ describe("vendor side", () => {
     expect(late).toMatchObject({ status: "collected", discountApplied: true });
     expect(late.collectionTime! - late.fulfilledTime!).toBe(5 * MIN);
 
+    // The invented ready time is flagged; a real one is not.
+    const flags = await handle.db
+      .select({
+        orderId: schema.orders.orderId,
+        imputed: schema.orders.fulfilmentImputed,
+        closedOutAt: schema.orders.closedOutAt,
+      })
+      .from(schema.orders)
+      .where(inArray(schema.orders.orderId, [stale.data.orderId, staleReady.data.orderId]));
+    const flagOf = new Map(flags.map((f) => [f.orderId, f]));
+    expect(flagOf.get(stale.data.orderId)).toMatchObject({ imputed: true });
+    expect(flagOf.get(staleReady.data.orderId)).toMatchObject({ imputed: false });
+    expect(flagOf.get(stale.data.orderId)?.closedOutAt?.getTime()).toBe(NOW);
+
     // Nothing left to close; recent orders are untouched.
     expect(await closeStaleDemoOrders({ customerId: SAM }, NOW)).toBe(0);
+  });
+
+  it("keeps housekeeping's invented ready times out of the analytics", async () => {
+    const before = await opsOrders();
+    const at12 = (orders: OpsOrder[]) => fulfilmentMinutes(orders).filter((m) => m === 12).length;
+    const kmEventsAt12 = (orders: OpsOrder[], now: number) =>
+      timeToFulfil(orders, now).km.steps.find((st) => st.time === 12)?.nEvent ?? 0;
+    // Twenty demo logins, 100 minutes apart: each one tops the board up with
+    // simulated orders and closes out the previous login's leftovers.
+    for (let i = 0; i < 20; i++) await ensureVanActivity(VAN, NOW + i * 100 * MIN);
+    const later = NOW + 20 * 100 * MIN;
+    const after = await opsOrders();
+    const imputed = after.filter((o) => o.fulfilmentImputed);
+    expect(imputed.length).toBeGreaterThanOrEqual(19 * 2);
+    expect(imputedOrders(after)).toBe(imputed.length);
+    expect(
+      imputed.every((o) => o.closedOutAt != null && o.closedOutAt - o.startTime >= 90 * MIN),
+    ).toBe(true);
+    // No new 12-minute "observations" and no spike of events at 12 minutes.
+    expect(at12(after)).toBe(at12(before));
+    expect(kmEventsAt12(after, later)).toBe(kmEventsAt12(before, NOW));
+    const ttf = timeToFulfil(after, later);
+    expect(ttf.closedOut).toBe(imputed.length);
+    // The late-discount rate is over served orders with a recorded ready time only.
+    const late = lateRateByVan(after).overall;
+    expect(late.n).toBe(fulfilmentMinutes(after).length);
+    expect(late.n).toBe(
+      after.filter(
+        (o) => o.fulfilledTime != null && !o.fulfilmentImputed && o.status !== "canceled",
+      ).length,
+    );
   });
 
   it("never simulates orders as the demo customer or a visitor account", async () => {

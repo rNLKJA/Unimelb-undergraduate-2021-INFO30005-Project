@@ -23,7 +23,24 @@ export type OpsOrder = {
   fulfilledTime: number | null;
   discountApplied: boolean;
   rating: number | null;
+  /**
+   * True when demo housekeeping invented `fulfilledTime` while closing out an
+   * order nobody finished. Such a time is not an observation: it is left out
+   * of every fulfilment figure, and the order is censored at `closedOutAt`.
+   */
+  fulfilmentImputed: boolean;
+  /** When demo housekeeping closed the order out, or null. */
+  closedOutAt: number | null;
 };
+
+/** A ready time that was actually recorded (not cancelled, not invented by housekeeping). */
+const observedReady = (o: OpsOrder): boolean =>
+  o.fulfilledTime != null && o.status !== "canceled" && !o.fulfilmentImputed;
+
+/** Orders whose ready time was invented by demo housekeeping (excluded from the figures). */
+export function imputedOrders(orders: readonly OpsOrder[]): number {
+  return orders.filter((o) => o.fulfilmentImputed && o.status !== "canceled").length;
+}
 
 /** Seed for every bootstrap on the analytics page (the team's group number). */
 export const ANALYTICS_SEED = 4399;
@@ -67,10 +84,13 @@ export function ordersPerDay(
   };
 }
 
-/** Minutes from placing an order to "ready for pickup", for every served order. */
+/**
+ * Minutes from placing an order to "ready for pickup", for every served
+ * order with a recorded ready time (housekeeping-imputed times excluded).
+ */
 export function fulfilmentMinutes(orders: readonly OpsOrder[]): number[] {
   return orders
-    .filter((o) => o.fulfilledTime != null && o.status !== "canceled")
+    .filter(observedReady)
     .map((o) => ((o.fulfilledTime as number) - o.startTime) / 60_000);
 }
 
@@ -118,13 +138,13 @@ export type VanLateRate = { vanId: string; late: ProportionCI };
  * Late-discount rate per van among served orders (ready, or collected): the
  * share flagged for the discount because they were ready after the 15-minute
  * deadline. Sorted by estimate, highest first; vans with no served orders
- * are left out.
+ * are left out, and so are orders whose ready time housekeeping invented.
  */
 export function lateRateByVan(orders: readonly OpsOrder[]): {
   overall: ProportionCI;
   byVan: VanLateRate[];
 } {
-  const served = orders.filter((o) => o.fulfilledTime != null && o.status !== "canceled");
+  const served = orders.filter(observedReady);
   const isLate = (o: OpsOrder) => o.discountApplied || (o.fulfilledTime as number) > o.discountTime;
   const groups = new Map<string, { late: number; n: number }>();
   for (const o of served) {
@@ -145,6 +165,11 @@ export type TimeToFulfil = {
   cancelled: number;
   /** Orders still being prepared, right-censored at "now". */
   stillPreparing: number;
+  /**
+   * Orders closed out by demo housekeeping without ever being marked ready,
+   * right-censored at their age when they were closed out.
+   */
+  closedOut: number;
   medianMinutes: number;
   /** P(ready within 15 minutes) = 1 - S(15), with its interval. */
   readyBy15: { estimate: number; lower: number; upper: number };
@@ -152,20 +177,28 @@ export type TimeToFulfil = {
 
 /**
  * Kaplan–Meier "time to fulfil": event = ready for pickup; an order still
- * outstanding is censored at the time we look. Cancelled orders are excluded
- * (a competing event, reported separately), which the methods page states.
+ * outstanding is censored at the time we look, and an order demo
+ * housekeeping closed out without a ready time is censored at its age when
+ * it was closed out (all we know is that it was not ready by then).
+ * Cancelled orders are excluded (a competing event, reported separately),
+ * which the methods page states.
  */
 export function timeToFulfil(orders: readonly OpsOrder[], now: number): TimeToFulfil {
   const times: number[] = [];
   const events: boolean[] = [];
   let cancelled = 0;
   let stillPreparing = 0;
+  let closedOut = 0;
   for (const o of orders) {
     if (o.status === "canceled") {
       cancelled++;
       continue;
     }
-    if (o.fulfilledTime != null) {
+    if (o.fulfilmentImputed) {
+      closedOut++;
+      times.push(Math.max(0, ((o.closedOutAt ?? now) - o.startTime) / 60_000));
+      events.push(false);
+    } else if (o.fulfilledTime != null) {
       times.push((o.fulfilledTime - o.startTime) / 60_000);
       events.push(true);
     } else if (o.status === "outstanding") {
@@ -180,7 +213,19 @@ export function timeToFulfil(orders: readonly OpsOrder[], now: number): TimeToFu
     km,
     cancelled,
     stillPreparing,
+    closedOut,
     medianMinutes: kmQuantile(km, 0.5),
     readyBy15: { estimate: 1 - s15.survival, lower: 1 - s15.upper, upper: 1 - s15.lower },
   };
+}
+
+/**
+ * Baseline for the experiment's "rates the first order 4 or 5 stars" metric,
+ * with the metric's own denominator: every non-cancelled order, where an
+ * order nobody rated counts as "no". (Dividing by rated orders only would
+ * describe a different, conditional metric and inflate the baseline.)
+ */
+export function ratingFourPlusBaseline(orders: readonly OpsOrder[]): ProportionCI {
+  const placed = orders.filter((o) => o.status !== "canceled");
+  return wilson(placed.filter((o) => o.rating != null && o.rating >= 4).length, placed.length);
 }

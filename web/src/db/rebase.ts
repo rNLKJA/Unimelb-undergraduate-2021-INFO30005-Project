@@ -14,7 +14,17 @@ import { orderDateString } from "../lib/legacy-time";
 export const SEEDED_AT_KEY = "seeded_at";
 
 const SHIFTS: readonly [table: string, columns: readonly string[]][] = [
-  ["orders", ["start_time", "discount_time", "fulfilled_time", "collection_time", "end_time"]],
+  [
+    "orders",
+    [
+      "start_time",
+      "discount_time",
+      "fulfilled_time",
+      "collection_time",
+      "end_time",
+      "closed_out_at",
+    ],
+  ],
   ["customers", ["created_at"]],
   ["blogs", ["created_at"]],
   ["vans", ["location_updated_at"]],

@@ -23,6 +23,7 @@ export async function shiftMetricsFor(
       fulfilledTime: orders.fulfilledTime,
       discountTime: orders.discountTime,
       discountApplied: orders.discountApplied,
+      fulfilmentImputed: orders.fulfilmentImputed,
       rating: orders.rating,
     })
     .from(orders)
@@ -54,7 +55,8 @@ export async function shiftMetricsFor(
       status: r.status,
       price: r.price,
       startTime: r.startTime.getTime(),
-      fulfilledTime: r.fulfilledTime?.getTime() ?? null,
+      // A ready time invented by demo housekeeping is not a real one.
+      fulfilledTime: r.fulfilmentImputed ? null : (r.fulfilledTime?.getTime() ?? null),
       discountTime: r.discountTime.getTime(),
       discountApplied: r.discountApplied,
       rating: r.rating,

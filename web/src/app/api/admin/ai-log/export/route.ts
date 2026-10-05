@@ -53,6 +53,7 @@ const EMPTY = {
   inputTokens: null,
   outputTokens: null,
   factCheck: null,
+  inputMatchesServer: null,
   humanDecision: "pending" as const,
   editedOutput: null,
   decidedAt: null,

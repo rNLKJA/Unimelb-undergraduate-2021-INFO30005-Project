@@ -4,8 +4,10 @@ import {
   fulfilmentMinutes,
   fulfilmentSummary,
   histogram,
+  imputedOrders,
   lateRateByVan,
   ordersPerDay,
+  ratingFourPlusBaseline,
   shiftDayKey,
   timeToFulfil,
   type OpsOrder,
@@ -33,7 +35,22 @@ function order(o: Partial<OpsOrder> & { minutes?: number | null }): OpsOrder {
     fulfilledTime: fulfilled,
     discountApplied: o.discountApplied ?? (fulfilled != null && fulfilled > start + 15 * MIN),
     rating: o.rating ?? null,
+    fulfilmentImputed: o.fulfilmentImputed ?? false,
+    closedOutAt: o.closedOutAt ?? null,
   };
+}
+
+/** An order demo housekeeping closed out after 95 minutes with an invented 12-minute ready time. */
+function closedOut(vanId = "Van A"): OpsOrder {
+  const start = NOW - 3 * 60 * MIN;
+  return order({
+    vanId,
+    startTime: start,
+    minutes: 12,
+    status: "collected",
+    fulfilmentImputed: true,
+    closedOutAt: start + 95 * MIN,
+  });
 }
 
 describe("calendar keys", () => {
@@ -134,5 +151,50 @@ describe("time to fulfil (Kaplan–Meier)", () => {
     expect(res.readyBy15.lower).toBeLessThan(res.readyBy15.estimate);
     expect(res.readyBy15.upper).toBeGreaterThan(res.readyBy15.estimate);
     expect(res.medianMinutes).toBe(12);
+  });
+});
+
+describe("orders closed out by demo housekeeping", () => {
+  const real = [4, 6, 8, 10, 14, 16, 18, 20].map((m) => order({ minutes: m }));
+  const padded = [...real, ...Array.from({ length: 20 }, () => closedOut())];
+
+  it("never count their invented ready times as observations", () => {
+    expect(imputedOrders(padded)).toBe(20);
+    expect(fulfilmentMinutes(padded)).toEqual(fulfilmentMinutes(real));
+    expect(fulfilmentSummary(fulfilmentMinutes(padded))).toEqual(
+      fulfilmentSummary(fulfilmentMinutes(real)),
+    );
+    expect(lateRateByVan(padded)).toEqual(lateRateByVan(real));
+  });
+
+  it("are censored in the Kaplan–Meier curve at their age when closed out", () => {
+    const res = timeToFulfil(padded, NOW);
+    expect(res.closedOut).toBe(20);
+    expect(res.km.events).toBe(real.length);
+    // No spike of events at the invented 12 minutes.
+    expect(res.km.steps.find((s) => s.time === 12)).toBeUndefined();
+    const censored = res.km.steps.find((s) => s.nCensor === 20);
+    expect(censored?.time).toBeCloseTo(95, 9);
+    // They were known not to be ready for 95 minutes, so they stay at risk past
+    // every real event: 5 of 28 orders were ready by 15 minutes.
+    expect(res.readyBy15.estimate).toBeCloseTo(5 / 28, 12);
+    expect(res.km.n).toBe(28);
+  });
+});
+
+describe("rating 4+ baseline for the experiment", () => {
+  it("divides by every non-cancelled order, counting unrated orders as no", () => {
+    const orders = [
+      order({ minutes: 5, rating: 5 }),
+      order({ minutes: 5, rating: 4 }),
+      order({ minutes: 5, rating: 2 }),
+      order({ minutes: 5 }),
+      order({ minutes: 5 }),
+      order({ status: "canceled", minutes: null }),
+    ];
+    const res = ratingFourPlusBaseline(orders);
+    expect(res).toEqual(wilson(2, 5));
+    // Not the conditional share among rated orders (2 of 3).
+    expect(res.p).toBeCloseTo(0.4, 12);
   });
 });

@@ -89,6 +89,17 @@ export const orders = sqliteTable(
     comment: text("comment"),
     rating: integer("rating"),
     discountApplied: integer("discount_applied", { mode: "boolean" }).notNull().default(false),
+    /**
+     * New in the 2026 upgrade: when demo housekeeping closed this order out
+     * (see `closeStaleDemoOrders`). Null for every order a person finished.
+     */
+    closedOutAt: integer("closed_out_at", { mode: "timestamp_ms" }),
+    /**
+     * True when `fulfilled_time` was invented by that housekeeping (the order
+     * was never marked ready). Analytics exclude these times and treat the
+     * order as censored at `closed_out_at` instead.
+     */
+    fulfilmentImputed: integer("fulfilment_imputed", { mode: "boolean" }).notNull().default(false),
   },
   (t) => [
     index("orders_van_status_idx").on(t.vanId, t.status),
@@ -211,8 +222,16 @@ export const aiAuditLog = sqliteTable(
     latencyMs: integer("latency_ms").notNull(),
     inputTokens: integer("input_tokens"),
     outputTokens: integer("output_tokens"),
-    /** JSON: the automatic fact check of the numbers in the output. */
+    /** JSON: the automatic fact check of the numbers in the output, recomputed by the server. */
     factCheck: text("fact_check"),
+    /**
+     * Whether the figures in the prompt equal the server's own figures for
+     * that van when the record arrived (null for rows logged before 0003).
+     * The prompt itself is always checked to be the app's fixed instructions
+     * plus a well-formed set of aggregate figures; this flag says whether
+     * those figures were still current.
+     */
+    inputMatchesServer: integer("input_matches_server", { mode: "boolean" }),
     humanDecision: text("human_decision", { enum: AI_DECISIONS }).notNull().default("pending"),
     editedOutput: text("edited_output"),
     decidedAt: integer("decided_at", { mode: "timestamp_ms" }),

@@ -14,6 +14,7 @@ import {
   fulfilmentMinutes,
   fulfilmentSummary,
   histogram,
+  imputedOrders,
   lateRateByVan,
   ordersPerDay,
   timeToFulfil,
@@ -47,12 +48,16 @@ export default async function AnalyticsPage() {
     total: orders.length,
     cancelled: orders.filter((o) => o.status === "canceled").length,
     active: orders.filter((o) => o.status === "outstanding" || o.status === "fulfilled").length,
+    imputed: imputedOrders(orders),
   };
   const first = orders[0]?.startTime;
-  const kmMax = Math.max(
-    OVERDUE_MINUTES + 5,
-    Math.ceil(Math.max(0, ...ttf.km.steps.map((s) => s.time))),
-  );
+  // The axis ends at the last ready order: orders censored much later (closed
+  // out by housekeeping after 90+ minutes) would only add a long flat line.
+  const lastEvent = Math.max(0, ...ttf.km.steps.filter((s) => s.nEvent > 0).map((s) => s.time));
+  const kmMax = Math.max(OVERDUE_MINUTES + 5, Math.ceil(lastEvent));
+  const censoredBeyond = ttf.km.steps
+    .filter((s) => s.time > kmMax)
+    .reduce((sum, s) => sum + s.nCensor, 0);
   const lateMax = Math.min(1, Math.max(0.5, ...late.byVan.map((v) => v.late.upper)));
 
   return (
@@ -63,9 +68,15 @@ export default async function AnalyticsPage() {
           {first ? <> since {formatDate(first)}</> : null} ({counts.cancelled} cancelled,{" "}
           {counts.active} still active). The history is <strong>synthetic seed data</strong> plus
           whatever visitors did on this server, so read the numbers as a demonstration of the
-          method, not as facts about real vans. Every rate has a Wilson 95% interval; medians and
-          percentiles have percentile-bootstrap intervals ({BOOTSTRAP_REPS.toLocaleString("en-AU")}{" "}
-          resamples, seed {ANALYTICS_SEED}). Method notes:{" "}
+          method, not as facts about real vans.{" "}
+          <span id="imputed-note">
+            Demo orders closed out by housekeeping without ever being marked ready: {counts.imputed}
+            . Their invented ready times are left out of every figure, and the Kaplan–Meier curve
+            treats them as censored.
+          </span>{" "}
+          Every rate has a Wilson 95% interval; medians and percentiles have percentile-bootstrap
+          intervals ({BOOTSTRAP_REPS.toLocaleString("en-AU")} resamples, seed {ANALYTICS_SEED}).
+          Method notes:{" "}
           <Link
             href="/methods#analytics"
             className="font-medium text-foreground underline underline-offset-4"
@@ -87,13 +98,13 @@ export default async function AnalyticsPage() {
           label="Median minutes to ready"
           value={formatNumber(summary.median.estimate, 1)}
           interval={formatInterval(summary.median.lower, summary.median.upper)}
-          note={`n = ${summary.n} served orders`}
+          note={`n = ${summary.n} served orders${counts.imputed ? `, ${counts.imputed} closed out excluded` : ""}`}
         />
         <Figure
           label={`Ready within ${OVERDUE_MINUTES} minutes (Kaplan–Meier)`}
           value={formatPct(ttf.readyBy15.estimate, 0)}
           interval={formatPctInterval(ttf.readyBy15.lower, ttf.readyBy15.upper, 0)}
-          note={`n = ${ttf.km.n}, ${ttf.km.censored} still preparing (censored)`}
+          note={`n = ${ttf.km.n}, ${ttf.km.censored} censored (${ttf.stillPreparing} still preparing, ${ttf.closedOut} closed out)`}
         />
         <Figure
           label="Late-discount rate"
@@ -186,12 +197,16 @@ export default async function AnalyticsPage() {
             <>
               Share of orders ready by each minute, 1 − S(t) from a Kaplan–Meier fit with Greenwood
               log-log 95% band. Orders still being prepared count as censored at their current age,
-              not as finished and not as missing; {ttf.cancelled} cancelled orders are left out (a
-              competing outcome). KM median{" "}
+              not as finished and not as missing; {ttf.closedOut} demo orders closed out by
+              housekeeping are censored at their age when closed out; {ttf.cancelled} cancelled
+              orders are left out (a competing outcome). KM median{" "}
               {Number.isFinite(ttf.medianMinutes)
                 ? `${formatNumber(ttf.medianMinutes, 1)} min`
                 : "not reached"}
               .
+              {censoredBeyond
+                ? ` The axis stops at the last ready order; ${censoredBeyond} orders censored after that are listed in the data table (the curve stays flat beyond it).`
+                : ""}
             </>
           }
         >
@@ -235,9 +250,9 @@ export default async function AnalyticsPage() {
           subtitle={
             <>
               Share of each van&apos;s served orders that were ready after the 15-minute deadline
-              (and so discounted), with Wilson 95% intervals. Wide intervals mean few orders:
-              differences between vans this small are not evidence of a slower crew. Dashed line:
-              all vans together.
+              (and so discounted), with Wilson 95% intervals; orders closed out by housekeeping are
+              left out. Wide intervals mean few orders: differences between vans this small are not
+              evidence of a slower crew. Dashed line: all vans together.
             </>
           }
         >

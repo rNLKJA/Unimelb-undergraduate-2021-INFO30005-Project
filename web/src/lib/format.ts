@@ -35,6 +35,13 @@ export const formatDateTime = (value: number | Date) => dateTimeFmt.format(toDat
 /** YYYY-MM-DD in Melbourne — handy for "today" comparisons. */
 export const melbourneDayKey = (value: number | Date) => dayKeyFmt.format(toDate(value));
 
+/** Time only for today (Melbourne), otherwise date and time, e.g. on order tickets. */
+export function formatWhen(value: number | Date, now: number | Date): string {
+  return melbourneDayKey(value) === melbourneDayKey(now)
+    ? formatTime(value)
+    : formatDateTime(value);
+}
+
 /** "4:07" style minutes:seconds for countdowns (negative values clamp to 0). */
 export function formatCountdown(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000));

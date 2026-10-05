@@ -21,7 +21,7 @@ import { advanceOrderAction, simulateOrderAction } from "@/app/vendor/actions";
 import { Button } from "@/components/ui/button";
 import { useNow } from "@/hooks/use-now";
 import { fetcher } from "@/lib/fetcher";
-import { formatTime } from "@/lib/format";
+import { formatWhen } from "@/lib/format";
 import { prepTone, vendorTimer } from "@/lib/order-rules";
 import { formatPrice } from "@/lib/pricing";
 import type { VendorBoardData } from "@/lib/board";
@@ -73,7 +73,7 @@ function Ticket({
         <div>
           <p className="font-mono text-sm font-medium">{order.orderId}</p>
           <p className="text-xs text-muted-foreground">
-            {order.customerName} · {formatTime(order.startTime)}
+            {order.customerName} · {formatWhen(order.startTime, now)}
           </p>
         </div>
         <p className="tabular text-right font-display text-base font-semibold">
@@ -95,7 +95,7 @@ function Ticket({
               "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
               timer.overdue
                 ? "bg-tomato-300/25 text-tomato-700 dark:text-tomato-300"
-                : "bg-honey-300/40 text-espresso-800 dark:text-honey-300",
+                : "bg-honey-300/40 text-espresso-800 dark:bg-honey-300/15 dark:text-honey-300",
             )}
           >
             <Timer className="size-3.5" aria-hidden /> {timer.label}
@@ -106,7 +106,7 @@ function Ticket({
           </span>
         ) : order.fulfilledTime ? (
           <span className="text-xs text-muted-foreground">
-            Ready at {formatTime(order.fulfilledTime)}
+            Ready at {formatWhen(order.fulfilledTime, now)}
           </span>
         ) : (
           <span />
@@ -124,7 +124,7 @@ function Ticket({
         ) : order.status === "fulfilled" ? (
           <Button
             size="sm"
-            className="h-8 rounded-lg bg-matcha-500 text-white hover:bg-matcha-600"
+            className="h-8 rounded-lg bg-matcha-600 text-white hover:bg-matcha-700"
             disabled={busy}
             onClick={() => onAdvance(order)}
           >
@@ -133,7 +133,7 @@ function Ticket({
           </Button>
         ) : order.collectionTime ? (
           <span className="text-xs text-muted-foreground">
-            Picked up {formatTime(order.collectionTime)}
+            Picked up {formatWhen(order.collectionTime, now)}
           </span>
         ) : null}
       </footer>

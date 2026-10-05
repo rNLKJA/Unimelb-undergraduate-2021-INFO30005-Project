@@ -1,7 +1,22 @@
 import "server-only";
-import { and, asc, count, desc, eq, gte, inArray, like, ne, or, sum, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  like,
+  lt,
+  ne,
+  or,
+  sum,
+  type SQL,
+} from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { customers, orderItems, orders, products, vans, type Order } from "@/db/schema";
+import { CUSTOMER_SEEDS, DEMO_CREDENTIALS } from "@/db/seed-data";
 import { orderDateString } from "@/lib/legacy-time";
 import { VAN_OPEN } from "@/lib/nearest-vans";
 import { generateOrderId } from "@/lib/order-id";
@@ -342,17 +357,22 @@ export async function vendorBoard(vanId: string, now: number = Date.now()): Prom
       .filter((o) => o.status === "fulfilled")
       .sort((a, b) => (a.fulfilledTime ?? 0) - (b.fulfilledTime ?? 0)),
     collected: await hydrate(collectedRows),
-    stats: dayStats(
-      recent.map((o) => ({
-        status: o.status,
-        price: o.price,
-        startTime: o.startTime.getTime(),
-        discountTime: o.discountTime.getTime(),
-        fulfilledTime: o.fulfilledTime?.getTime() ?? null,
-        rating: o.rating,
-      })),
-      now,
-    ),
+    stats: {
+      ...dayStats(
+        recent.map((o) => ({
+          status: o.status,
+          price: o.price,
+          startTime: o.startTime.getTime(),
+          discountTime: o.discountTime.getTime(),
+          fulfilledTime: o.fulfilledTime?.getTime() ?? null,
+          rating: o.rating,
+        })),
+        now,
+      ),
+      // "In progress" must match the tickets on the board, including any
+      // carried over from an earlier day.
+      active: active.length,
+    },
     serverNow: now,
   };
 }
@@ -475,10 +495,25 @@ function randomLines(): CartLine[] {
   }));
 }
 
+/**
+ * Simulated orders come only from the seeded synthetic customers: never the
+ * public demo customer (their "My orders" should hold only what they placed)
+ * and never accounts created by visitors.
+ */
+export const SIMULATION_CUSTOMER_IDS: readonly string[] = CUSTOMER_SEEDS.map(
+  (c) => c.customerId,
+).filter((id) => id !== DEMO_CREDENTIALS.customer.customerId);
+
+/** Demo orders still active after this long are treated as abandoned. */
+export const DEMO_STALE_AFTER_MINUTES = 90;
+
 /** "Simulate a customer order" on the vendor board. */
 export async function simulateOrder(vanId: string, now: number = Date.now(), ageMinutes = 0) {
   const db = await getDb();
-  const pool = await db.select({ customerId: customers.customerId }).from(customers).limit(50);
+  const pool = await db
+    .select({ customerId: customers.customerId })
+    .from(customers)
+    .where(inArray(customers.customerId, [...SIMULATION_CUSTOMER_IDS]));
   if (!pool.length) return { ok: false as const, message: "No customers to simulate" };
   const customerId = pool[Math.floor(Math.random() * pool.length)].customerId;
   return placeOrder({
@@ -490,9 +525,50 @@ export async function simulateOrder(vanId: string, now: number = Date.now(), age
   });
 }
 
+/**
+ * With persistent storage (Turso) demo orders nobody finishes would stay
+ * "outstanding" forever and pile up as days-old overdue tickets. Before a demo
+ * login, close out active orders older than DEMO_STALE_AFTER_MINUTES as if the
+ * van had served them on time (fulfilled 12 min and collected 20 min after
+ * they were placed; a fulfilled one is collected 5 min after it was ready).
+ * Returns how many orders were closed out.
+ */
+export async function closeStaleDemoOrders(
+  scope: { vanId: string } | { customerId: string },
+  now: number = Date.now(),
+): Promise<number> {
+  const db = await getDb();
+  const cutoff = new Date(now - DEMO_STALE_AFTER_MINUTES * MINUTE);
+  const stale = await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        "vanId" in scope ? eq(orders.vanId, scope.vanId) : eq(orders.customerId, scope.customerId),
+        inArray(orders.status, ["outstanding", "fulfilled"]),
+        lt(orders.startTime, cutoff),
+      ),
+    );
+  for (const row of stale) {
+    const start = row.startTime.getTime();
+    const fulfilled = row.fulfilledTime?.getTime() ?? start + 12 * MINUTE;
+    await db
+      .update(orders)
+      .set({
+        status: "collected",
+        fulfilledTime: new Date(fulfilled),
+        collectionTime: new Date(Math.max(fulfilled + 5 * MINUTE, start + 20 * MINUTE)),
+        discountApplied: row.discountApplied || fulfilled > row.discountTime.getTime(),
+      })
+      .where(eq(orders.orderId, row.orderId));
+  }
+  return stale.length;
+}
+
 /** Make sure the demo van has a few live orders when someone tries the vendor portal. */
 export async function ensureVanActivity(vanId: string, now: number = Date.now()) {
   const db = await getDb();
+  await closeStaleDemoOrders({ vanId }, now);
   const [{ n }] = await db
     .select({ n: count() })
     .from(orders)
@@ -519,6 +595,7 @@ export async function ensureCustomerActivity(
   now: number = Date.now(),
 ) {
   const db = await getDb();
+  await closeStaleDemoOrders({ customerId }, now);
   const [{ n }] = await db
     .select({ n: count() })
     .from(orders)

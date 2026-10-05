@@ -19,6 +19,7 @@ import { listPosts, createPost, recentRatings } from "./community";
 import {
   advanceOrder,
   cancelCustomerOrder,
+  closeStaleDemoOrders,
   ensureCustomerActivity,
   ensureVanActivity,
   getCustomerOrder,
@@ -26,6 +27,8 @@ import {
   placeOrder,
   rateOrder,
   searchVanOrders,
+  simulateOrder,
+  SIMULATION_CUSTOMER_IDS,
   updateCustomerOrder,
   vendorBoard,
 } from "./orders";
@@ -427,6 +430,62 @@ describe("vendor side", () => {
     expect(board.outstanding.length + board.fulfilled.length).toBeGreaterThanOrEqual(3);
     await ensureCustomerActivity(SAM, VAN, NOW);
     expect((await listCustomerOrders(SAM, "active")).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("closes out abandoned demo orders instead of showing days-old overdue tickets", async () => {
+    const twoDaysAgo = NOW - 2 * 24 * 60 * MIN;
+    const lines = [{ food: "Latte", quantity: 1 }];
+    const stale = await placeOrder({ customerId: SAM, vanId: VAN, lines, now: twoDaysAgo });
+    const staleReady = await placeOrder({ customerId: SAM, vanId: VAN, lines, now: twoDaysAgo });
+    expect(stale.ok && staleReady.ok).toBe(true);
+    if (!stale.ok || !staleReady.ok) return;
+    await advanceOrder({
+      vanId: VAN,
+      orderId: staleReady.data.orderId,
+      target: "fulfilled",
+      now: twoDaysAgo + 20 * MIN,
+    });
+    const fresh = await placeOrder({ customerId: SAM, vanId: VAN, lines, now: NOW - 5 * MIN });
+    expect(fresh.ok).toBe(true);
+
+    await ensureVanActivity(VAN, NOW);
+    const board = await vendorBoard(VAN, NOW);
+    const active = [...board.outstanding, ...board.fulfilled];
+    expect(active.length).toBeGreaterThanOrEqual(3);
+    expect(active.every((o) => NOW - o.startTime < 90 * MIN)).toBe(true);
+    expect(active.some((o) => fresh.ok && o.orderId === fresh.data.orderId)).toBe(true);
+
+    const closed = (await getCustomerOrder(SAM, stale.data.orderId))!;
+    expect(closed).toMatchObject({ status: "collected", discountApplied: false });
+    expect(closed.fulfilledTime! - closed.startTime).toBe(12 * MIN);
+    const late = (await getCustomerOrder(SAM, staleReady.data.orderId))!;
+    expect(late).toMatchObject({ status: "collected", discountApplied: true });
+    expect(late.collectionTime! - late.fulfilledTime!).toBe(5 * MIN);
+
+    // Nothing left to close; recent orders are untouched.
+    expect(await closeStaleDemoOrders({ customerId: SAM }, NOW)).toBe(0);
+  });
+
+  it("never simulates orders as the demo customer or a visitor account", async () => {
+    expect(SIMULATION_CUSTOMER_IDS).not.toContain(SAM);
+    const visitor = await createCustomer({
+      firstName: "Vera",
+      lastName: "Visitor",
+      customerId: "vera@visitor.test",
+      password1: "Visitor2026",
+      password2: "Visitor2026",
+    });
+    expect(visitor.ok).toBe(true);
+    for (let i = 0; i < 25; i++) {
+      const placed = await simulateOrder(VAN, NOW);
+      expect(placed.ok).toBe(true);
+      if (!placed.ok) continue;
+      const row = await handle.db
+        .select({ customerId: schema.orders.customerId })
+        .from(schema.orders)
+        .where(eq(schema.orders.orderId, placed.data.orderId));
+      expect(SIMULATION_CUSTOMER_IDS).toContain(row[0].customerId);
+    }
   });
 });
 

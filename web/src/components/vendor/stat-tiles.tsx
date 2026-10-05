@@ -1,6 +1,6 @@
 import { BadgeCheck, Clock3, DollarSign, ReceiptText, Soup } from "lucide-react";
 import { formatPrice } from "@/lib/pricing";
-import type { DayStats } from "@/lib/stats";
+import type { DayStats } from "@/lib/stats/day-stats";
 import { cn } from "@/lib/utils";
 
 export function StatTiles({ stats, className }: { stats: DayStats; className?: string }) {

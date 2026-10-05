@@ -35,7 +35,7 @@ import {
 import { normaliseCart, orderTotal, type CartLine } from "@/lib/pricing";
 import { publicName, vanSlug } from "@/lib/slug";
 import type { VendorBoard } from "@/lib/board";
-import { dayStats } from "@/lib/stats";
+import { dayStats } from "@/lib/stats/day-stats";
 import type { OrderDTO } from "@/lib/types";
 
 const MINUTE = 60_000;

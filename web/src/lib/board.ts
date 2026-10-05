@@ -1,4 +1,4 @@
-import type { DayStats } from "./stats";
+import type { DayStats } from "./stats/day-stats";
 import type { OrderDTO, VanDTO } from "./types";
 
 /** What the vendor board Route Handler returns (and the page pre-renders). */

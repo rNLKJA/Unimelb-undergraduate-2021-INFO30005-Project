@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { averageRating, dayStats, type StatOrder } from "./stats";
+import { averageRating, dayStats, type StatOrder } from "./day-stats";
 
 const MIN = 60_000;
 // 2 pm in Melbourne on 1 Oct 2026 (AEST, UTC+10).

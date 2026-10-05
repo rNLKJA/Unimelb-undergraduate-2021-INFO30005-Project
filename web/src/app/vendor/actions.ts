@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ActionState } from "@/lib/types";
 import { vanLocationSchema, vendorLoginSchema } from "@/lib/validation";
+import { recordAudit } from "@/server/audit";
 import { currentVan } from "@/server/auth";
 import { reverseGeocode } from "@/server/geocode";
 import { advanceOrder, simulateOrder } from "@/server/orders";
@@ -20,6 +21,12 @@ export async function vendorLoginAction(_prev: ActionState, form: FormData): Pro
   const result = await authenticateVan(parsed.data.vanId, parsed.data.password);
   if (!result.ok) return { status: "error", message: result.message };
   await startSession("vendor", result.vanId);
+  await recordAudit({
+    actor: { role: "vendor", id: result.vanId },
+    action: "session.started",
+    entityType: "session",
+    entityId: "vendor",
+  });
   redirect("/vendor/orders");
 }
 

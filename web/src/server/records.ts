@@ -71,6 +71,22 @@ export const RECORD_TABLES = {
     order: "id",
     redact: ["password"],
   },
+  audit_log: {
+    label: "Audit log",
+    description:
+      "Append-only trail of state changes and record access: order status changes, van open/close and location, sign-ins, exports and AI review decisions. Updates and deletes are blocked by database triggers.",
+    table: schema.auditLog,
+    search: ["action", "actorRole", "actorId", "entityType", "entityId"],
+    order: "id",
+  },
+  ai_audit_log: {
+    label: "AI audit log",
+    description:
+      "One row per bring-your-own-key AI call: feature, provider, model, the exact input, the output, latency, tokens and the human decision. API keys are never sent to this server.",
+    table: schema.aiAuditLog,
+    search: ["feature", "provider", "model", "actorId", "humanDecision", "errorKind"],
+    order: "createdAt",
+  },
   app_meta: {
     label: "App meta",
     description: "Key/value bookkeeping (when the demo data was seeded).",

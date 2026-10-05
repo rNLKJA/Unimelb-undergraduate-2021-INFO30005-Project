@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { DEMO_CREDENTIALS } from "@/db/seed-data";
+import { recordAudit } from "@/server/audit";
 import { safeNext } from "@/server/auth";
 import { getCustomer } from "@/server/customers";
 import { ensureCustomerActivity, ensureVanActivity } from "@/server/orders";
@@ -30,6 +31,13 @@ export async function demoLoginAction(form: FormData): Promise<void> {
     if (!(await getVan(vendorVan))) redirect("/vendor/login?demo=missing");
     await ensureVanActivity(vendorVan);
     await startSession("vendor", vendorVan);
+    await recordAudit({
+      actor: { role: "vendor", id: vendorVan },
+      action: "session.started",
+      entityType: "session",
+      entityId: "vendor",
+      detail: { demo_login: true },
+    });
     redirect("/vendor/orders");
   }
 
@@ -37,6 +45,13 @@ export async function demoLoginAction(form: FormData): Promise<void> {
     if (!(await adminExists(DEMO_CREDENTIALS.admin.username)))
       redirect("/admin/login?demo=missing");
     await startSession("admin", DEMO_CREDENTIALS.admin.username);
+    await recordAudit({
+      actor: { role: "admin", id: DEMO_CREDENTIALS.admin.username },
+      action: "session.started",
+      entityType: "session",
+      entityId: "admin",
+      detail: { demo_login: true },
+    });
     redirect("/admin/records");
   }
 

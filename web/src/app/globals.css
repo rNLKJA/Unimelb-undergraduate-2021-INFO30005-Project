@@ -121,6 +121,9 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-viz-a: var(--viz-a);
+  --color-viz-b: var(--viz-b);
+  --color-viz-grid: var(--viz-grid);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -179,6 +182,14 @@
   --chart-4: var(--color-matcha-500);
   --chart-5: var(--color-espresso-300);
 
+  /* Analytics charts: two validated series hues (dataviz validator, light
+     surface #ffffff: lightness band, chroma floor, CVD separation and
+     contrast all pass). viz-a is the default single series and the
+     treatment arm; viz-b the comparison (control) arm. */
+  --viz-a: #e8462c;
+  --viz-b: #2a78c8;
+  --viz-grid: #efe3d3;
+
   --sidebar: var(--color-crema-100);
   --sidebar-foreground: var(--color-espresso-900);
   --sidebar-primary: var(--color-tomato-600);
@@ -223,6 +234,11 @@
   --chart-3: var(--color-honey-400);
   --chart-4: var(--color-matcha-400);
   --chart-5: var(--color-espresso-300);
+
+  /* Dark steps of the same hues, validated against the dark card #1f1610. */
+  --viz-a: #f0603f;
+  --viz-b: #4a8fe0;
+  --viz-grid: rgb(246 233 216 / 0.1);
 
   --sidebar: #1a120d;
   --sidebar-foreground: #f6e9d8;

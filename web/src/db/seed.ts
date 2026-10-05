@@ -33,7 +33,18 @@ export const SEED = 4399; // the team's group number
 
 export type SeedOptions = { now?: number; bcryptRounds?: number; historyDays?: number };
 
+/**
+ * While this app_meta key exists the append-only triggers on audit_log and
+ * ai_audit_log allow DELETE (migration 0002). Only a full demo reset sets it.
+ */
+export const RESET_FLAG_KEY = "demo_reset_in_progress";
+
 export async function clearDatabase(db: Db) {
+  // The audit tables are append-only; a full reset is the one sanctioned way
+  // to empty them, and it wipes every other table in the same pass.
+  await db.insert(schema.appMeta).values({ key: RESET_FLAG_KEY, value: "1" }).onConflictDoNothing();
+  await db.delete(schema.auditLog);
+  await db.delete(schema.aiAuditLog);
   // Children first so foreign keys are never violated.
   await db.delete(schema.orderItems);
   await db.delete(schema.orders);

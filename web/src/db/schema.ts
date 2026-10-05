@@ -146,6 +146,80 @@ export const appMeta = sqliteTable("app_meta", {
   value: text("value").notNull(),
 });
 
+export const AUDIT_ACTOR_ROLES = ["vendor", "admin", "customer", "system"] as const;
+export const AI_DECISIONS = [
+  "pending",
+  "accepted",
+  "edited",
+  "rejected",
+  "not-applicable",
+] as const;
+
+/**
+ * New in the 2026 upgrade: an append-only audit trail of actions that change
+ * state or expose records (order status changes, van open/close and
+ * location, admin exports, AI review decisions). Triggers in migration 0002
+ * reject UPDATE and DELETE; the only way rows leave is a full demo reset
+ * (see `clearDatabase`), which wipes every table.
+ */
+export const auditLog = sqliteTable(
+  "audit_log",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    at: integer("at", { mode: "timestamp_ms" }).notNull().default(now),
+    actorRole: text("actor_role", { enum: AUDIT_ACTOR_ROLES }).notNull(),
+    /** Van name, admin username or customer login; "demo-housekeeping" for automated demo upkeep. */
+    actorId: text("actor_id").notNull(),
+    /** Dotted verb, e.g. "order.fulfilled", "van.opened", "records.exported". */
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    /** Small JSON object: from/to status, discount flag, export filter... */
+    detail: text("detail"),
+  },
+  (t) => [
+    index("audit_log_at_idx").on(t.at),
+    index("audit_log_entity_idx").on(t.entityType, t.entityId),
+  ],
+);
+
+/**
+ * New in the 2026 upgrade: one row per bring-your-own-key AI call (posted by
+ * a server action after the browser called the provider). Never holds an API
+ * key. The call record is immutable; only the human decision may move, once,
+ * from "pending" to accepted / edited / rejected (enforced by triggers). A
+ * failed call has nothing to review and is stored as "not-applicable".
+ */
+export const aiAuditLog = sqliteTable(
+  "ai_audit_log",
+  {
+    id: text("id").primaryKey(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(now),
+    feature: text("feature").notNull(),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    /** The van whose session posted the entry. */
+    actorId: text("actor_id").notNull(),
+    /** JSON: the system prompt, the user prompt and the aggregate metrics sent. */
+    input: text("input").notNull(),
+    /** JSON of the validated output, or null when the call failed. */
+    output: text("output"),
+    /** The model's raw text (kept when validation failed, the reply was cut off or refused). */
+    outputText: text("output_text"),
+    errorKind: text("error_kind"),
+    errorMessage: text("error_message"),
+    latencyMs: integer("latency_ms").notNull(),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    /** JSON: the automatic fact check of the numbers in the output. */
+    factCheck: text("fact_check"),
+    humanDecision: text("human_decision", { enum: AI_DECISIONS }).notNull().default("pending"),
+    editedOutput: text("edited_output"),
+    decidedAt: integer("decided_at", { mode: "timestamp_ms" }),
+  },
+  (t) => [index("ai_audit_log_created_idx").on(t.createdAt)],
+);
+
 export type Customer = typeof customers.$inferSelect;
 export type Van = typeof vans.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -153,3 +227,5 @@ export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type Blog = typeof blogs.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
+export type AuditLogRow = typeof auditLog.$inferSelect;
+export type AiAuditLogRow = typeof aiAuditLog.$inferSelect;

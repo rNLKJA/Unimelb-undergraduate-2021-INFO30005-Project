@@ -37,6 +37,7 @@ import { publicName, vanSlug } from "@/lib/slug";
 import type { VendorBoard } from "@/lib/board";
 import { dayStats } from "@/lib/stats/day-stats";
 import type { OrderDTO } from "@/lib/types";
+import { auditInsert, SYSTEM_ACTOR, type AuditActor } from "./audit";
 
 const MINUTE = 60_000;
 
@@ -303,7 +304,17 @@ export async function cancelCustomerOrder(input: {
     return { ok: false, message: CANCEL_WINDOW_CLOSED_MESSAGE };
   }
   const db = await getDb();
-  await db.update(orders).set({ status: "canceled" }).where(eq(orders.orderId, row.orderId));
+  await db.batch([
+    db.update(orders).set({ status: "canceled" }).where(eq(orders.orderId, row.orderId)),
+    auditInsert(db, {
+      actor: { role: "customer", id: input.customerId },
+      action: "order.canceled",
+      entityType: "order",
+      entityId: row.orderId,
+      detail: { from: row.status, to: "canceled", van: row.vanId },
+      effectiveAt: now,
+    }),
+  ]);
   return { ok: true, message: "order canceled" };
 }
 
@@ -388,6 +399,8 @@ export async function advanceOrder(input: {
   orderId: string;
   target: "fulfilled" | "collected";
   now?: number;
+  /** Who is acting, for the audit trail (default: the van itself). */
+  actor?: AuditActor;
 }): Promise<Result> {
   const now = input.now ?? Date.now();
   const row = await findOrder(input.orderId);
@@ -396,21 +409,39 @@ export async function advanceOrder(input: {
   if (!transition.ok || !row)
     return { ok: false, message: transition.ok ? "Order not found" : transition.message };
   const db = await getDb();
-  if (input.target === "fulfilled") {
-    await db
-      .update(orders)
-      .set({
-        status: "fulfilled",
-        fulfilledTime: new Date(now),
-        discountApplied: row.discountApplied || now > row.discountTime.getTime(),
-      })
-      .where(eq(orders.orderId, row.orderId));
-  } else {
-    await db
-      .update(orders)
-      .set({ status: "collected", collectionTime: new Date(now) })
-      .where(eq(orders.orderId, row.orderId));
-  }
+  const discountApplied = row.discountApplied || now > row.discountTime.getTime();
+  const update =
+    input.target === "fulfilled"
+      ? db
+          .update(orders)
+          .set({ status: "fulfilled", fulfilledTime: new Date(now), discountApplied })
+          .where(eq(orders.orderId, row.orderId))
+      : db
+          .update(orders)
+          .set({ status: "collected", collectionTime: new Date(now) })
+          .where(eq(orders.orderId, row.orderId));
+  // The state change and its audit entry land together or not at all.
+  await db.batch([
+    update,
+    auditInsert(db, {
+      actor: input.actor ?? { role: "vendor", id: input.vanId },
+      action: `order.${input.target}`,
+      entityType: "order",
+      entityId: row.orderId,
+      detail: {
+        from: row.status,
+        to: input.target,
+        van: row.vanId,
+        ...(input.target === "fulfilled"
+          ? {
+              minutes_to_ready: Math.round(((now - row.startTime.getTime()) / 60_000) * 10) / 10,
+              late_discount: discountApplied,
+            }
+          : {}),
+      },
+      effectiveAt: now,
+    }),
+  ]);
   return { ok: true, message: VENDOR_SUCCESS_MESSAGE[input.target] };
 }
 
@@ -507,8 +538,13 @@ export const SIMULATION_CUSTOMER_IDS: readonly string[] = CUSTOMER_SEEDS.map(
 /** Demo orders still active after this long are treated as abandoned. */
 export const DEMO_STALE_AFTER_MINUTES = 90;
 
-/** "Simulate a customer order" on the vendor board. */
-export async function simulateOrder(vanId: string, now: number = Date.now(), ageMinutes = 0) {
+/** "Simulate a customer order" on the vendor board (and the demo top-up). */
+export async function simulateOrder(
+  vanId: string,
+  now: number = Date.now(),
+  ageMinutes = 0,
+  actor: AuditActor = { role: "vendor", id: vanId },
+) {
   const db = await getDb();
   const pool = await db
     .select({ customerId: customers.customerId })
@@ -516,13 +552,25 @@ export async function simulateOrder(vanId: string, now: number = Date.now(), age
     .where(inArray(customers.customerId, [...SIMULATION_CUSTOMER_IDS]));
   if (!pool.length) return { ok: false as const, message: "No customers to simulate" };
   const customerId = pool[Math.floor(Math.random() * pool.length)].customerId;
-  return placeOrder({
+  const placed = await placeOrder({
     customerId,
     vanId,
     lines: randomLines(),
     now: now - ageMinutes * MINUTE,
     allowClosedVan: true,
   });
+  if (placed.ok) {
+    // Simulated orders are synthetic; the trail says who asked for one.
+    await auditInsert(db, {
+      actor,
+      action: "order.simulated",
+      entityType: "order",
+      entityId: placed.data.orderId,
+      detail: { van: vanId, synthetic_customer: true },
+      effectiveAt: now,
+    });
+  }
+  return placed;
 }
 
 /**
@@ -552,15 +600,30 @@ export async function closeStaleDemoOrders(
   for (const row of stale) {
     const start = row.startTime.getTime();
     const fulfilled = row.fulfilledTime?.getTime() ?? start + 12 * MINUTE;
-    await db
-      .update(orders)
-      .set({
-        status: "collected",
-        fulfilledTime: new Date(fulfilled),
-        collectionTime: new Date(Math.max(fulfilled + 5 * MINUTE, start + 20 * MINUTE)),
-        discountApplied: row.discountApplied || fulfilled > row.discountTime.getTime(),
-      })
-      .where(eq(orders.orderId, row.orderId));
+    await db.batch([
+      db
+        .update(orders)
+        .set({
+          status: "collected",
+          fulfilledTime: new Date(fulfilled),
+          collectionTime: new Date(Math.max(fulfilled + 5 * MINUTE, start + 20 * MINUTE)),
+          discountApplied: row.discountApplied || fulfilled > row.discountTime.getTime(),
+        })
+        .where(eq(orders.orderId, row.orderId)),
+      auditInsert(db, {
+        actor: SYSTEM_ACTOR,
+        action: "order.closed_out",
+        entityType: "order",
+        entityId: row.orderId,
+        detail: {
+          from: row.status,
+          to: "collected",
+          van: row.vanId,
+          reason: `demo order still active after ${DEMO_STALE_AFTER_MINUTES} minutes`,
+        },
+        effectiveAt: now,
+      }),
+    ]);
   }
   return stale.length;
 }
@@ -576,13 +639,14 @@ export async function ensureVanActivity(vanId: string, now: number = Date.now())
   const missing = Math.max(0, 3 - Number(n));
   const ages = [2, 8, 13];
   for (let i = 0; i < missing; i++) {
-    const placed = await simulateOrder(vanId, now, ages[i]);
+    const placed = await simulateOrder(vanId, now, ages[i], SYSTEM_ACTOR);
     if (placed.ok && i === 2) {
       await advanceOrder({
         vanId,
         orderId: placed.data.orderId,
         target: "fulfilled",
         now: now - 4 * MINUTE,
+        actor: SYSTEM_ACTOR,
       });
     }
   }

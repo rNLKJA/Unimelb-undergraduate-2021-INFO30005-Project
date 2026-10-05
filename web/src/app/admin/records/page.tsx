@@ -25,6 +25,8 @@ const TIME_COLUMNS = new Set([
   "end_time",
   "created_at",
   "location_updated_at",
+  "at",
+  "decided_at",
 ]);
 
 function Cell({ column, value }: { column: string; value: string | number | boolean | null }) {

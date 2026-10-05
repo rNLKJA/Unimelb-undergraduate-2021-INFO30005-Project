@@ -7,6 +7,7 @@ import { VAN_CLOSED, VAN_OPEN } from "@/lib/nearest-vans";
 import { MESSAGES } from "@/lib/validation";
 import { vanSlug } from "@/lib/slug";
 import type { VanDTO } from "@/lib/types";
+import { auditInsert } from "./audit";
 
 type Ratings = Map<string, { average: number; count: number }>;
 
@@ -62,13 +63,31 @@ export async function getVanBySlug(slug: string): Promise<VanDTO | null> {
   return all.find((v) => v.slug === slug) ?? null;
 }
 
-/** Port of `setStatus` / `turnVanStatusOn` / `turnVanStatusOff`. */
-export async function setVanStatus(vanId: string, open: boolean): Promise<void> {
+/** Port of `setStatus` / `turnVanStatusOn` / `turnVanStatusOff`, now audit-logged. */
+export async function setVanStatus(
+  vanId: string,
+  open: boolean,
+  now: number = Date.now(),
+): Promise<void> {
   const db = await getDb();
-  await db
-    .update(vans)
-    .set({ status: open ? VAN_OPEN : VAN_CLOSED })
-    .where(eq(vans.vanId, vanId));
+  const [row] = await db
+    .select({ status: vans.status })
+    .from(vans)
+    .where(eq(vans.vanId, vanId))
+    .limit(1);
+  if (!row) return;
+  const next = open ? VAN_OPEN : VAN_CLOSED;
+  await db.batch([
+    db.update(vans).set({ status: next }).where(eq(vans.vanId, vanId)),
+    auditInsert(db, {
+      actor: { role: "vendor", id: vanId },
+      action: open ? "van.opened" : "van.closed",
+      entityType: "van",
+      entityId: vanId,
+      detail: { from: row.status === VAN_OPEN ? "open" : "closed", to: open ? "open" : "closed" },
+      effectiveAt: now,
+    }),
+  ]);
 }
 
 /** Port of `getVanLocation`: coordinates plus the (typed or geocoded) address. */
@@ -78,15 +97,29 @@ export async function setVanLocation(
   now: number = Date.now(),
 ): Promise<void> {
   const db = await getDb();
-  await db
-    .update(vans)
-    .set({
-      xCoord: location.lat,
-      yCoord: location.lng,
-      address: location.address,
-      locationUpdatedAt: new Date(now),
-    })
-    .where(eq(vans.vanId, vanId));
+  await db.batch([
+    db
+      .update(vans)
+      .set({
+        xCoord: location.lat,
+        yCoord: location.lng,
+        address: location.address,
+        locationUpdatedAt: new Date(now),
+      })
+      .where(eq(vans.vanId, vanId)),
+    auditInsert(db, {
+      actor: { role: "vendor", id: vanId },
+      action: "van.location_updated",
+      entityType: "van",
+      entityId: vanId,
+      detail: {
+        lat: Math.round(location.lat * 1e5) / 1e5,
+        lng: Math.round(location.lng * 1e5) / 1e5,
+        address: location.address,
+      },
+      effectiveAt: now,
+    }),
+  ]);
 }
 
 /**

@@ -28,8 +28,8 @@ a key-less map and one-click demo accounts.
 - **Customers** find the five nearest open vans on a map (browser location, a searched
   place or a dropped pin; Melbourne Uni by default), browse the eight-item menu, check out,
   then track the order live: a status timeline, a 15-minute countdown ring, a 10-minute
-  window to change or cancel, and a rating once it's done. A community board shows
-  snackers' posts, recent ratings and the top-rated vans.
+  window to change or cancel, and a one-off rating (allowed at any stage, as in 2021). A
+  community board shows snackers' posts, recent ratings and the top-rated vans.
 - **Vendors** sign in with their van's name, set the van's location (GPS or a click on the
   map, reverse-geocoded to an address), open or close the van, and work through a live
   board of orders (outstanding → ready for pickup → collected) with per-order countdowns,
@@ -60,6 +60,10 @@ too (the original only checked it in the browser), the late-order discount flag 
 automatically when an order is fulfilled after its 15-minute deadline (the original had
 this written but commented out), order history is scoped to the signed-in van, timestamps
 are real instants rendered in Melbourne time, and passwords are bcrypt for every account.
+The countdown ring turns "over time" at 15:00, together with the late-order discount badge
+(the original label only flipped at 16:00). To keep the public demo tidy, a one-click demo
+login closes out demo orders left active for more than 90 minutes (as if served on time),
+and simulated orders only ever come from the seeded synthetic customers.
 
 ## Tech stack
 

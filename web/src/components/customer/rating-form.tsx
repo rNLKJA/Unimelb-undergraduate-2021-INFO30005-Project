@@ -45,7 +45,7 @@ export function RatingForm({
     <form action={action} className="space-y-3">
       <input type="hidden" name="orderId" value={orderId} />
       <fieldset>
-        <legend className="mb-2 text-sm font-semibold">Rating to this order</legend>
+        <legend className="mb-2 text-sm font-semibold">Rate this order</legend>
         <div className="flex items-center gap-1" onMouseLeave={() => setHover(0)}>
           {RATING_VALUES.map((n) => (
             <label
@@ -87,7 +87,7 @@ export function RatingForm({
           id={`comment-${orderId}`}
           name="comment"
           maxLength={500}
-          placeholder="Please comment if you need"
+          placeholder="Add a comment (optional)"
           rows={3}
         />
       </div>

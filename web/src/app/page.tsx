@@ -46,7 +46,7 @@ const STEPS = [
 const FACTS = [
   { value: "2", label: "portals: customers & vendors" },
   { value: "5", label: "data models, ported to SQL" },
-  { value: "32", label: "Handlebars views in 2021" },
+  { value: "25", label: "Handlebars pages in 2021" },
   { value: "8", label: "snacks on the menu" },
   { value: "5", label: "nearest vans shown" },
   { value: "15 min", label: "pickup promise" },
@@ -187,7 +187,7 @@ export default function HomePage() {
             <div className="mt-10 grid gap-6 lg:grid-cols-2">
               <article className="flex flex-col rounded-3xl border bg-card p-7 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-11 place-items-center rounded-2xl bg-tomato-500 text-white">
+                  <span className="grid size-11 place-items-center rounded-2xl bg-tomato-600 text-white">
                     <ShoppingBag className="size-5" aria-hidden />
                   </span>
                   <div>
@@ -203,7 +203,7 @@ export default function HomePage() {
                     [ShoppingBag, "Menu, cart and checkout"],
                     [Clock, "Live status timeline and 15-minute ring"],
                     [ScrollText, "Change or cancel within 10 minutes"],
-                    [Star, "Rate collected orders"],
+                    [Star, "Rate your orders, as in 2021"],
                     [MessageSquare, "Community board and ratings"],
                   ].map(([Icon, text]) => {
                     const I = Icon as typeof Star;
@@ -269,7 +269,7 @@ export default function HomePage() {
 
         {/* The brief & what we built -------------------------------------- */}
         <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6" aria-labelledby="brief">
-          <div className="grid gap-12 lg:grid-cols-[1fr_1fr]">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_1fr]">
             <div className="space-y-5">
               <p className="text-sm font-semibold tracking-[0.16em] text-primary uppercase">
                 The coursework
@@ -324,8 +324,8 @@ export default function HomePage() {
           aria-labelledby="about-title"
         >
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-            <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="space-y-5">
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="min-w-0 space-y-5">
                 <p className="text-sm font-semibold tracking-[0.16em] text-primary uppercase">
                   About this project
                 </p>
@@ -341,7 +341,7 @@ export default function HomePage() {
                       <p className="font-semibold">
                         {member.name}
                         {"highlight" in member ? (
-                          <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                          <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-tomato-700 dark:text-tomato-300">
                             revival
                           </span>
                         ) : null}
@@ -351,8 +351,13 @@ export default function HomePage() {
                   ))}
                 </ul>
               </div>
-              <div className="space-y-6">
-                <div className="overflow-x-auto rounded-3xl border bg-card shadow-sm">
+              <div className="min-w-0 space-y-6">
+                <div
+                  className="overflow-x-auto rounded-3xl border bg-card shadow-sm"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Original stack vs revived stack (scrolls sideways on small screens)"
+                >
                   <table className="w-full min-w-[520px] text-left text-sm">
                     <caption className="px-5 pt-5 text-left font-display text-lg font-semibold">
                       Original stack vs revived stack
@@ -424,7 +429,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-3">
               <DemoLoginButton
                 role="customer"
-                className="h-12 rounded-full bg-tomato-500 px-6 text-base font-semibold text-white hover:bg-tomato-600"
+                className="h-12 rounded-full bg-tomato-600 px-6 text-base font-semibold text-white hover:bg-tomato-700"
               >
                 Order a coffee
               </DemoLoginButton>

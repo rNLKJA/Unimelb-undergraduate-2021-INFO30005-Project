@@ -28,7 +28,8 @@ const TIME_COLUMNS = new Set([
 ]);
 
 function Cell({ column, value }: { column: string; value: string | number | boolean | null }) {
-  if (value === null || value === "") return <span className="text-muted-foreground/60">null</span>;
+  if (value === null || value === "")
+    return <span className="text-muted-foreground italic">null</span>;
   if (value === REDACTED) return <span className="text-muted-foreground italic">{REDACTED}</span>;
   if (typeof value === "boolean") return <span>{value ? "true" : "false"}</span>;
   if (TIME_COLUMNS.has(column) && typeof value === "string") {
@@ -70,8 +71,8 @@ export default async function RecordsPage(props: PageProps<"/admin/records">) {
   const exportHref = `/api/admin/export/${table}${q ? `?q=${encodeURIComponent(q)}` : ""}`;
 
   return (
-    <div className="mx-auto grid max-w-[1400px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_1fr]">
-      <nav aria-label="Tables" className="lg:sticky lg:top-24 lg:self-start">
+    <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_1fr]">
+      <nav aria-label="Tables" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
         <p className="mb-2 flex items-center gap-1.5 px-2 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
           <Database className="size-3.5" aria-hidden /> Tables
         </p>
@@ -90,7 +91,7 @@ export default async function RecordsPage(props: PageProps<"/admin/records">) {
                 <span
                   className={cn(
                     "tabular rounded-full px-2 text-xs",
-                    c.name === table ? "bg-white/20" : "bg-secondary",
+                    c.name === table ? "bg-black/20 dark:bg-white/25" : "bg-secondary",
                   )}
                 >
                   {c.count}
@@ -147,11 +148,16 @@ export default async function RecordsPage(props: PageProps<"/admin/records">) {
         </p>
 
         {data.rows.length === 0 ? (
-          <EmptyState icon={<Search />} title="No records" className="bg-card">
+          <EmptyState icon={<Search />} title="No records" className="bg-card" headingLevel={2}>
             {q ? "Nothing matches that search." : "This table is empty."}
           </EmptyState>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border bg-card shadow-sm">
+          <div
+            className="overflow-x-auto rounded-2xl border bg-card shadow-sm"
+            tabIndex={0}
+            role="region"
+            aria-label={`${spec.label} records`}
+          >
             <table className="w-full text-left text-[0.8rem]">
               <thead className="border-b bg-muted/60">
                 <tr>

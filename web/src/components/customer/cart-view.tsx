@@ -51,6 +51,7 @@ export function CartView({ menu, signedIn }: { menu: ProductDTO[]; signedIn: boo
       <EmptyState
         icon={<ShoppingBag />}
         title="Your cart is empty"
+        headingLevel={2}
         action={
           <Button asChild className="h-11 rounded-full px-5">
             <Link href={cart.van ? `/customer/van/${cart.van.slug}/menu` : "/customer"}>

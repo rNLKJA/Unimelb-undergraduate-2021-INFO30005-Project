@@ -23,7 +23,7 @@ export default async function CustomerLoginPage(props: PageProps<"/customer/logi
           <p className="font-display text-3xl leading-tight font-semibold">
             Your flat white is five minutes away.
           </p>
-          <p className="text-white/85">
+          <p className="text-white">
             Browse the map and menu without an account; you only need to log in when you place an
             order.
           </p>

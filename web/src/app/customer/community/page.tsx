@@ -41,8 +41,8 @@ export default async function CommunityPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
-        <section aria-labelledby="board" className="space-y-4">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+        <section aria-labelledby="board" className="min-w-0 space-y-4">
           <h2 id="board" className="flex items-center gap-2 text-xl font-semibold">
             <MessagesSquare className="size-5 text-primary" aria-hidden /> Snackers&apos; board
           </h2>
@@ -83,7 +83,7 @@ export default async function CommunityPage() {
                     <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
                       <span className="font-semibold">{post.authorName}</span>
                       {post.mine ? (
-                        <span className="rounded-full bg-primary/10 px-1.5 text-[0.68rem] font-semibold text-primary">
+                        <span className="rounded-full bg-primary/10 px-1.5 text-[0.68rem] font-semibold text-tomato-700 dark:text-tomato-300">
                           you
                         </span>
                       ) : null}
@@ -104,7 +104,7 @@ export default async function CommunityPage() {
           )}
         </section>
 
-        <aside className="space-y-6">
+        <aside className="min-w-0 space-y-6">
           <section aria-labelledby="leaders" className="rounded-3xl border bg-card p-5 shadow-sm">
             <h2 id="leaders" className="flex items-center gap-2 text-lg font-semibold">
               <Trophy className="size-5 text-honey-500" aria-hidden /> Top-rated vans

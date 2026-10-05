@@ -21,7 +21,7 @@ export function AuthShell({
       <div
         className={cn(
           "relative hidden overflow-hidden rounded-[2rem] p-8 md:block",
-          tone === "customer" && "bg-tomato-500 text-white",
+          tone === "customer" && "bg-tomato-600 text-white",
           tone === "vendor" && "bg-espresso-900 text-crema-100",
           tone === "admin" &&
             "bg-crema-200 text-espresso-900 dark:bg-espresso-800 dark:text-crema-100",

@@ -37,6 +37,7 @@ export function OrdersView({ active: initialActive, completed, cancelled, server
       <EmptyState
         icon={<ReceiptText />}
         title={empty.title}
+        headingLevel={2}
         action={
           live ? (
             <Button asChild className="h-11 rounded-full px-5">
@@ -67,15 +68,15 @@ export function OrdersView({ active: initialActive, completed, cancelled, server
 
   return (
     <Tabs defaultValue="active" className="gap-5">
-      <TabsList className="h-11 w-full rounded-full p-1 sm:w-auto">
-        <TabsTrigger value="active" className="rounded-full px-4">
-          In progress <span className="tabular ml-1 text-muted-foreground">{active.length}</span>
+      <TabsList className="h-11 w-full min-w-0 rounded-full p-1 sm:w-auto">
+        <TabsTrigger value="active" className="min-w-0 rounded-full px-2 sm:px-4">
+          In progress <span className="tabular ml-0.5 font-normal">{active.length}</span>
         </TabsTrigger>
-        <TabsTrigger value="completed" className="rounded-full px-4">
-          Completed <span className="tabular ml-1 text-muted-foreground">{completed.length}</span>
+        <TabsTrigger value="completed" className="min-w-0 rounded-full px-2 sm:px-4">
+          Completed <span className="tabular ml-0.5 font-normal">{completed.length}</span>
         </TabsTrigger>
-        <TabsTrigger value="cancelled" className="rounded-full px-4">
-          Cancelled <span className="tabular ml-1 text-muted-foreground">{cancelled.length}</span>
+        <TabsTrigger value="cancelled" className="min-w-0 rounded-full px-2 sm:px-4">
+          Cancelled <span className="tabular ml-0.5 font-normal">{cancelled.length}</span>
         </TabsTrigger>
       </TabsList>
       <TabsContent value="active">

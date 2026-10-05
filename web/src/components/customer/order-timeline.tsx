@@ -30,7 +30,7 @@ export function OrderTimeline({ order }: { order: TimelineOrder }) {
                 step.state === "done" &&
                   step.key !== "canceled" &&
                   "border-matcha-500 bg-matcha-500 text-white",
-                step.key === "canceled" && "border-tomato-500 bg-tomato-500 text-white",
+                step.key === "canceled" && "border-tomato-600 bg-tomato-600 text-white",
                 step.state === "current" &&
                   "border-honey-400 bg-card text-espresso-800 dark:text-honey-300",
                 step.state === "upcoming" && "border-border bg-card text-muted-foreground",

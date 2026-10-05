@@ -1,5 +1,11 @@
 export const REPO_URL = "https://github.com/rNLKJA/Unimelb-undergraduate-2021-INFO30005-Project";
-export const COURSEWORK_URL = `${REPO_URL}/tree/main/coursework`;
+/**
+ * The original submission, pinned to the commit that moved it into
+ * coursework/ (contents unchanged since). A commit link keeps working before
+ * and after the revival branch is merged into main.
+ */
+export const COURSEWORK_COMMIT = "257c590bbf1fbcb3972a7aaf7bc87140780e8312";
+export const COURSEWORK_URL = `${REPO_URL}/tree/${COURSEWORK_COMMIT}/coursework`;
 
 export const TEAM = [
   {

@@ -165,7 +165,7 @@ export function MenuGrid({ van, menu }: { van: VanDTO; menu: ProductDTO[] }) {
               className="flex items-center justify-between rounded-2xl bg-espresso-900 px-4 py-3.5 text-crema-100 shadow-xl dark:bg-crema-200 dark:text-espresso-900"
             >
               <span className="flex items-center gap-2 font-semibold">
-                <span className="tabular grid size-7 place-items-center rounded-full bg-tomato-500 text-sm text-white">
+                <span className="tabular grid size-7 place-items-center rounded-full bg-tomato-600 text-sm text-white">
                   {count}
                 </span>
                 View cart

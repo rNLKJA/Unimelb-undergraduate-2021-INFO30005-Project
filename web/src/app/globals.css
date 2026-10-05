@@ -37,7 +37,8 @@
   --color-matcha-300: #a6d49a;
   --color-matcha-400: #7dbb6d;
   --color-matcha-500: #4f9a45;
-  --color-matcha-600: #3c7c34;
+  --color-matcha-600: #336b2c;
+  --color-matcha-700: #28561f;
 
   --color-honey-300: #ffd98a;
   --color-honey-400: #f8bf4c;
@@ -149,8 +150,10 @@
   --popover: #ffffff;
   --popover-foreground: var(--color-espresso-900);
 
-  /* Tomato is the call-to-action colour; espresso is the brand ink. */
-  --primary: var(--color-tomato-500);
+  /* Tomato is the call-to-action colour; espresso is the brand ink.
+     Light mode uses tomato-600 so white button text meets WCAG AA (5.2:1);
+     tomato-500 stays for decorative accents (awning stripes, the van mark). */
+  --primary: var(--color-tomato-600);
   --primary-foreground: #ffffff;
   --brand: var(--color-espresso-800);
   --brand-foreground: var(--color-crema-100);
@@ -168,7 +171,7 @@
 
   --border: #ecdcc6;
   --input: #e2cfb5;
-  --ring: var(--color-tomato-400);
+  --ring: var(--color-tomato-500);
 
   --chart-1: var(--color-tomato-500);
   --chart-2: var(--color-espresso-500);
@@ -178,12 +181,12 @@
 
   --sidebar: var(--color-crema-100);
   --sidebar-foreground: var(--color-espresso-900);
-  --sidebar-primary: var(--color-tomato-500);
+  --sidebar-primary: var(--color-tomato-600);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--color-crema-200);
   --sidebar-accent-foreground: var(--color-espresso-800);
   --sidebar-border: #ecdcc6;
-  --sidebar-ring: var(--color-tomato-400);
+  --sidebar-ring: var(--color-tomato-500);
 }
 
 .dark {

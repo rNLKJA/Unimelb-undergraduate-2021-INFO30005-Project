@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChefHat, MapPin, Navigation, PackageCheck, Star } from "lucide-react";
+import { Check, ChefHat, MapPin, Navigation, PackageCheck, Pause, Play, Star } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { VanMark } from "@/components/brand/van-mark";
@@ -80,7 +80,7 @@ function PhoneScreen({ step }: { step: StepKey }) {
                   {i + 1}
                 </span>
                 <span className="flex-1 truncate text-[0.66rem] font-semibold">{name}</span>
-                <span className="text-[0.6rem] text-muted-foreground">
+                <span className="hidden text-[0.6rem] text-muted-foreground sm:inline">
                   {["230 m", "410 m", "520 m"][i]}
                 </span>
               </div>
@@ -194,7 +194,9 @@ function OrderTicket({ step }: { step: StepKey }) {
         <span
           className={cn(
             "rounded-full px-1.5 text-[0.52rem] font-semibold whitespace-nowrap",
-            ready ? "bg-matcha-300/40 text-matcha-600" : "bg-honey-300/50 text-espresso-800",
+            ready
+              ? "bg-matcha-300/40 text-matcha-600 dark:bg-matcha-400/15 dark:text-matcha-300"
+              : "bg-honey-300/50 text-espresso-800 dark:bg-honey-300/15 dark:text-honey-300",
           )}
         >
           {step === "collected" ? "Collected" : ready ? "Ready" : "12 min left"}
@@ -217,7 +219,7 @@ function OrderTicket({ step }: { step: StepKey }) {
 
 function Ghost({ id, name }: { id: string; name: string }) {
   return (
-    <div className="rounded-lg border border-dashed bg-card/60 p-2 opacity-80">
+    <div className="rounded-lg border border-dashed bg-card/60 p-2">
       <p className="font-mono text-[0.6rem]">{id}</p>
       <p className="text-[0.55rem] text-muted-foreground">{name}</p>
     </div>
@@ -244,7 +246,7 @@ function TabletScreen({ step }: { step: StepKey }) {
           <VanMark className="h-3.5 w-auto" />
           <span className="text-[0.68rem] font-semibold">Ardeth Lavon</span>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-matcha-300/40 px-2 py-0.5 text-[0.55rem] font-semibold text-matcha-600 dark:text-matcha-300">
+        <span className="inline-flex items-center gap-1 rounded-full bg-matcha-300/40 px-2 py-0.5 text-[0.55rem] font-semibold text-matcha-600 dark:bg-matcha-400/15 dark:text-matcha-300">
           <span className="size-1.5 rounded-full bg-matcha-500" /> Open
         </span>
       </div>
@@ -270,14 +272,18 @@ function TabletScreen({ step }: { step: StepKey }) {
 export function LiveDemoStory() {
   const reduce = useReducedMotion();
   const [index, setIndex] = useState(0);
+  // Hover/focus pause temporarily; the button pauses until pressed again
+  // (touch users have no hover, WCAG 2.2.2).
   const [paused, setPaused] = useState(false);
+  const [stopped, setStopped] = useState(false);
   const step = STEPS[index].key;
+  const playing = !stopped && !reduce;
 
   useEffect(() => {
-    if (paused || reduce) return;
+    if (paused || !playing) return;
     const id = window.setTimeout(() => setIndex((i) => (i + 1) % STEPS.length), 3400);
     return () => window.clearTimeout(id);
-  }, [index, paused, reduce]);
+  }, [index, paused, playing]);
 
   return (
     <figure
@@ -287,17 +293,18 @@ export function LiveDemoStory() {
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
-      <div className="relative mx-auto aspect-[5/4] w-full max-w-[560px]">
+      {/* Decorative mock screens; the step buttons below tell the same story. */}
+      <div className="relative mx-auto aspect-[5/4] w-full max-w-[560px]" aria-hidden>
         <div className="absolute inset-[6%] -z-10 rounded-[40%] bg-tomato-300/30 blur-3xl dark:bg-tomato-500/15" />
         {/* Vendor tablet */}
-        <div className="absolute top-[4%] left-0 h-[66%] w-[70%] overflow-hidden rounded-[22px] border-[7px] border-espresso-900 bg-background shadow-2xl shadow-espresso-900/20 dark:border-espresso-700">
+        <div className="absolute top-[4%] left-0 h-[66%] w-[62%] overflow-hidden rounded-[22px] border-[7px] border-espresso-900 bg-background shadow-2xl shadow-espresso-900/20 sm:w-[70%] dark:border-espresso-700">
           <TabletScreen step={step} />
         </div>
         <span className="absolute top-[73%] left-[2%] text-[0.7rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
           Vendor tablet
         </span>
         {/* Customer phone */}
-        <div className="absolute right-0 bottom-[6%] h-[82%] w-[33%] overflow-hidden rounded-[26px] border-[6px] border-espresso-900 bg-background shadow-2xl shadow-espresso-900/25 dark:border-espresso-700">
+        <div className="absolute right-0 bottom-[6%] h-[82%] w-[40%] overflow-hidden rounded-[26px] border-[6px] border-espresso-900 bg-background shadow-2xl shadow-espresso-900/25 sm:w-[33%] dark:border-espresso-700">
           <div className="mx-auto mt-1 h-1.5 w-10 rounded-full bg-espresso-900/80 dark:bg-espresso-600" />
           <PhoneScreen step={step} />
         </div>
@@ -307,6 +314,24 @@ export function LiveDemoStory() {
       </div>
 
       <figcaption className="mt-6">
+        <div className={cn("mb-2 flex justify-end", reduce && "hidden")}>
+          <button
+            type="button"
+            onClick={() => setStopped((v) => !v)}
+            aria-pressed={!playing}
+            className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+          >
+            {playing ? (
+              <>
+                <Pause className="size-3.5" aria-hidden /> Pause story
+              </>
+            ) : (
+              <>
+                <Play className="size-3.5" aria-hidden /> Play story
+              </>
+            )}
+          </button>
+        </div>
         <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Demo story steps">
           {STEPS.map((s, i) => (
             <li key={s.key}>

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 /** Address / place search via the server-side Photon proxy. */
 export function PlaceSearch({
   onSelect,
-  placeholder = "Search a street, campus or landmark",
+  placeholder = "Search a street or landmark",
   className,
 }: {
   onSelect: (result: GeocodeResult) => void;

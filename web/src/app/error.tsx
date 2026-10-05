@@ -17,7 +17,7 @@ export default function ErrorPage({
     console.error(error);
   }, [error]);
   return (
-    <div className="grid flex-1 place-items-center px-4 py-24">
+    <main id="main" className="grid flex-1 place-items-center px-4 py-24">
       <div className="max-w-md text-center">
         <VanMark className="mx-auto h-14 w-auto -rotate-6 opacity-80" />
         <h1 className="mt-6 text-3xl font-semibold">Something spilled</h1>
@@ -36,6 +36,6 @@ export default function ErrorPage({
           </Button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

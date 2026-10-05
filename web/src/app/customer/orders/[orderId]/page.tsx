@@ -35,7 +35,7 @@ export default async function OrderPage(props: PageProps<"/customer/orders/[orde
         <h1 className="text-3xl font-semibold">
           Order <span className="font-mono text-[0.85em] font-medium">{order.orderId}</span>
         </h1>
-        <p className="text-sm text-muted-foreground">DiDi! Here is your order summary.</p>
+        <p className="text-sm text-muted-foreground">Ding ding! Here’s your order summary.</p>
       </div>
       <OrderTracker initial={order} menu={menu} serverNow={serverNow()} />
     </div>

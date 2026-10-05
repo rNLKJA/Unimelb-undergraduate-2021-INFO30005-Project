@@ -21,7 +21,7 @@ export default async function CustomerSignupPage(props: PageProps<"/customer/sig
           <p className="font-display text-3xl leading-tight font-semibold">
             New snacker? Welcome aboard.
           </p>
-          <p className="text-white/85">
+          <p className="text-white">
             Use any made-up email address. Passwords are hashed with bcrypt, but this is a public
             demo, so please don&apos;t reuse a real one.
           </p>

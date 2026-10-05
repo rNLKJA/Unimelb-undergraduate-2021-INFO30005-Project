@@ -38,7 +38,7 @@ export function PostComposer({ name }: { name: string }) {
         maxLength={2000}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Share your story at here! Please enter less than 300 words."
+        placeholder="Share your story (under 300 words)"
         aria-describedby="post-count"
         className="resize-none rounded-2xl"
       />

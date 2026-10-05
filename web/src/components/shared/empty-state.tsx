@@ -7,9 +7,12 @@ export function EmptyState({
   children,
   action,
   className,
+  headingLevel = 3,
 }: {
   icon?: ReactNode;
   title: string;
+  /** Keep the document outline valid: use 2 directly under a page's h1. */
+  headingLevel?: 2 | 3;
   children?: ReactNode;
   action?: ReactNode;
   className?: string;
@@ -22,7 +25,11 @@ export function EmptyState({
       )}
     >
       {icon ? <div className="text-muted-foreground [&_svg]:size-10">{icon}</div> : null}
-      <h3 className="text-lg font-semibold">{title}</h3>
+      {headingLevel === 2 ? (
+        <h2 className="text-lg font-semibold">{title}</h2>
+      ) : (
+        <h3 className="text-lg font-semibold">{title}</h3>
+      )}
       {children ? <div className="max-w-sm text-sm text-muted-foreground">{children}</div> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>

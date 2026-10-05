@@ -14,7 +14,10 @@ export function Logo({
   return (
     <Link
       href={href}
-      className={cn("group inline-flex items-center gap-2.5 rounded-xl outline-none", className)}
+      className={cn(
+        "group inline-flex items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        className,
+      )}
       aria-label={subtitle ? `Snacks in a Van ${subtitle}` : "Snacks in a Van home"}
     >
       <VanMark className="h-8 w-auto shrink-0 transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:-rotate-3" />

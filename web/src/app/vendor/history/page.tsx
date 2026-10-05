@@ -102,11 +102,16 @@ export default async function VendorHistoryPage(props: PageProps<"/vendor/histor
       ) : null}
 
       {result.rows.length === 0 ? (
-        <EmptyState icon={<Search />} title="No orders match" className="bg-card">
+        <EmptyState icon={<Search />} title="No orders match" className="bg-card" headingLevel={2}>
           Try a different order ID, or clear the filters.
         </EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border bg-card shadow-sm">
+        <div
+          className="overflow-x-auto rounded-2xl border bg-card shadow-sm"
+          tabIndex={0}
+          role="region"
+          aria-label="Order history"
+        >
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="border-b bg-muted/60 text-xs tracking-wide text-muted-foreground uppercase">
               <tr>

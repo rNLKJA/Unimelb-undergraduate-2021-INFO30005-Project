@@ -49,7 +49,7 @@ export default async function VanMenuPage(props: PageProps<"/customer/van/[slug]
             <span
               className={
                 van.open
-                  ? "inline-flex items-center gap-1.5 rounded-full bg-matcha-300/35 px-3 py-1 font-semibold text-matcha-600 dark:text-matcha-300"
+                  ? "inline-flex items-center gap-1.5 rounded-full bg-matcha-300/35 px-3 py-1 font-semibold text-matcha-600 dark:bg-matcha-400/15 dark:text-matcha-300"
                   : "inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 font-semibold text-muted-foreground"
               }
             >

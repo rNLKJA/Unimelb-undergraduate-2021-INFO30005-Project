@@ -26,6 +26,7 @@ import { fetcher } from "@/lib/fetcher";
 import { formatDate, formatTime } from "@/lib/format";
 import {
   canCustomerModify,
+  CANCEL_WINDOW_CLOSED_MESSAGE,
   discountApplies,
   MODIFY_WINDOW_CLOSED_MESSAGE,
   UPDATE_WINDOW_MINUTES,
@@ -92,6 +93,11 @@ export function OrderTracker({
   const discounted = discountApplies({ ...order, now });
   const [pending, startTransition] = useTransition();
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [changeOpen, setChangeOpen] = useState(false);
+  // Keep an open dialog mounted when the window closes mid-edit, so the
+  // customer sees why Save/Cancel stopped working instead of losing the dialog.
+  const showControls = order.status === "outstanding" && (modifiable || changeOpen || cancelOpen);
+  const live = order.status === "outstanding" || order.status === "fulfilled";
 
   const cancel = () =>
     startTransition(async () => {
@@ -141,11 +147,18 @@ export function OrderTracker({
                   <> · Ready by {formatTime(order.discountTime)}</>
                 ) : null}
               </p>
-              {order.status === "outstanding" ? (
-                modifiable ? (
-                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1 sm:justify-start">
-                    <ChangeOrderDialog order={order} menu={menu} onSaved={() => mutate()} />
-                    <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+              {showControls ? (
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-1 sm:justify-start">
+                  <ChangeOrderDialog
+                    order={order}
+                    menu={menu}
+                    open={changeOpen}
+                    onOpenChange={setChangeOpen}
+                    windowClosed={!modifiable}
+                    onSaved={() => mutate()}
+                  />
+                  <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+                    {modifiable ? (
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="ghost"
@@ -154,15 +167,21 @@ export function OrderTracker({
                           <Ban aria-hidden /> Cancel
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancel order {order.orderId}?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {order.vanId} will stop preparing it. This can&apos;t be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel disabled={pending}>Keep my order</AlertDialogCancel>
+                    ) : null}
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel order {order.orderId}?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {modifiable
+                            ? `${order.vanId} will stop preparing it. This can't be undone.`
+                            : `${CANCEL_WINDOW_CLOSED_MESSAGE}. The ${UPDATE_WINDOW_MINUTES}-minute window closed while this was open.`}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={pending}>
+                          {modifiable ? "Keep my order" : "Close"}
+                        </AlertDialogCancel>
+                        {modifiable ? (
                           <AlertDialogAction
                             onClick={(e) => {
                               e.preventDefault();
@@ -174,17 +193,20 @@ export function OrderTracker({
                             {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
                             Cancel order
                           </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                        ) : null}
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  {modifiable ? (
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="size-3.5" aria-hidden /> {windowLeft(elapsed)} left to
                       change
                     </span>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">{MODIFY_WINDOW_CLOSED_MESSAGE}.</p>
-                )
+                  ) : null}
+                </div>
+              ) : null}
+              {order.status === "outstanding" && !modifiable ? (
+                <p className="text-xs text-muted-foreground">{MODIFY_WINDOW_CLOSED_MESSAGE}.</p>
               ) : null}
             </div>
           </div>
@@ -241,7 +263,7 @@ export function OrderTracker({
                 lng: order.vanLng,
                 label: order.vanId,
                 open: true,
-                rank: 1,
+                highlight: true,
               },
             ]}
             selectedId={order.vanId}
@@ -269,10 +291,13 @@ export function OrderTracker({
             </div>
           </div>
         </section>
-        <p className="px-1 text-xs text-muted-foreground">
-          This page refreshes on its own. When the van marks your order ready, you&apos;ll see it
-          here within a few seconds.
-        </p>
+        {live ? (
+          <p className="px-1 text-xs text-muted-foreground">
+            This page refreshes on its own. When the van marks your order{" "}
+            {order.status === "fulfilled" ? "collected" : "ready"}, you&apos;ll see it here within a
+            few seconds.
+          </p>
+        ) : null}
       </aside>
     </div>
   );

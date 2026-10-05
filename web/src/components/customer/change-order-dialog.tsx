@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Pencil } from "lucide-react";
+import { Clock, Loader2, Pencil } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { updateOrderAction } from "@/app/customer/actions";
@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { MODIFY_WINDOW_CLOSED_MESSAGE, UPDATE_WINDOW_MINUTES } from "@/lib/order-rules";
 import { formatPrice, orderTotal } from "@/lib/pricing";
 import type { OrderDTO, ProductDTO } from "@/lib/types";
 import { QuantityStepper } from "./quantity-stepper";
@@ -23,17 +24,26 @@ import { QuantityStepper } from "./quantity-stepper";
  * Port of the "Update Order" cart on the order page: every snack is listed,
  * quantities may drop to zero (those lines are dropped), and saving restarts
  * the order clock exactly like the original `updateOrder`.
+ *
+ * The open state is owned by the tracker so the dialog survives the change
+ * window closing mid-edit; `windowClosed` then explains why Save is disabled.
  */
 export function ChangeOrderDialog({
   order,
   menu,
+  open,
+  onOpenChange,
+  windowClosed,
   onSaved,
 }: {
   order: OrderDTO;
   menu: ProductDTO[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  windowClosed: boolean;
   onSaved: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const setOpen = onOpenChange;
   const [pending, startTransition] = useTransition();
   const initial = () =>
     Object.fromEntries(
@@ -65,11 +75,13 @@ export function ChangeOrderDialog({
         setOpen(next);
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="secondary" className="h-10 rounded-full px-4">
-          <Pencil aria-hidden /> Change order
-        </Button>
-      </DialogTrigger>
+      {windowClosed ? null : (
+        <DialogTrigger asChild>
+          <Button variant="secondary" className="h-10 rounded-full px-4">
+            <Pencil aria-hidden /> Change order
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Change order {order.orderId}</DialogTitle>
@@ -77,6 +89,18 @@ export function ChangeOrderDialog({
             Saving restarts the 15-minute clock, just like placing a new order.
           </DialogDescription>
         </DialogHeader>
+        {windowClosed ? (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-xl border border-tomato-300/50 bg-tomato-300/10 p-3 text-sm text-tomato-700 dark:text-tomato-300"
+          >
+            <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>
+              {MODIFY_WINDOW_CLOSED_MESSAGE}. The {UPDATE_WINDOW_MINUTES}-minute window closed while
+              you were editing, so these changes can&apos;t be saved.
+            </span>
+          </p>
+        ) : null}
         <ul className="divide-y">
           {menu.map((item) => (
             <li key={item.product} className="flex items-center gap-3 py-2.5">
@@ -114,11 +138,15 @@ export function ChangeOrderDialog({
           </p>
           <Button
             onClick={save}
-            disabled={pending || lines.length === 0}
+            disabled={pending || lines.length === 0 || windowClosed}
             className="h-10 rounded-full px-5"
           >
             {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
-            {lines.length === 0 ? "Add at least one item" : "Save changes"}
+            {windowClosed
+              ? "Window closed"
+              : lines.length === 0
+                ? "Add at least one item"
+                : "Save changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

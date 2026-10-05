@@ -13,10 +13,16 @@ function mmss(ms: number) {
 }
 
 /**
- * The 15-minute promise as a ring. The label logic is the original customer
- * `countdown()` (ported in `customerTimer`): once the elapsed minutes pass 15
- * the order reads "Over Time, your discount apply".
+ * Whether the 15-minute promise has run out. The original `countdown()` label
+ * (ported in `customerTimer`) only flipped once the minute component passed 15,
+ * i.e. at 16:00; the ring flips at 15:00 so it agrees with the late-order
+ * discount badge (`discountApplies`, now > discount_time) and the vendor board.
  */
+function overWindow(elapsed: number) {
+  return elapsed >= WINDOW_MS || customerTimer(elapsed).over;
+}
+
+/** The 15-minute promise as a ring. */
 export function CountdownRing({
   status,
   startTime,
@@ -31,7 +37,7 @@ export function CountdownRing({
   className?: string;
 }) {
   const elapsed = Math.max(0, now - startTime);
-  const timer = customerTimer(elapsed);
+  const over = overWindow(elapsed);
   const progress = status === "outstanding" ? Math.min(1, elapsed / WINDOW_MS) : 1;
   const r = 44;
   const c = 2 * Math.PI * r;
@@ -40,9 +46,19 @@ export function CountdownRing({
       ? "text-matcha-500"
       : status === "canceled"
         ? "text-muted-foreground"
-        : timer.over
+        : over
           ? "text-tomato-500"
           : "text-honey-400";
+  const phase =
+    status === "outstanding"
+      ? over
+        ? "Over time, your discount applies"
+        : "Preparing"
+      : status === "canceled"
+        ? "Cancelled"
+        : status === "fulfilled"
+          ? "Ready for pickup"
+          : "Collected";
 
   return (
     <div
@@ -66,9 +82,13 @@ export function CountdownRing({
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
       </svg>
-      <div className="relative px-4 text-center" aria-live="polite">
+      {/* Announce phase changes only, not every tick of the countdown. */}
+      <span className="sr-only" aria-live="polite">
+        {phase}
+      </span>
+      <div className="relative px-4 text-center" role="timer" aria-live="off">
         {status === "outstanding" ? (
-          timer.over ? (
+          over ? (
             <>
               <p className="font-display text-lg leading-tight font-semibold text-tomato-600 dark:text-tomato-300">
                 Over time
@@ -111,7 +131,7 @@ export function MiniRing({
   now: number;
 }) {
   const elapsed = Math.max(0, now - startTime);
-  const timer = customerTimer(elapsed);
+  const over = overWindow(elapsed);
   const progress = status === "outstanding" ? Math.min(1, elapsed / WINDOW_MS) : 1;
   const c = 2 * Math.PI * 44;
   const ready = status === "fulfilled" || status === "collected";
@@ -132,7 +152,7 @@ export function MiniRing({
           strokeDashoffset={c * (1 - progress)}
           className={cn(
             "transition-[stroke-dashoffset] duration-700",
-            ready ? "text-matcha-500" : timer.over ? "text-tomato-500" : "text-honey-400",
+            ready ? "text-matcha-500" : over ? "text-tomato-500" : "text-honey-400",
           )}
         />
       </svg>
@@ -141,7 +161,7 @@ export function MiniRing({
           className="relative size-6 text-matcha-600 dark:text-matcha-300"
           aria-label="Ready"
         />
-      ) : timer.over ? (
+      ) : over ? (
         <span className="relative text-[0.65rem] font-bold text-tomato-600 uppercase dark:text-tomato-300">
           Late
         </span>

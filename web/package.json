@@ -22,7 +22,8 @@
     "db:seed": "tsx src/db/cli.ts seed",
     "db:reset": "tsx src/db/cli.ts reset",
     "db:snapshot": "tsx src/db/cli.ts reset data/seed.db",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "sync-docs": "node scripts/sync-docs.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

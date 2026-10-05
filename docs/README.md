@@ -1,0 +1,19 @@
+# Documentation
+
+| Document | What it covers |
+| --- | --- |
+| [model-card.md](model-card.md) | Model and data card: the synthetic data generator, the analytics estimators and the experiment simulation, with provenance, evaluation (with intervals), failure modes and ethics |
+| [ai-use-statement.md](ai-use-statement.md) | What the optional bring-your-own-key shift summary does and never does, data sent, key handling, human review and the AI audit log |
+| [privacy-and-retention.md](privacy-and-retention.md) | Demo-data-only policy, what each table stores, retention and who can see what |
+| [decisions/](decisions) | Decision records. A past record is never edited; a new record supersedes it. |
+
+Decision records:
+
+- [DR-001: Rebuild the data layer on libSQL and Drizzle instead of MongoDB](decisions/DR-001-mongodb-to-libsql-drizzle.md)
+- [DR-002: Replace Google Maps and OpenCage with MapLibre, OpenFreeMap and Photon](decisions/DR-002-maplibre-openfreemap-photon.md)
+- [DR-003: Port the 15-minute late-discount rule with three deliberate fixes](decisions/DR-003-porting-the-discount-window-rule.md)
+- [DR-004: Use Turso in production, with a /tmp copy as a read-mostly fallback](decisions/DR-004-turso-vs-tmp-fallback.md)
+
+These files are rendered on the website under `/methods`. The site reads a synced copy in `web/content/docs/` (Vercel builds only `web/`); run `pnpm sync-docs` in `web/` after editing, and the test suite fails if the copies drift.
+
+The `showcase/` folder holds screenshots of the 2026 features, taken against a local production build (see the README).

@@ -66,6 +66,16 @@ export function SiteFooter() {
               </a>
             </li>
             <li>
+              <Link className="hover:text-foreground hover:underline" href="/methods">
+                Methods &amp; decisions
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:text-foreground hover:underline" href="/methods#ai-use">
+                AI use statement
+              </Link>
+            </li>
+            <li>
               <Link className="hover:text-foreground hover:underline" href="/#about">
                 About &amp; credits
               </Link>

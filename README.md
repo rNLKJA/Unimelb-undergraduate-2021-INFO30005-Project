@@ -10,7 +10,7 @@
 [![SQLite](https://img.shields.io/badge/libSQL%20%2F%20SQLite-Drizzle-003B57?logo=sqlite&logoColor=fff)](https://orm.drizzle.team)
 [![MapLibre](https://img.shields.io/badge/MapLibre-OpenFreeMap-396CB2)](https://maplibre.org)
 
-**Live demo:** _coming soon (Vercel: `snacks-in-a-van`)_
+**Live demo:** [snacks-in-a-van.vercel.app](https://snacks-in-a-van.vercel.app)
 
 </div>
 
@@ -151,13 +151,32 @@ Shown on each login page, with one-click buttons (the landing page has them too)
 
 These are throwaway demo values stored as bcrypt hashes, not secrets.
 
+### Viewing the records
+
+- **On the live site**: open [/admin/records](https://snacks-in-a-van.vercel.app/admin/records)
+  and use the one-click demo admin (or `admin` / `admin-2021`). Every table is listed with
+  record counts, search, pagination and a CSV export; password hashes are always redacted.
+- **Locally**: `web/data/seed.db` is a plain SQLite file, so any SQLite browser can open it,
+  or run `sqlite3 web/data/seed.db ".tables" "select count(*) from orders;"`. Your own local
+  changes live in `web/data/app.db`; `pnpm db:studio` opens Drizzle Studio on it.
+- **Production with Turso** (once connected):
+  `turso db shell snacks-in-a-van "select count(*) from orders"`.
+
 ### Deployment notes
 
-- Set `SESSION_SECRET` (32+ random bytes) on Vercel.
+The Vercel project `snacks-in-a-van` deploys from `web/` (Root Directory `web` when
+connected to Git; `cd web && vercel deploy --prod` from the CLI).
+
+- Set `SESSION_SECRET` (32+ random bytes) on Vercel. This is done for production.
 - For persistent, shared records set `DATABASE_URL` and `DATABASE_AUTH_TOKEN` to a Turso
-  database, then run `pnpm db:migrate && pnpm db:seed` against it once.
+  database, then run `pnpm db:migrate && pnpm db:seed` against it once (or create the
+  database from the snapshot: `turso db create snacks-in-a-van --from-file web/data/seed.db`).
 - Without those variables the app copies `data/seed.db` to `/tmp` on each cold start
-  (writable but ephemeral) and shows a "demo storage resets periodically" notice.
+  (writable but ephemeral) and shows a "demo storage resets periodically" notice. Each
+  serverless instance then has its own copy, so an order placed by the customer demo may not
+  reach a vendor board served by another instance. **The current production deployment runs
+  in this mode until a Turso database is connected**; locally both portals share
+  `data/app.db` and the full cross-portal flow works.
 
 ## How the data was produced
 

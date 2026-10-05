@@ -13,12 +13,11 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
-import { liveVans } from "@/app/live-actions";
 import { Stars } from "@/components/shared/stars";
 import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { formatDistance, walkingMinutes, type LatLng } from "@/lib/distance";
-import { liveData } from "@/lib/fetcher";
+import { fetcher } from "@/lib/fetcher";
 import { MELBOURNE_UNI, nearestVans, resolveSelectedVan } from "@/lib/nearest-vans";
 import type { VanDTO } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -54,7 +53,7 @@ export function VanFinder({ initialVans }: { initialVans: VanDTO[] }) {
     setFocusCount((n) => n + 1);
   };
 
-  const { data } = useSWR<{ vans: VanDTO[] }>("live-vans", () => liveData(liveVans()), {
+  const { data } = useSWR<{ vans: VanDTO[] }>("/api/vans", fetcher, {
     refreshInterval: 15_000,
     fallbackData: { vans: initialVans },
     revalidateOnMount: false,

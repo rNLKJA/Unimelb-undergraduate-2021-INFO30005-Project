@@ -9,8 +9,7 @@ import { currentAdmin } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Records log in" };
 
-export default async function AdminLoginPage(props: PageProps<"/admin/login">) {
-  const params = await props.searchParams;
+export default async function AdminLoginPage() {
   if (await currentAdmin()) redirect("/admin/records");
   return (
     <AuthShell
@@ -31,7 +30,6 @@ export default async function AdminLoginPage(props: PageProps<"/admin/login">) {
         <DemoBanner />
         <DemoLoginButton
           role="admin"
-          autoSubmit={params.demo === "1"}
           formClassName="block"
           variant="secondary"
           className="h-11 w-full rounded-xl font-semibold"

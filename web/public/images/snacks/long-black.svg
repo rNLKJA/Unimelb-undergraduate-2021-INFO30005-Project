@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="t">
+  <title id="t">Long Black</title>
+  <circle cx="80" cy="80" r="76" fill="#fdf3e3"/>
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#f0d3a8" stroke-width="2" stroke-dasharray="3 7"/>
+  <g fill="none" stroke="#b9977a" stroke-width="3.5" stroke-linecap="round" opacity="0.75">
+    <path d="M64 34c-6 7 6 12 0 20"/>
+    <path d="M80 28c-6 7 6 12 0 20"/>
+    <path d="M96 34c-6 7 6 12 0 20"/>
+  </g>
+  <ellipse cx="80" cy="126" rx="52" ry="10" fill="#ecdcc6"/>
+  <ellipse cx="80" cy="121" rx="52" ry="11" fill="#ffffff" stroke="#e2cfb5" stroke-width="2"/>
+  <path d="M114 76c13-2 20 7 17 16s-13 12-22 10" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+  <path d="M114 76c13-2 20 7 17 16s-13 12-22 10" fill="none" stroke="#e2cfb5" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 68h76l-6 42c-1.2 6.5-6.5 11-13 11H61c-6.5 0-11.8-4.5-13-11z" fill="#ffffff" stroke="#e2cfb5" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M46 92h68" stroke="#35241a" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="80" cy="68" rx="38" ry="10" fill="#ffffff" stroke="#e2cfb5" stroke-width="2"/>
+  <ellipse cx="80" cy="69" rx="32" ry="7.5" fill="#241811"/>
+  <ellipse cx="80" cy="68.5" rx="27" ry="5.5" fill="#9a7457"/>
+  <ellipse cx="80" cy="68.5" rx="20" ry="3.6" fill="#634531"/>
+  <ellipse cx="72" cy="67" rx="4" ry="1.2" fill="#d6bfab" opacity="0.8"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="t">
+  <title id="t">Latte</title>
+  <circle cx="80" cy="80" r="76" fill="#fdf3e3"/>
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#f0d3a8" stroke-width="2" stroke-dasharray="3 7"/>
+  <ellipse cx="80" cy="134" rx="40" ry="7" fill="#ecdcc6"/>
+  <path d="M104 30l-12 30" stroke="#b9977a" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="106" cy="27" rx="5" ry="3.5" fill="#b9977a" transform="rotate(-20 106 27)"/>
+  <defs>
+    <linearGradient id="milk" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffaf2"/>
+      <stop offset="0.55" stop-color="#f0d3a8"/>
+      <stop offset="1" stop-color="#d6bfab"/>
+    </linearGradient>
+  </defs>
+  <path d="M52 44h56l-5 82c-.4 5-4.4 8-9.4 8H66.4c-5 0-9-3-9.4-8z" fill="url(#milk)"/>
+  <path d="M56.6 104h46.8l-1.4 22c-.3 5-4.3 8-9.3 8H67.3c-5 0-9-3-9.3-8z" fill="#7d5940"/>
+  <path d="M57.8 98c8 4 15 4 22 1s15-4 22.6-.2l-.4 6.2H56.6z" fill="#b9977a" opacity="0.85"/>
+  <path d="M53.4 46h53.2l-.9 14c-8 3-17 3-26 0s-18-3-25.4 0z" fill="#fffaf2"/>
+  <path d="M52 44h56l-5 82c-.4 5-4.4 8-9.4 8H66.4c-5 0-9-3-9.4-8z" fill="none" stroke="#e2cfb5" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M60 54l3 68" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <ellipse cx="80" cy="44" rx="28" ry="5" fill="#fffaf2" stroke="#e2cfb5" stroke-width="2"/>
+</svg>

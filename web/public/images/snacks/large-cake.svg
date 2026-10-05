@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="t">
+  <title id="t">Large Cake</title>
+  <circle cx="80" cy="80" r="76" fill="#fdf3e3"/>
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#f0d3a8" stroke-width="2" stroke-dasharray="3 7"/>
+  <ellipse cx="80" cy="134" rx="62" ry="8" fill="#ecdcc6"/>
+  <ellipse cx="80" cy="128" rx="60" ry="10" fill="#ffffff" stroke="#e2cfb5" stroke-width="2"/>
+  <path d="M30 70h100v50c0 6-22 10-50 10s-50-4-50-10z" fill="#4b3325"/>
+  <path d="M30 86c0 5 22 9 50 9s50-4 50-9v6c0 5-22 9-50 9s-50-4-50-9z" fill="#f8e6cb"/>
+  <path d="M30 104c0 5 22 9 50 9s50-4 50-9v6c0 5-22 9-50 9s-50-4-50-9z" fill="#f8e6cb"/>
+  <ellipse cx="80" cy="70" rx="50" ry="11" fill="#35241a"/>
+  <path d="M30 70c0 6 6 8 8 14 2 4 6 4 7-1 2-5 5-5 7 0 2 6 7 6 8 0 1-4 5-4 7 1 2 5 6 5 8 0 2-5 6-5 8 1 2 5 6 5 8-1 1-4 5-4 7 0 2 5 6 5 8 0 2-6 8-8 8-14z" fill="#35241a"/>
+  <g fill="#fffaf2">
+    <circle cx="52" cy="66" r="5"/><circle cx="66" cy="62" r="5"/><circle cx="80" cy="61" r="5"/>
+    <circle cx="94" cy="62" r="5"/><circle cx="108" cy="66" r="5"/><circle cx="64" cy="73" r="4.5"/>
+    <circle cx="96" cy="73" r="4.5"/><circle cx="80" cy="75" r="4.5"/>
+  </g>
+  <path d="M82 50c4-10 10-14 18-16" stroke="#4f9a45" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="80" cy="52" r="10" fill="#c93720"/>
+  <circle cx="76" cy="48.5" r="3" fill="#ff9a85"/>
+</svg>

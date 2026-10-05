@@ -45,6 +45,7 @@ export default async function CustomerLoginPage(props: PageProps<"/customer/logi
         <DemoBanner />
         <DemoLoginButton
           role="customer"
+          autoSubmit={params.demo === "1"}
           next={next}
           formClassName="block"
           variant="secondary"

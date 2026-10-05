@@ -17,10 +17,11 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { liveVendorBoard } from "@/app/live-actions";
 import { advanceOrderAction, simulateOrderAction } from "@/app/vendor/actions";
 import { Button } from "@/components/ui/button";
 import { useNow } from "@/hooks/use-now";
-import { fetcher } from "@/lib/fetcher";
+import { liveData } from "@/lib/fetcher";
 import { formatWhen } from "@/lib/format";
 import { prepTone, vendorTimer } from "@/lib/order-rules";
 import { formatPrice } from "@/lib/pricing";
@@ -189,8 +190,8 @@ function Column({
 
 export function OrderBoard({ initial }: { initial: VendorBoardData }) {
   const { data, error, mutate, isValidating } = useSWR<VendorBoardData>(
-    "/api/vendor/board",
-    fetcher,
+    "live-vendor-board",
+    () => liveData(liveVendorBoard()),
     {
       refreshInterval: 3000,
       fallbackData: initial,
@@ -252,7 +253,7 @@ export function OrderBoard({ initial }: { initial: VendorBoardData }) {
           toast.success(
             target === "fulfilled" ? `${order.orderId} Fulfilled!` : `${order.orderId} Collected!`,
           );
-          return fetcher<VendorBoardData>("/api/vendor/board");
+          return liveData(liveVendorBoard());
         },
         { optimisticData: optimistic, rollbackOnError: true, revalidate: false },
       );

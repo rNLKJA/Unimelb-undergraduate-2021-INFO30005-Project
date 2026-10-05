@@ -8,7 +8,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNow } from "@/hooks/use-now";
-import { fetcher } from "@/lib/fetcher";
+import { liveActiveOrders } from "@/app/live-actions";
+import { liveData } from "@/lib/fetcher";
 import type { OrderDTO } from "@/lib/types";
 import { OrderCard } from "./order-card";
 
@@ -21,8 +22,8 @@ type Props = {
 
 export function OrdersView({ active: initialActive, completed, cancelled, serverNow }: Props) {
   const { data } = useSWR<{ active: OrderDTO[]; serverNow: number }>(
-    "/api/customer/orders",
-    fetcher,
+    "live-active-orders",
+    () => liveData(liveActiveOrders()),
     {
       refreshInterval: 4000,
       fallbackData: { active: initialActive, serverNow },

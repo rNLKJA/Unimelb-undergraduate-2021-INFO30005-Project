@@ -10,7 +10,8 @@ import { listVans } from "@/server/vans";
 
 export const metadata: Metadata = { title: "Vendor log in" };
 
-export default async function VendorLoginPage() {
+export default async function VendorLoginPage(props: PageProps<"/vendor/login">) {
+  const params = await props.searchParams;
   if (await currentVan()) redirect("/vendor/orders");
   const vans = await listVans();
   return (
@@ -32,6 +33,7 @@ export default async function VendorLoginPage() {
         <DemoBanner />
         <DemoLoginButton
           role="vendor"
+          autoSubmit={params.demo === "1"}
           formClassName="block"
           variant="secondary"
           className="h-11 w-full rounded-xl font-semibold"

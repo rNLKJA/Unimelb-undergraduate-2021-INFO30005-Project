@@ -19,7 +19,7 @@ import { GithubMark } from "@/components/brand/github-mark";
 import { LiveDemoStory } from "@/components/landing/live-demo-story";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { DemoLoginButton } from "@/components/shared/demo-login";
+import { DemoLoginLink } from "@/components/shared/demo-login";
 import { SnackImage } from "@/components/shared/snack-image";
 import { MENU } from "@/lib/menu";
 import { formatPrice } from "@/lib/pricing";
@@ -109,26 +109,26 @@ export default function HomePage() {
                 key-less map.
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <DemoLoginButton
+                <DemoLoginLink
                   role="customer"
                   className="h-12 rounded-full px-6 text-base font-semibold"
                 >
                   Try as customer <ArrowRight className="size-5" aria-hidden />
-                </DemoLoginButton>
-                <DemoLoginButton
+                </DemoLoginLink>
+                <DemoLoginLink
                   role="vendor"
                   variant="outline"
                   className="h-12 rounded-full px-6 text-base font-semibold"
                 >
                   Try as vendor
-                </DemoLoginButton>
-                <DemoLoginButton
+                </DemoLoginLink>
+                <DemoLoginLink
                   role="admin"
                   variant="secondary"
                   className="h-12 rounded-full px-5 text-base"
                 >
                   <Database className="size-4" aria-hidden /> Records
-                </DemoLoginButton>
+                </DemoLoginLink>
               </div>
               <p className="text-sm text-muted-foreground">
                 One click, no sign-up. Tip: open the customer and vendor demos in two tabs and watch
@@ -427,19 +427,19 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <DemoLoginButton
+              <DemoLoginLink
                 role="customer"
                 className="h-12 rounded-full bg-tomato-600 px-6 text-base font-semibold text-white hover:bg-tomato-700"
               >
                 Order a coffee
-              </DemoLoginButton>
-              <DemoLoginButton
+              </DemoLoginLink>
+              <DemoLoginLink
                 role="vendor"
                 variant="outline"
                 className="h-12 rounded-full border-crema-300/40 bg-transparent px-6 text-base font-semibold text-crema-100 hover:bg-white/10 hover:text-white"
               >
                 Run a van
-              </DemoLoginButton>
+              </DemoLoginLink>
             </div>
           </div>
         </section>

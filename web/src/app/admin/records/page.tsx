@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight, Database, Download, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Database, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ExportCsvButton } from "@/components/admin/export-csv-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +69,6 @@ export default async function RecordsPage(props: PageProps<"/admin/records">) {
     if (next.page && next.page > 1) sp.set("page", String(next.page));
     return `/admin/records?${sp.toString()}`;
   };
-  const exportHref = `/api/admin/export/${table}${q ? `?q=${encodeURIComponent(q)}` : ""}`;
 
   return (
     <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_1fr]">
@@ -134,11 +134,7 @@ export default async function RecordsPage(props: PageProps<"/admin/records">) {
                 Search
               </Button>
             </form>
-            <Button asChild variant="outline" className="h-10 rounded-lg">
-              <a href={exportHref} download>
-                <Download aria-hidden /> Export CSV
-              </a>
-            </Button>
+            <ExportCsvButton table={table} q={q || undefined} />
           </div>
         </div>
 

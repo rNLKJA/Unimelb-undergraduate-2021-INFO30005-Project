@@ -8,6 +8,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { cancelOrderAction } from "@/app/customer/actions";
+import { liveOrder } from "@/app/live-actions";
 import { StatusBadge } from "@/components/shared/status-badge";
 import {
   AlertDialog,
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useNow } from "@/hooks/use-now";
-import { fetcher } from "@/lib/fetcher";
+import { liveData } from "@/lib/fetcher";
 import { formatDate, formatTime } from "@/lib/format";
 import {
   canCustomerModify,
@@ -78,8 +79,8 @@ export function OrderTracker({
   serverNow: number;
 }) {
   const { data, mutate } = useSWR<{ order: OrderDTO; serverNow: number }>(
-    `/api/customer/orders/${initial.orderId}`,
-    fetcher,
+    ["live-order", initial.orderId],
+    ([, orderId]: [string, string]) => liveData(liveOrder(orderId)),
     {
       refreshInterval: pollInterval,
       fallbackData: { order: initial, serverNow },

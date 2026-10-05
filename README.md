@@ -74,7 +74,7 @@ and simulated orders only ever come from the seeded synthetic customers.
 | Auth | Passport-local + express-session | bcryptjs + signed httpOnly session cookies (jose), one per portal |
 | Maps | Google Maps JS API + OpenCage | MapLibre GL + OpenFreeMap tiles, Photon geocoding (Nominatim fallback), bundled offline basemap |
 | UI | Hand-written CSS | Tailwind CSS v4, shadcn/ui (Radix), lucide-react, motion, next-themes |
-| Live updates | Page reload every 60 s | SWR polling (3–4 s) of Route Handlers |
+| Live updates | Page reload every 60 s | SWR polling (3–4 s) through read-only Server Functions |
 | Tests | Jest + Supertest | Vitest: unit, parity (against the original JS) and in-memory database integration tests |
 | Hosting | Heroku | Vercel |
 
@@ -114,7 +114,7 @@ and simulated orders only ever come from the seeded synthetic customers.
 | `/customer/profile`, `/customer/login`, `/customer/signup` | Account pages |
 | `/vendor`, `/vendor/orders`, `/vendor/history`, `/vendor/login` | Van status & location, live board, history search |
 | `/admin/records`, `/admin/login` | Read-only records of every table, CSV export |
-| `/api/vans`, `/api/customer/orders[/id]`, `/api/vendor/board`, `/api/geocode/*`, `/api/admin/export/[table]` | Route Handlers used by the UI |
+| `/api/vans`, `/api/geocode/search`, `/api/geocode/reverse` | Route Handlers: public van list (JSON) and the Photon/Nominatim proxy |
 
 ## Local development
 
@@ -172,13 +172,22 @@ connected to Git; `cd web && vercel deploy --prod` from the CLI).
   database, then run `pnpm db:migrate && pnpm db:seed` against it once (or create the
   database from the snapshot: `turso db create snacks-in-a-van --from-file web/data/seed.db`).
 - Without those variables the app copies `data/seed.db` to `/tmp` on each cold start
-  (writable but ephemeral) and shows a "demo storage resets periodically" notice. Each
-  serverless instance then has its own copy, and consecutive requests are often served by
-  different instances, so writes are not reliable: a new account may not be able to log in
-  on the next request, a just-placed order can show "not found", and orders do not reach the
-  vendor board. Browsing (map, menus, community, records, the seeded vendor board) works.
+  (writable but ephemeral) and shows a "Demo mode" notice. Vercel bundles the App Router
+  pages, the Route Handlers and the statically rendered landing page into separate
+  functions, and each function keeps its own `/tmp` copy. So everything that reads or writes
+  the demo data runs in the pages' function: the live screens poll through read-only Server
+  Functions (`src/app/live-actions.ts`) instead of Route Handlers, the CSV export is a
+  Server Action, and the landing page's one-click buttons hand over to the login pages
+  (`?demo=1`), which sign in from there. A visitor's sign-ups and orders then reach the
+  tracker, the vendor board and the records while that function stays warm. The copy still
+  resets on a cold start, and instances running in parallel don't share it.
   **The current production deployment runs in this mode until a Turso database is
-  connected**; locally both portals share `data/app.db` and the full cross-portal flow works.
+  connected**; locally both portals share `data/app.db`.
+- Functions run in Sydney (`syd1`, set in `web/vercel.json`), next to the Melbourne
+  visitors and to a Turso database created from Australia.
+- Place search autocompletes through Photon. If Photon is slow or down, it is skipped for a
+  minute and typing only matches the bundled suburb list; pressing Enter then runs one
+  explicit Nominatim search (allowed by its usage policy, unlike autocomplete).
 
 ## How the data was produced
 

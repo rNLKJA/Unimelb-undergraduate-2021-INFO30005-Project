@@ -20,6 +20,8 @@ export type AuditSink = (record: AiCallRecord) => Promise<void>;
 
 export interface CallOptions<T> {
   sink: AuditSink;
+  /** Record id reserved by the server before the call (a fresh UUID when omitted). */
+  id?: string;
   fetch?: FetchLike;
   signal?: AbortSignal;
   /** Automatic check of the output, stored with the record. */
@@ -34,10 +36,10 @@ export interface CallResult<T> extends StructuredResponse<T> {
 export async function callStructured<T>(
   credentials: Credentials,
   req: StructuredRequest<T>,
-  { sink, fetch, signal, check, now = () => performance.now() }: CallOptions<T>,
+  { sink, id, fetch, signal, check, now = () => performance.now() }: CallOptions<T>,
 ): Promise<CallResult<T>> {
   const base = {
-    id: newRecordId(),
+    id: id ?? newRecordId(),
     feature: req.feature,
     provider: credentials.provider,
     model: credentials.model,
@@ -63,8 +65,11 @@ export async function callStructured<T>(
       usage: error.usage,
       factCheck: null,
     };
-    // A failed call is still logged; never let logging hide the real error.
-    await sink(record).catch(() => undefined);
+    // A failed call is still logged. Never let logging hide the real error,
+    // but never drop a failed record silently either: the error says so.
+    await sink(record).catch((logError: unknown) => {
+      error.logFailure = logError instanceof Error ? logError.message : String(logError);
+    });
     throw error;
   }
   const record: AiCallRecord = {

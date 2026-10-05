@@ -6,8 +6,9 @@
  * properties as required and forbids additional ones. `enum` is kept (both
  * APIs enforce it), so the model cannot answer "place" for "PLACE". Anthropic
  * does not accept numeric or string-length constraints in
- * `output_config.format`, so those are dropped from its copy; zod still
- * checks them after the reply arrives.
+ * `output_config.format`, and OpenAI's strict mode does not document string
+ * lengths or `uniqueItems`, so those are dropped from the copies sent; zod
+ * still checks every constraint after the reply arrives.
  */
 import { z } from "zod";
 
@@ -64,14 +65,32 @@ function dropKeywords(schema: JsonSchema, drop: ReadonlySet<string>): JsonSchema
   return visit(schema, null) as JsonSchema;
 }
 
-/** Schema for OpenAI's `response_format` (strict mode). */
-export function openAiJsonSchema(schema: z.ZodType): JsonSchema {
+/**
+ * Keywords OpenAI's strict Structured Outputs does not list as supported
+ * (it documents pattern/format, numeric bounds and minItems/maxItems).
+ * Sending them risks a 400 on every call, which mocked tests cannot catch.
+ */
+export const OPENAI_UNSUPPORTED: ReadonlySet<string> = new Set([
+  "minLength",
+  "maxLength",
+  "uniqueItems",
+  "minProperties",
+  "maxProperties",
+]);
+
+/** The strict schema both providers start from (zod's JSON Schema, all fields required). */
+function strictFromZod(schema: z.ZodType): JsonSchema {
   return strictJsonSchema(z.toJSONSchema(schema) as JsonSchema);
+}
+
+/** Schema for OpenAI's `response_format` (strict mode, unsupported keywords dropped). */
+export function openAiJsonSchema(schema: z.ZodType): JsonSchema {
+  return dropKeywords(strictFromZod(schema), OPENAI_UNSUPPORTED);
 }
 
 /** Schema for Anthropic's `output_config.format`: strict, enums kept, bounds dropped. */
 export function anthropicJsonSchema(schema: z.ZodType): JsonSchema {
-  return dropKeywords(openAiJsonSchema(schema), ANTHROPIC_UNSUPPORTED);
+  return dropKeywords(strictFromZod(schema), ANTHROPIC_UNSUPPORTED);
 }
 
 /** Parse the model's text as JSON and validate it; failures carry the evidence. */

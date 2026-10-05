@@ -3,7 +3,12 @@
 import { Check, KeyRound, Loader2, Pencil, ShieldCheck, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { decideAiOutputAction, logAiCallAction } from "@/app/vendor/ai-actions";
+import {
+  decideAiOutputAction,
+  logAiCallAction,
+  reserveAiCallAction,
+  type AiLogResult,
+} from "@/app/vendor/ai-actions";
 import { AiBadge } from "@/components/ai/ai-badge";
 import { useAi } from "@/components/ai/ai-provider";
 import { Button } from "@/components/ui/button";
@@ -20,7 +25,13 @@ import {
 import { PROVIDER_LABEL, isAiError } from "@/lib/ai/types";
 import { cn } from "@/lib/utils";
 
-type Result = { summary: ShiftSummary; record: AiCallRecord };
+type Result = {
+  summary: ShiftSummary;
+  /** The record as logged; its fact check is the one the server recomputed. */
+  record: AiCallRecord;
+  /** False when today's figures changed between page load and logging. */
+  inputMatchesServer: boolean;
+};
 
 /**
  * Optional bring-your-own-key shift summary. The model only ever sees
@@ -51,19 +62,37 @@ export function ShiftSummaryCard({ metrics }: { metrics: ShiftMetrics }) {
     setDecision("pending");
     setEditing(false);
     try {
+      // Ask the server first (session, rate limit): a refusal here costs the
+      // visitor nothing, because the provider has not been called yet.
+      const reservation = await reserveAiCallAction(request.feature);
+      if (!reservation.ok) {
+        setError(reservation.message);
+        return;
+      }
+      const logged: { value: Extract<AiLogResult, { ok: true }> | null } = { value: null };
       const res = await callStructured(credentials, request, {
+        id: reservation.id,
         signal: controller.signal,
         check: (data) => factCheckSummary(data, metrics),
         sink: async (record) => {
-          const logged = await logAiCallAction(record);
-          if (!logged.ok) throw new Error(logged.message);
+          const out = await logAiCallAction(record, reservation.token);
+          if (!out.ok) throw new Error(out.message);
+          logged.value = out;
         },
       });
-      setResult({ summary: res.data, record: res.record });
+      setResult({
+        summary: res.data,
+        record: { ...res.record, factCheck: logged.value?.factCheck ?? res.record.factCheck },
+        inputMatchesServer: logged.value?.inputMatchesServer ?? true,
+      });
     } catch (err) {
       setError(
         isAiError(err)
-          ? err.message
+          ? `${err.message}${
+              err.logFailure
+                ? ` This failed call could not be recorded in the AI audit log either (${err.logFailure}).`
+                : ""
+            }`
           : `The summary was not shown because it could not be recorded in the AI audit log (${
               err instanceof Error ? err.message : "unknown error"
             }).`,
@@ -141,7 +170,10 @@ export function ShiftSummaryCard({ metrics }: { metrics: ShiftMetrics }) {
             aria-live="polite"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <AiBadge model={result.record.model} />
+              <AiBadge
+                model={`${PROVIDER_LABEL[result.record.provider]} · ${result.record.model}`}
+                edited={decision === "edited"}
+              />
               <span className="text-[0.7rem] text-muted-foreground">
                 {Math.round(result.record.latencyMs).toLocaleString("en-AU")} ms
                 {result.record.usage
@@ -150,7 +182,15 @@ export function ShiftSummaryCard({ metrics }: { metrics: ShiftMetrics }) {
               </span>
             </div>
             {shown ? (
-              <p className="text-sm whitespace-pre-line">{shown}</p>
+              <div className="space-y-2">
+                <p className="text-sm whitespace-pre-line">{shown}</p>
+                <details className="text-xs text-muted-foreground">
+                  <summary className="cursor-pointer font-medium hover:text-foreground">
+                    Original AI draft
+                  </summary>
+                  <p className="mt-1.5 whitespace-pre-line">{summaryToText(result.summary)}</p>
+                </details>
+              </div>
             ) : (
               <div
                 className={cn(
@@ -195,6 +235,13 @@ export function ShiftSummaryCard({ metrics }: { metrics: ShiftMetrics }) {
                 {check.unsupported.length
                   ? `Fact check: ${check.unsupported.length} of ${check.checked} numbers are not in the figures sent (${check.unsupported.join(", ")}). Check them before accepting.`
                   : `Fact check: all ${check.checked} numbers appear in the figures sent. Wording can still mislead, so read it before accepting.`}
+              </p>
+            ) : null}
+
+            {!result.inputMatchesServer ? (
+              <p className="text-xs text-muted-foreground">
+                Today&apos;s figures changed after this page loaded, so the figures sent were not
+                the latest; the audit log records that. Reload for a summary of the current figures.
               </p>
             ) : null}
 

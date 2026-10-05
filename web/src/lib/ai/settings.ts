@@ -5,7 +5,8 @@
  *  - The API key, one per provider, goes to sessionStorage by default, so it
  *    is gone when the tab closes. Only if the visitor ticks "remember on this
  *    device" is it written to localStorage instead. "Forget keys" removes
- *    every provider's key from both.
+ *    every provider's key from both; logging out of the vendor portal removes
+ *    the session-only keys.
  *
  * Storage is injected so this module is testable and safe during SSR.
  */
@@ -103,6 +104,34 @@ export const PROVIDERS: readonly Provider[] = ["anthropic", "openai"];
 /** Remove every provider's key from both storages. */
 export function forgetAllKeys(session: KV | null, local: KV | null): void {
   for (const p of PROVIDERS) forgetKey(p, session, local);
+}
+
+/**
+ * Remove every provider's session-only key (logout on the shared demo login).
+ * Keys the visitor chose to remember on this device stay until "Forget key".
+ */
+export function forgetSessionKeys(session: KV | null): void {
+  for (const p of PROVIDERS) session?.removeItem(keyName(p));
+}
+
+/**
+ * What the settings dialog's Save does with the selected provider's key: a
+ * newly pasted key is saved where the switch says; an existing key moves
+ * between session and local storage ONLY if the visitor flipped the switch
+ * themselves. Returns null when storage must not change.
+ */
+export function keySaveAction(input: {
+  draftKey: string;
+  stored: StoredKey | null;
+  remember: boolean;
+  rememberTouched: boolean;
+}): { key: string; remember: boolean } | null {
+  const draft = input.draftKey.trim();
+  if (draft) return { key: draft, remember: input.remember };
+  if (input.stored && input.rememberTouched && input.stored.remembered !== input.remember) {
+    return { key: input.stored.key, remember: input.remember };
+  }
+  return null;
 }
 
 /** The keys saved for each provider (the UI shows all of them, not just the selected one). */

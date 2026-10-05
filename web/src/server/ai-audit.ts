@@ -1,21 +1,23 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { aiAuditLog, type AiAuditLogRow } from "@/db/schema";
-import type { AiCallRecord, HumanDecision } from "@/lib/ai/audit-record";
+import { containsSecret, type AiCallRecord, type HumanDecision } from "@/lib/ai/audit-record";
 import { auditInsert } from "./audit";
 
 /**
  * Server side of the AI audit log (`ai_audit_log`). The browser calls the
  * provider with the visitor's key, then posts a record of the call here via
  * a server action; the record never contains the key (checked again in
- * `parseAiCallRecord` before it gets this far).
+ * `parseAiCallRecord` before it gets this far) and has been checked by
+ * `verifyAiCallRecord` (the fact check stored here is the server's own).
  */
 export async function insertAiCall(
   record: AiCallRecord,
   actorId: string,
-  now: number = Date.now(),
+  options: { inputMatchesServer?: boolean | null; now?: number } = {},
 ): Promise<void> {
+  const now = options.now ?? Date.now();
   const db = await getDb();
   await db.insert(aiAuditLog).values({
     id: record.id,
@@ -33,6 +35,7 @@ export async function insertAiCall(
     inputTokens: record.usage?.inputTokens ?? null,
     outputTokens: record.usage?.outputTokens ?? null,
     factCheck: record.factCheck ? JSON.stringify(record.factCheck) : null,
+    inputMatchesServer: options.inputMatchesServer ?? null,
     // A failed call has no output to review.
     humanDecision: record.error ? "not-applicable" : "pending",
   });
@@ -67,6 +70,14 @@ export async function decideAiCall(input: {
     input.decision === "edited" ? (input.editedText ?? "").trim().slice(0, 4000) : null;
   if (input.decision === "edited" && !edited)
     return { ok: false, message: "The edited text is empty." };
+  // Defence in depth: a key pasted into the edit box must never be stored or exported.
+  if (edited && containsSecret(edited)) {
+    return {
+      ok: false,
+      message:
+        "The edit looked like it contained an API key, so it was not saved. Remove it and try again.",
+    };
+  }
   await db.batch([
     db
       .update(aiAuditLog)
@@ -87,6 +98,39 @@ export async function decideAiCall(input: {
 export async function listAiCalls(limit = 200): Promise<AiAuditLogRow[]> {
   const db = await getDb();
   return db.select().from(aiAuditLog).orderBy(desc(aiAuditLog.createdAt)).limit(limit);
+}
+
+export type AiLogTotals = {
+  calls: number;
+  byDecision: Partial<Record<HumanDecision, number>>;
+  /** Calls whose (server-computed) fact check listed at least one unsupported number. */
+  factCheckFlagged: number;
+  /** Calls whose prompt figures no longer matched the server's when logged. */
+  inputNotCurrent: number;
+};
+
+/** Summary counts over the WHOLE table (the page lists only the latest calls). */
+export async function aiLogTotals(): Promise<AiLogTotals> {
+  const db = await getDb();
+  const [byDecision, [flags]] = await Promise.all([
+    db
+      .select({ decision: aiAuditLog.humanDecision, n: count() })
+      .from(aiAuditLog)
+      .groupBy(aiAuditLog.humanDecision),
+    db
+      .select({
+        calls: count(),
+        flagged: sql<number>`coalesce(sum(case when json_array_length(json_extract(${aiAuditLog.factCheck}, '$.unsupported')) > 0 then 1 else 0 end), 0)`,
+        notCurrent: sql<number>`coalesce(sum(case when ${aiAuditLog.inputMatchesServer} = 0 then 1 else 0 end), 0)`,
+      })
+      .from(aiAuditLog),
+  ]);
+  return {
+    calls: Number(flags?.calls ?? 0),
+    byDecision: Object.fromEntries(byDecision.map((r) => [r.decision, Number(r.n)])),
+    factCheckFlagged: Number(flags?.flagged ?? 0),
+    inputNotCurrent: Number(flags?.notCurrent ?? 0),
+  };
 }
 
 /** Flat rows for the JSON / CSV export of the AI audit log. */
@@ -110,5 +154,6 @@ export function aiCallExportRow(r: AiAuditLogRow) {
     output_text: r.outputText,
     edited_output: r.editedOutput,
     fact_check: r.factCheck,
+    input_matches_server: r.inputMatchesServer,
   };
 }

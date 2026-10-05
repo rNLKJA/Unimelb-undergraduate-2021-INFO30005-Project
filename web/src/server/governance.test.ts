@@ -11,7 +11,7 @@ import * as schema from "@/db/schema";
 import { DEMO_CREDENTIALS } from "@/db/seed-data";
 import { seedDatabase } from "@/db/seed";
 import type { AiCallRecord } from "@/lib/ai/audit-record";
-import { decideAiCall, insertAiCall, listAiCalls } from "./ai-audit";
+import { aiLogTotals, decideAiCall, insertAiCall, listAiCalls } from "./ai-audit";
 import { auditTrail, DEMO_HOUSEKEEPING, recordAudit } from "./audit";
 import {
   advanceOrder,
@@ -201,7 +201,7 @@ describe("AI audit log", () => {
   const FAILED = "7f1c1d1e-2b3a-4c5d-8e9f-0a1b2c3d4e5f";
 
   it("stores each call and lets the van that made it decide once", async () => {
-    await insertAiCall(record(ID), VAN, NOW);
+    await insertAiCall(record(ID), VAN, { now: NOW });
     await insertAiCall(
       record(FAILED, {
         output: null,
@@ -210,7 +210,7 @@ describe("AI audit log", () => {
         usage: null,
       }),
       VAN,
-      NOW + 1,
+      { now: NOW + 1, inputMatchesServer: true },
     );
     const [failed, ok] = await listAiCalls();
     expect(failed).toMatchObject({
@@ -255,15 +255,54 @@ describe("AI audit log", () => {
     });
     const [, decided] = await listAiCalls();
     expect(decided).toMatchObject({ humanDecision: "edited", editedOutput: "Shorter note" });
+    expect(await aiLogTotals()).toEqual({
+      calls: 2,
+      byDecision: { edited: 1, "not-applicable": 1 },
+      factCheckFlagged: 0,
+      inputNotCurrent: 0,
+    });
     expect(decided.decidedAt?.getTime()).toBe(NOW + 5);
     const trail = await rows();
     expect(trail.map((r) => [r.action, r.entityId])).toEqual([["ai_output.edited", ID]]);
   });
 
+  it("never stores an edit that looks like an API key", async () => {
+    await insertAiCall(record(ID), VAN, { now: NOW });
+    const res = await decideAiCall({
+      id: ID,
+      actorId: VAN,
+      decision: "edited",
+      editedText: "Note for the crew sk-ant-api03-abcdefghijklmnop",
+    });
+    expect(res).toMatchObject({ ok: false });
+    expect(JSON.stringify(res)).not.toContain("sk-ant");
+    const [row] = await listAiCalls();
+    expect(row).toMatchObject({ humanDecision: "pending", editedOutput: null });
+  });
+
+  it("counts flagged fact checks and stale figures over the whole table", async () => {
+    await insertAiCall(record(ID, { factCheck: { checked: 3, unsupported: ["10"] } }), VAN, {
+      now: NOW,
+      inputMatchesServer: false,
+    });
+    await insertAiCall(record(FAILED), VAN, { now: NOW + 1, inputMatchesServer: true });
+    expect(await aiLogTotals()).toMatchObject({
+      calls: 2,
+      byDecision: { pending: 2 },
+      factCheckFlagged: 1,
+      inputNotCurrent: 1,
+    });
+  });
+
   it("keeps call records immutable and decisions single, at the database level", async () => {
-    await insertAiCall(record(ID), VAN, NOW);
+    await insertAiCall(record(ID), VAN, { now: NOW });
     await expectBlocked(
       handle.db.update(schema.aiAuditLog).set({ outputText: "rewritten" }),
+      /immutable/,
+    );
+    // Migration 0004 extends the trigger to the server's verification flag.
+    await expectBlocked(
+      handle.db.update(schema.aiAuditLog).set({ inputMatchesServer: true }),
       /immutable/,
     );
     await expectBlocked(handle.db.delete(schema.aiAuditLog), /append-only/);

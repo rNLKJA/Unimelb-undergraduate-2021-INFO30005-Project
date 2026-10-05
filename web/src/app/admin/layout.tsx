@@ -24,7 +24,12 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             <ThemeToggle />
             {admin ? (
               <form action={adminLogoutAction}>
-                <Button type="submit" variant="outline" className="h-9 rounded-full px-3.5">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  aria-label="Log out"
+                  className="h-9 rounded-full px-3.5"
+                >
                   <LogOut aria-hidden /> <span className="hidden sm:inline">Log out</span>
                 </Button>
               </form>

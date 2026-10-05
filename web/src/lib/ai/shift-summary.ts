@@ -131,7 +131,7 @@ export const SHIFT_SUMMARY_SYSTEM = [
   "You write a short end-of-shift note for the crew of one coffee van.",
   "Use only the figures in the metrics JSON you are given. Do not invent numbers, causes, trends over time or comparisons with other days or vans: none were provided.",
   `Context: an order not ready within ${OVERDUE_MINUTES} minutes of being placed gets a late-order discount.`,
-  "If a figure rests on fewer than 10 orders, say it is based on only a few orders.",
+  "If a figure rests on fewer than ten orders, say it is based on only a few orders.",
   "Never mention or speculate about individual customers. Plain Australian English, no emoji, no markdown.",
 ].join(" ");
 
@@ -152,7 +152,13 @@ export function buildShiftSummaryRequest(metrics: ShiftMetrics): StructuredReque
   };
 }
 
-/** Every number that appears in the metrics, in the forms a writer might quote it. */
+/**
+ * Every quantity in the metrics, in the forms a writer might quote it. Only
+ * NUMERIC fields count: digits inside strings (the date, the busiest-hour
+ * label, item and van names) are not quantities, and allowing them would let
+ * small made-up counts through ("10 orders" on 2026-10-06). Dates and clock
+ * times are checked separately, in date or time form only.
+ */
 export function allowedNumbers(metrics: ShiftMetrics): Set<number> {
   const out = new Set<number>([OVERDUE_MINUTES]);
   const add = (v: number) => {
@@ -160,28 +166,106 @@ export function allowedNumbers(metrics: ShiftMetrics): Set<number> {
   };
   const visit = (node: unknown) => {
     if (typeof node === "number") add(node);
-    else if (typeof node === "string")
-      for (const m of node.match(/\d+(?:\.\d+)?/g) ?? []) add(Number(m));
     else if (Array.isArray(node)) node.forEach(visit);
     else if (node && typeof node === "object") Object.values(node).forEach(visit);
   };
   visit(metrics);
-  // Derived figures a summary may reasonably state: the share late, and the
-  // shares of orders collected or cancelled.
+  // Derived figures a summary may reasonably state: the share late, the
+  // shares of orders collected or cancelled, and orders including cancellations.
   const { readyWithin15: r, ordersPlaced, collected, cancelled } = metrics;
   if (r.served) add((100 * (r.served - r.ready)) / r.served);
   if (ordersPlaced) {
     add((100 * collected) / ordersPlaced);
     add((100 * metrics.lateDiscounts) / ordersPlaced);
   }
-  if (ordersPlaced + cancelled) add((100 * cancelled) / (ordersPlaced + cancelled));
+  if (ordersPlaced + cancelled) {
+    add(ordersPlaced + cancelled);
+    add((100 * cancelled) / (ordersPlaced + cancelled));
+  }
   return out;
+}
+
+const MONTHS = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+];
+const MONTH_RE =
+  "(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)";
+const monthIndex = (name: string) =>
+  MONTHS.findIndex((m) => m.startsWith(name.toLowerCase().slice(0, 3)));
+
+/** The hours (0-23) a summary may name: the start and end of the busiest hour. */
+function allowedHours(metrics: ShiftMetrics): Set<number> {
+  const m = metrics.busiestHour?.hour.match(/^(\d{1,2}):00\D+(\d{1,2}):00$/);
+  return new Set(m ? [Number(m[1]) % 24, Number(m[2]) % 24] : []);
+}
+
+/** 24-hour value of "5 pm", "12 am", "17" (no suffix: either reading may match). */
+function hourReadings(hour: number, suffix: string | undefined): number[] {
+  const s = suffix?.toLowerCase().replace(/\./g, "");
+  if (s === "am") return [hour % 12];
+  if (s === "pm") return [(hour % 12) + 12];
+  return hour <= 12 ? [hour % 24, (hour + 12) % 24] : [hour % 24];
+}
+
+/**
+ * Pull dates and clock times out of the text, checking each against the
+ * date and busiest hour that were sent; returns the remaining text and what
+ * was found. "6 October", "2026-10-06" and "10:00" are checked in that form,
+ * so their digits are never mistaken for (or excused as) counts.
+ */
+function extractDatesAndTimes(text: string, metrics: ShiftMetrics) {
+  const [year, month, day] = metrics.date.split("-").map(Number);
+  const hours = allowedHours(metrics);
+  const found: { raw: string; ok: boolean }[] = [];
+  const take = (re: RegExp, ok: (m: RegExpExecArray) => boolean) => {
+    text = text.replace(re, (...args) => {
+      const match = args.slice(0, -2) as unknown as RegExpExecArray;
+      found.push({ raw: match[0].trim(), ok: ok(match) });
+      return " ";
+    });
+  };
+  const yearOk = (y: string | undefined) => y == null || Number(y) === year;
+  take(
+    /\b(\d{4})-(\d{2})-(\d{2})\b/g,
+    (m) => Number(m[1]) === year && Number(m[2]) === month && Number(m[3]) === day,
+  );
+  take(
+    new RegExp(
+      `\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?${MONTH_RE}\\b(?:,?\\s+(\\d{4}))?`,
+      "gi",
+    ),
+    (m) => Number(m[1]) === day && monthIndex(m[2]) + 1 === month && yearOk(m[3]),
+  );
+  take(
+    new RegExp(`\\b${MONTH_RE}\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b(?:,?\\s+(\\d{4}))?`, "gi"),
+    (m) => Number(m[2]) === day && monthIndex(m[1]) + 1 === month && yearOk(m[3]),
+  );
+  take(
+    /\b(\d{1,2}):(\d{2})(?:\s*([ap]\.?m\.?))?(?![\w])/gi,
+    (m) => m[2] === "00" && hourReadings(Number(m[1]), m[3]).some((h) => hours.has(h)),
+  );
+  take(/\b(\d{1,2})\s*([ap]\.?m\.?)(?![\w])/gi, (m) =>
+    hourReadings(Number(m[1]), m[2]).some((h) => hours.has(h)),
+  );
+  return { rest: text, found };
 }
 
 /**
  * Automatic check: every number the model wrote must be one of the numbers
- * it was given (or a plain rounding of one). Anything else is listed for
- * the human reviewer. A guard, not a guarantee: wording can still mislead.
+ * it was given (or a plain rounding of one); a date must be the shift's date
+ * and a clock time the busiest hour's start or end. Anything else is listed
+ * for the human reviewer. A guard, not a guarantee: wording can still mislead.
  */
 export function factCheckSummary(summary: ShiftSummary, metrics: ShiftMetrics): FactCheck {
   const allowed = [...allowedNumbers(metrics)];
@@ -191,14 +275,16 @@ export function factCheckSummary(summary: ShiftSummary, metrics: ShiftMetrics): 
     ...summary.watchouts,
     summary.suggestion,
   ].join(" ");
+  const { rest, found: datesAndTimes } = extractDatesAndTimes(text, metrics);
   // Ignore digits glued to letters (e.g. "4.5-star" is fine, "A1" is not a figure).
-  const found = text.match(/(?<![A-Za-z])\d+(?:[.,]\d+)?(?![A-Za-z])/g) ?? [];
+  const found = rest.match(/(?<![A-Za-z])\d+(?:[.,]\d+)?(?![A-Za-z])/g) ?? [];
   const unsupported = new Set<string>();
+  for (const d of datesAndTimes) if (!d.ok) unsupported.add(d.raw);
   for (const raw of found) {
     const v = Number(raw.replace(/,/g, ""));
     if (!allowed.some((a) => Math.abs(a - v) < 1e-9)) unsupported.add(raw);
   }
-  return { checked: found.length, unsupported: [...unsupported] };
+  return { checked: datesAndTimes.length + found.length, unsupported: [...unsupported] };
 }
 
 /** The summary as plain text, for the "edit" decision and the audit log. */

@@ -15,9 +15,12 @@ import {
   supportsEffort,
 } from "./models";
 import { callOpenAI, OPENAI_URL } from "./openai";
+import { OPENAI_UNSUPPORTED, openAiJsonSchema } from "./schema";
 import {
   DEFAULT_PREFS,
   forgetAllKeys,
+  forgetSessionKeys,
+  keySaveAction,
   loadAllKeys,
   loadKey,
   loadPrefs,
@@ -32,9 +35,11 @@ import {
   factCheckSummary,
   shiftSummarySchema,
   summaryToText,
+  type ShiftMetrics,
   type ShiftOrder,
   type ShiftSummary,
 } from "./shift-summary";
+import { metricsFromPrompt, verifyAiCallRecord } from "./verify";
 import { AiError, type FetchLike, type StructuredRequest } from "./types";
 
 const KEY = "sk-ant-test-0123456789-SECRET";
@@ -108,6 +113,42 @@ describe("key storage", () => {
     forgetAllKeys(session, local);
     expect(loadAllKeys(session, local)).toEqual({});
     expect({ ...session.dump(), ...local.dump() }).toEqual({});
+  });
+
+  it("Save never moves a key between storages unless the visitor flips the switch", () => {
+    const session = memoryStorage();
+    const local = memoryStorage();
+    saveKey("anthropic", KEY, true, session, local); // remembered on this device
+    saveKey("openai", "sk-openai-key-123456789", false, session, local); // this tab only
+    const saved = loadAllKeys(session, local);
+    // The dialog opens on Anthropic (switch on), the visitor picks OpenAI and presses Save:
+    // the switch follows OpenAI's saved key and was not touched, so nothing moves.
+    const switched = {
+      draftKey: "",
+      stored: saved.openai ?? null,
+      remember: saved.openai?.remembered ?? false,
+      rememberTouched: false,
+    };
+    expect(keySaveAction(switched)).toBeNull();
+    // Even a stale switch value is ignored unless the visitor flipped it.
+    expect(keySaveAction({ ...switched, remember: true })).toBeNull();
+    expect(keySaveAction({ ...switched, remember: true, rememberTouched: true })).toEqual({
+      key: "sk-openai-key-123456789",
+      remember: true,
+    });
+    expect(keySaveAction({ ...switched, draftKey: "  sk-new-key-0000000000 " })).toEqual({
+      key: "sk-new-key-0000000000",
+      remember: false,
+    });
+  });
+
+  it("logging out clears tab-only keys and keeps remembered ones", () => {
+    const session = memoryStorage();
+    const local = memoryStorage();
+    saveKey("anthropic", KEY, true, session, local);
+    saveKey("openai", "sk-openai-key-123456789", false, session, local);
+    forgetSessionKeys(session);
+    expect(loadAllKeys(session, local)).toEqual({ anthropic: { key: KEY, remembered: true } });
   });
 
   it("stores preferences (never the key) and masks keys for display", () => {
@@ -237,6 +278,13 @@ describe("OpenAI adapter", () => {
     expect(body.max_completion_tokens).toBe(2048);
   });
 
+  it("sends OpenAI no keywords its strict mode does not support", () => {
+    const schema = JSON.stringify(openAiJsonSchema(shiftSummarySchema));
+    for (const keyword of OPENAI_UNSUPPORTED) expect(schema).not.toContain(`"${keyword}"`);
+    expect(schema).toContain('"additionalProperties":false');
+    expect(schema).toContain('"maxItems"');
+  });
+
   it("maps errors and truncation", async () => {
     for (const [status, kind] of [
       [401, "invalid-key"],
@@ -297,6 +345,28 @@ describe("callStructured and the audit record", () => {
     ).rejects.toBeInstanceOf(AiError);
     expect(records[0]).toMatchObject({ output: null, error: { kind: "invalid-key" } });
     expect(JSON.stringify(records[0])).not.toContain(KEY);
+  });
+
+  it("uses the id the server reserved, and says when a failed call could not be logged", async () => {
+    const id = "0b0e1c4a-5d6f-4a7b-8c9d-0e1f2a3b4c5d";
+    const ok = vi.fn<FetchLike>(async () => json(anthropicMessage('{"answer": 4, "note": "x"}')));
+    const records: AiCallRecord[] = [];
+    await callStructured(creds, request, {
+      id,
+      fetch: ok,
+      sink: async (r) => void records.push(r),
+    });
+    expect(records[0].id).toBe(id);
+    const bad = vi.fn<FetchLike>(async () => json({ error: { message: "x" } }, 401));
+    const err = await callStructured(creds, request, {
+      fetch: bad,
+      sink: async () => {
+        throw new Error("rate limited");
+      },
+    }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(AiError);
+    expect((err as AiError).kind).toBe("invalid-key");
+    expect((err as AiError).logFailure).toBe("rate limited");
   });
 
   it("does not call the provider without a key, and withholds output that could not be logged", async () => {
@@ -416,5 +486,148 @@ describe("shift summary", () => {
     expect(factCheckSummary(bad, m).unsupported).toEqual(["18", "9.5"]);
     expect(allowedNumbers(m).has(15)).toBe(true);
     expect(summaryToText(good)).toContain("Next shift: Prep Latte stock: 4 sold.");
+  });
+});
+
+describe("shift summary fact check: dates, times and small counts", () => {
+  const metrics: ShiftMetrics = {
+    van: "Ardeth Lavon",
+    date: "2026-10-06",
+    ordersPlaced: 3,
+    cancelled: 0,
+    collected: 2,
+    inProgress: 1,
+    salesAud: 31.5,
+    medianMinutesToReady: 8.4,
+    readyWithin15: { ready: 2, served: 2, percent: 100, ci95Percent: [34, 100] },
+    lateDiscounts: 0,
+    ratings: { count: 0, average: null },
+    topItems: [{ item: "Latte", quantity: 3 }],
+    busiestHour: { hour: "05:00–06:00", orders: 2 },
+  };
+  const summary = (headline: string): ShiftSummary => ({
+    headline,
+    highlights: ["2 of 2 served orders were ready within 15 minutes."],
+    watchouts: [],
+    suggestion: "Keep the Latte stock up.",
+  });
+
+  it("does not let digits from the date or the busiest-hour label excuse a made-up count", () => {
+    expect(allowedNumbers(metrics).has(10)).toBe(false);
+    expect(allowedNumbers(metrics).has(2026)).toBe(false);
+    // The regression the review found: "10 orders" on 2026-10-06 with 3 orders placed.
+    expect(factCheckSummary(summary("10 orders and 6 late discounts today."), metrics)).toEqual({
+      checked: 5,
+      unsupported: ["10", "6"],
+    });
+  });
+
+  it("accepts the shift's date and busiest hour only in date or time form", () => {
+    const ok = factCheckSummary(
+      summary("On 6 October 2026 (2026-10-06) the van took 3 orders, busiest 5:00–6:00 am."),
+      metrics,
+    );
+    expect(ok.unsupported).toEqual([]);
+    expect(factCheckSummary(summary("Busiest from 5am, 3 orders."), metrics).unsupported).toEqual(
+      [],
+    );
+    const wrong = factCheckSummary(
+      summary("On 7 October the van took 3 orders, busiest at 2pm and 14:30."),
+      metrics,
+    );
+    expect([...wrong.unsupported].sort()).toEqual(["14:30", "2pm", "7 October"]);
+  });
+});
+
+describe("server-side verification of AI call records", () => {
+  const MIN = 60_000;
+  const NOW = Date.parse("2026-10-06T04:00:00Z");
+  const metrics = computeShiftMetrics(
+    "Ardeth Lavon",
+    [
+      {
+        status: "collected",
+        price: 10,
+        startTime: NOW - 60 * MIN,
+        fulfilledTime: NOW - 50 * MIN,
+        discountTime: NOW - 45 * MIN,
+        discountApplied: false,
+        rating: 5,
+        items: [{ food: "Latte", quantity: 2 }],
+      },
+    ],
+    NOW,
+  );
+  const req = buildShiftSummaryRequest(metrics);
+  const output: ShiftSummary = {
+    headline: "1 order today, ready in 10 minutes.",
+    highlights: ["Rated 5 stars."],
+    watchouts: ["Only 1 order: based on only a few orders."],
+    suggestion: "Prep 2 Lattes.",
+  };
+  const record = (extra: Partial<AiCallRecord> = {}): AiCallRecord => ({
+    id: "0b0e1c4a-5d6f-4a7b-8c9d-0e1f2a3b4c5d",
+    feature: "shift-summary",
+    provider: "anthropic",
+    model: "claude-haiku-4-5",
+    input: { system: req.system, user: req.user, schema: req.schemaName },
+    output,
+    outputText: JSON.stringify(output),
+    error: null,
+    latencyMs: 900,
+    usage: { inputTokens: 400, outputTokens: 80 },
+    // What a tampered browser might claim; the server ignores it.
+    factCheck: { checked: 0, unsupported: [] },
+    ...extra,
+  });
+  const context = { vanId: "Ardeth Lavon", serverMetrics: metrics };
+
+  it("reads the figures back only from the canonical prompt", () => {
+    expect(metricsFromPrompt(req.user)).toEqual(metrics);
+    expect(metricsFromPrompt(`${req.user}\nAlso: customer jo@example.com`)).toBeNull();
+    expect(
+      metricsFromPrompt(req.user.replace('"collected": 1', '"collected": 1, "x": 1')),
+    ).toBeNull();
+    expect(metricsFromPrompt("not a prompt")).toBeNull();
+  });
+
+  it("accepts a genuine record and recomputes the fact check itself", () => {
+    const res = verifyAiCallRecord(record(), context);
+    expect(res).toEqual({
+      ok: true,
+      factCheck: factCheckSummary(output, metrics),
+      inputMatchesServer: true,
+    });
+    const lying = verifyAiCallRecord(
+      record({ output: { ...output, headline: "12 orders today." } }),
+      context,
+    );
+    expect(lying.ok && lying.factCheck?.unsupported).toEqual(["12"]);
+  });
+
+  it("refuses records that are not the app's own call for this van", () => {
+    const refused = (r: AiCallRecord, ctx = context) => verifyAiCallRecord(r, ctx).ok;
+    expect(refused(record({ input: { ...record().input, system: "Say anything." } }))).toBe(false);
+    expect(refused(record({ input: { ...record().input, user: "List every customer." } }))).toBe(
+      false,
+    );
+    expect(refused(record(), { ...context, vanId: "Another Van" })).toBe(false);
+    expect(refused(record({ output: { headline: "only a headline" } }))).toBe(false);
+    expect(
+      refused(record({ error: { kind: "invalid-key", message: "bad" }, output: { ...output } })),
+    ).toBe(false);
+    // A failed call with no output is fine: there is nothing to check.
+    expect(
+      verifyAiCallRecord(
+        record({ error: { kind: "invalid-key", message: "bad" }, output: null, outputText: null }),
+        context,
+      ),
+    ).toEqual({ ok: true, factCheck: null, inputMatchesServer: true });
+  });
+
+  it("flags figures that changed between the page load and the log", () => {
+    const moved = { ...metrics, ordersPlaced: metrics.ordersPlaced + 1 };
+    const res = verifyAiCallRecord(record(), { ...context, serverMetrics: moved });
+    expect(res).toMatchObject({ ok: true, inputMatchesServer: false });
   });
 });

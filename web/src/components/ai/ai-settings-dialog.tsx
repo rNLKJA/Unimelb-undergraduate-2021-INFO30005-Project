@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ANTHROPIC_MODELS, DEFAULT_OPENAI_MODEL } from "@/lib/ai/models";
-import { maskKey } from "@/lib/ai/settings";
+import { keySaveAction, maskKey } from "@/lib/ai/settings";
 import { PROVIDER_LABEL, type Provider } from "@/lib/ai/types";
 import { cn } from "@/lib/utils";
 import { useAi } from "./ai-provider";
@@ -78,24 +78,40 @@ function Choice<T extends string>({
   );
 }
 
+/**
+ * Everything in the form is a draft until Save: closing the dialog (Escape,
+ * the close button, a click outside) changes nothing. The "remember" switch
+ * follows the selected provider's saved key and only moves a saved key
+ * between session and local storage when the visitor flips it themselves.
+ */
 function SettingsForm({ onDone }: { onDone: () => void }) {
-  const { prefs, setPrefs, storedKey, savedKeys, saveApiKey, forgetApiKeys } = useAi();
-  const otherSaved = (Object.keys(savedKeys) as Provider[]).filter((p) => p !== prefs.provider);
+  const { prefs, setPrefs, savedKeys, saveApiKey, forgetApiKeys } = useAi();
+  const [provider, setProviderDraft] = useState<Provider>(prefs.provider);
+  const [anthropicModel, setAnthropicModel] = useState(prefs.anthropicModel);
+  const [openaiModel, setOpenaiModel] = useState(prefs.openaiModel);
+  const storedKey = savedKeys[provider] ?? null;
+  const otherSaved = (Object.keys(savedKeys) as Provider[]).filter((p) => p !== provider);
   const anySaved = Object.keys(savedKeys).length > 0;
   const [draftKey, setDraftKey] = useState("");
   const [remember, setRemember] = useState(storedKey?.remembered ?? false);
+  const [rememberTouched, setRememberTouched] = useState(false);
   const [showKey, setShowKey] = useState(false);
-  const [openaiModel, setOpenaiModel] = useState(prefs.openaiModel);
 
-  const setProvider = (provider: Provider) => {
-    setPrefs({ ...prefs, provider });
+  const setProvider = (next: Provider) => {
+    setProviderDraft(next);
     setDraftKey("");
+    setRemember(savedKeys[next]?.remembered ?? false);
+    setRememberTouched(false);
   };
 
   const save = () => {
-    setPrefs({ ...prefs, openaiModel: openaiModel.trim() || DEFAULT_OPENAI_MODEL });
-    if (draftKey.trim()) saveApiKey(draftKey, remember);
-    else if (storedKey && storedKey.remembered !== remember) saveApiKey(storedKey.key, remember);
+    setPrefs({
+      provider,
+      anthropicModel,
+      openaiModel: openaiModel.trim() || DEFAULT_OPENAI_MODEL,
+    });
+    const action = keySaveAction({ draftKey, stored: storedKey, remember, rememberTouched });
+    if (action) saveApiKey(provider, action.key, action.remember);
     onDone();
   };
 
@@ -118,10 +134,10 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
         />
         <p>
           Your key stays in this browser. Requests go{" "}
-          <strong>directly from your browser to {PROVIDER_LABEL[prefs.provider]}</strong>. This
-          app&apos;s server never receives the key: it only gets a record of each call (prompt,
-          reply, model, timing, tokens) for the audit log, and refuses anything that looks like a
-          key. Calls are billed to your account by the provider.
+          <strong>directly from your browser to {PROVIDER_LABEL[provider]}</strong>. This app&apos;s
+          server never receives the key: it only gets a record of each call (prompt, reply, model,
+          timing, tokens) for the audit log, and refuses anything that looks like a key. Calls are
+          billed to your account by the provider.
         </p>
       </div>
 
@@ -130,7 +146,7 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
           <span className="text-xs font-semibold text-muted-foreground">Provider</span>
           <Choice
             label="AI provider"
-            value={prefs.provider}
+            value={provider}
             onChange={setProvider}
             options={[
               { value: "anthropic", label: "Anthropic (default)" },
@@ -139,13 +155,13 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
           />
         </div>
 
-        {prefs.provider === "anthropic" ? (
+        {provider === "anthropic" ? (
           <div className="space-y-1.5">
             <span className="text-xs font-semibold text-muted-foreground">Model</span>
             <Choice
               label="Claude model"
-              value={prefs.anthropicModel}
-              onChange={(v) => setPrefs({ ...prefs, anthropicModel: v })}
+              value={anthropicModel}
+              onChange={setAnthropicModel}
               options={ANTHROPIC_MODELS.map((m) => ({ value: m.id, label: m.label }))}
             />
           </div>
@@ -174,7 +190,7 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
 
         <div className="space-y-1.5">
           <Label htmlFor="ai-key" className="text-xs font-semibold text-muted-foreground">
-            {PROVIDER_LABEL[prefs.provider]} API key
+            {PROVIDER_LABEL[provider]} API key
           </Label>
           <div className="flex gap-2">
             <Input
@@ -203,7 +219,7 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
               ? storedKey.remembered
                 ? `A key (${maskKey(storedKey.key)}) is remembered on this device.`
                 : `A key (${maskKey(storedKey.key)}) is saved for this tab only.`
-              : `No ${PROVIDER_LABEL[prefs.provider]} key saved.`}
+              : `No ${PROVIDER_LABEL[provider]} key saved.`}
             {otherSaved.map((p) => (
               <span key={p} className="block">
                 {PROVIDER_LABEL[p]}: a key ({maskKey(savedKeys[p]!.key)}) is also{" "}
@@ -217,11 +233,18 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
           <Label htmlFor="ai-remember" className="block text-sm leading-snug font-medium">
             Remember on this device
             <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
-              Off: kept in session storage and cleared when the tab closes. On: kept in local
-              storage until you forget it.
+              Off: kept in session storage, cleared when the tab closes or you log out. On: kept in
+              local storage, even after you log out, until you forget it.
             </span>
           </Label>
-          <Switch id="ai-remember" checked={remember} onCheckedChange={setRemember} />
+          <Switch
+            id="ai-remember"
+            checked={remember}
+            onCheckedChange={(on) => {
+              setRemember(on);
+              setRememberTouched(true);
+            }}
+          />
         </div>
       </div>
 
@@ -230,7 +253,8 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
         <Link href="/methods#ai-use" onClick={onDone} className="underline underline-offset-4">
           AI use statement
         </Link>
-        . Every call is listed in the AI audit log (records area, <code>/admin/ai-log</code>).
+        . Every call made through the app is listed in the AI audit log (records area,{" "}
+        <code>/admin/ai-log</code>).
       </p>
 
       <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:items-center">
@@ -243,6 +267,7 @@ function SettingsForm({ onDone }: { onDone: () => void }) {
               forgetApiKeys();
               setDraftKey("");
               setRemember(false);
+              setRememberTouched(false);
             }}
           >
             <Trash2 aria-hidden />{" "}

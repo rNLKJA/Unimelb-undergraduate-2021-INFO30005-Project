@@ -6,10 +6,10 @@ import { AiBadge } from "@/components/ai/ai-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { DECISION_LABEL, type FactCheck, type HumanDecision } from "@/lib/ai/audit-record";
-import { FEATURE_LABEL, type AiFeature } from "@/lib/ai/types";
+import { FEATURE_LABEL, PROVIDER_LABEL, type AiFeature, type Provider } from "@/lib/ai/types";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { listAiCalls } from "@/server/ai-audit";
+import { aiLogTotals, listAiCalls } from "@/server/ai-audit";
 import { requireAdmin } from "@/server/auth";
 
 export const metadata: Metadata = { title: "AI audit log" };
@@ -31,16 +31,11 @@ const DECISION_TONE: Record<HumanDecision, string> = {
   "not-applicable": "bg-muted text-muted-foreground",
 };
 
+const LIST_LIMIT = 200;
+
 export default async function AiLogPage() {
   await requireAdmin();
-  const rows = await listAiCalls(200);
-  const counts = rows.reduce<Record<string, number>>((acc, r) => {
-    acc[r.humanDecision] = (acc[r.humanDecision] ?? 0) + 1;
-    return acc;
-  }, {});
-  const flagged = rows.filter(
-    (r) => (parse<FactCheck>(r.factCheck)?.unsupported.length ?? 0) > 0,
-  ).length;
+  const [rows, totals] = await Promise.all([listAiCalls(LIST_LIMIT), aiLogTotals()]);
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6">
@@ -63,12 +58,17 @@ export default async function AiLogPage() {
         }
       >
         <p>
-          Every call made by the optional bring-your-own-key shift summary, successful or not: the
-          exact prompt and figures sent, the reply, the model, latency, tokens when the provider
-          reports them, the automatic fact check and the vendor&apos;s decision. The call itself
-          goes from the vendor&apos;s browser to the provider; this server only receives the record
-          afterwards, never the key. Records are immutable apart from one review decision (enforced
-          by database triggers). Also browsable as the{" "}
+          Every call the optional bring-your-own-key shift summary makes through the app, successful
+          or not: the prompt and figures sent, the reply, the model, latency, tokens when the
+          provider reports them, the fact check and the vendor&apos;s decision. The call itself goes
+          from the vendor&apos;s browser to the provider; this server only receives a record of it
+          afterwards, never the key.{" "}
+          <strong>Records are reported by the vendor&apos;s browser</strong>: the server checks the
+          prompt is the app&apos;s own with valid figures for that van, validates the output and
+          recomputes the fact check, but it cannot prove a record matches a real provider response.
+          The log shows what the app reported, attested by the signed-in vendor session. Records are
+          immutable apart from one review decision (enforced by database triggers). Also browsable
+          as the{" "}
           <Link
             href="/admin/records?table=ai_audit_log"
             className="font-medium text-foreground underline underline-offset-4"
@@ -86,24 +86,34 @@ export default async function AiLogPage() {
         </p>
       </PageIntro>
 
-      <dl className="flex flex-wrap gap-2 text-sm">
+      <dl className="flex flex-wrap gap-2 text-sm" aria-label="Totals over the whole log">
         <div className="rounded-full border bg-card px-3 py-1">
           <dt className="inline text-muted-foreground">Calls </dt>
-          <dd className="tabular inline font-semibold">{rows.length}</dd>
+          <dd className="tabular inline font-semibold">{totals.calls}</dd>
         </div>
         {(["pending", "accepted", "edited", "rejected", "not-applicable"] as HumanDecision[]).map(
           (d) => (
             <div key={d} className="rounded-full border bg-card px-3 py-1">
               <dt className="inline text-muted-foreground">{DECISION_LABEL[d]} </dt>
-              <dd className="tabular inline font-semibold">{counts[d] ?? 0}</dd>
+              <dd className="tabular inline font-semibold">{totals.byDecision[d] ?? 0}</dd>
             </div>
           ),
         )}
         <div className="rounded-full border bg-card px-3 py-1">
           <dt className="inline text-muted-foreground">Fact check flagged </dt>
-          <dd className="tabular inline font-semibold">{flagged}</dd>
+          <dd className="tabular inline font-semibold">{totals.factCheckFlagged}</dd>
+        </div>
+        <div className="rounded-full border bg-card px-3 py-1">
+          <dt className="inline text-muted-foreground">Figures not current </dt>
+          <dd className="tabular inline font-semibold">{totals.inputNotCurrent}</dd>
         </div>
       </dl>
+      {totals.calls > rows.length ? (
+        <p className="text-xs text-muted-foreground">
+          Totals cover all {totals.calls.toLocaleString("en-AU")} calls; the list shows the latest{" "}
+          {rows.length}. The JSON and CSV exports include every call.
+        </p>
+      ) : null}
 
       {rows.length === 0 ? (
         <EmptyState icon={<Bot />} title="No AI calls yet" className="bg-card" headingLevel={2}>
@@ -124,7 +134,16 @@ export default async function AiLogPage() {
                   </time>
                   <span>{FEATURE_LABEL[r.feature as AiFeature] ?? r.feature}</span>
                   <span className="text-muted-foreground">{r.actorId}</span>
-                  <AiBadge model={`${r.provider} · ${r.model}`} />
+                  {r.output != null ? (
+                    <AiBadge
+                      model={`${PROVIDER_LABEL[r.provider as Provider] ?? r.provider} · ${r.model}`}
+                      edited={decision === "edited"}
+                    />
+                  ) : (
+                    <span className="rounded-xl border px-2 py-0.5 font-mono text-[0.7rem] text-muted-foreground">
+                      {PROVIDER_LABEL[r.provider as Provider] ?? r.provider} · {r.model}
+                    </span>
+                  )}
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-semibold",
@@ -142,6 +161,11 @@ export default async function AiLogPage() {
                   {r.errorKind ? (
                     <span className="rounded-full bg-tomato-500/15 px-2 py-0.5 text-xs font-semibold text-tomato-700 dark:text-tomato-300">
                       error: {r.errorKind}
+                    </span>
+                  ) : null}
+                  {r.inputMatchesServer === false ? (
+                    <span className="text-xs text-muted-foreground">
+                      figures sent were not the server&apos;s latest
                     </span>
                   ) : null}
                   {check ? (

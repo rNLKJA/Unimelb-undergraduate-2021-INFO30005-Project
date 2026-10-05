@@ -85,3 +85,49 @@ export async function readSession(role: Role): Promise<string | null> {
   const jar = await cookies();
   return verifySession(role, jar.get(COOKIE[role])?.value);
 }
+
+/*
+ * AI call reservations. Before the browser calls a provider with the vendor's
+ * key, a server action checks the session and the rate limit and hands back
+ * a short-lived signed token naming the record id it will accept. The audit
+ * record is only logged against a valid token for the same van, so refusals
+ * happen BEFORE the visitor's key is billed, and only calls made through the
+ * app can be logged. Stateless (signed), so it works across serverless
+ * instances that share SESSION_SECRET.
+ */
+const AI_AUDIENCE = "ai-call";
+const AI_RESERVATION_SECONDS = 15 * 60;
+
+export type AiReservation = { id: string; vanId: string; feature: string };
+
+export async function signAiReservation(r: AiReservation): Promise<string> {
+  return new SignJWT({ feature: r.feature, van: r.vanId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setJti(r.id)
+    .setSubject(r.vanId)
+    .setIssuer(ISSUER)
+    .setAudience(AI_AUDIENCE)
+    .setIssuedAt()
+    .setExpirationTime(`${AI_RESERVATION_SECONDS}s`)
+    .sign(secretKey());
+}
+
+export async function verifyAiReservation(token: unknown): Promise<AiReservation | null> {
+  if (typeof token !== "string" || token.length > 2000) return null;
+  try {
+    const { payload } = await jwtVerify(token, secretKey(), {
+      issuer: ISSUER,
+      audience: AI_AUDIENCE,
+      algorithms: ["HS256"],
+    });
+    if (
+      typeof payload.jti !== "string" ||
+      typeof payload.sub !== "string" ||
+      typeof payload.feature !== "string"
+    )
+      return null;
+    return { id: payload.jti, vanId: payload.sub, feature: payload.feature };
+  } catch {
+    return null;
+  }
+}

@@ -82,7 +82,7 @@ export const RECORD_TABLES = {
   ai_audit_log: {
     label: "AI audit log",
     description:
-      "One row per bring-your-own-key AI call: feature, provider, model, the exact input, the output, latency, tokens and the human decision. API keys are never sent to this server.",
+      "One row per bring-your-own-key AI call made through the app: feature, provider, model, the input, the output, latency, tokens, the server's fact check and the human decision. Records are reported by the vendor's browser and checked by the server; API keys are never sent to this server.",
     table: schema.aiAuditLog,
     search: ["feature", "provider", "model", "actorId", "humanDecision", "errorKind"],
     order: "createdAt",

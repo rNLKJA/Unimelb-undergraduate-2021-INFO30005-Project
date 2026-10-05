@@ -1,8 +1,19 @@
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Visible label on every piece of model output. */
-export function AiBadge({ model, className }: { model?: string; className?: string }) {
+/**
+ * Visible label on every piece of model output. `edited` marks text the
+ * vendor rewrote: still an AI draft, but no longer the model's own words.
+ */
+export function AiBadge({
+  model,
+  edited = false,
+  className,
+}: {
+  model?: string;
+  edited?: boolean;
+  className?: string;
+}) {
   return (
     <span
       className={cn(
@@ -12,7 +23,7 @@ export function AiBadge({ model, className }: { model?: string; className?: stri
     >
       <span className="inline-flex items-center gap-1 whitespace-nowrap">
         <Sparkles className="size-3" aria-hidden />
-        AI-generated
+        {edited ? "AI draft, edited by the vendor" : "AI-generated"}
       </span>
       {model ? <span className="font-mono font-normal break-all opacity-80">· {model}</span> : null}
     </span>

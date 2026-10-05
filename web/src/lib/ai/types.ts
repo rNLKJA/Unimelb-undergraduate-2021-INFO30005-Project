@@ -102,6 +102,11 @@ export class AiError extends Error {
   readonly rawText: string | null;
   /** Tokens the provider reported for the failed call, when it reported any. */
   readonly usage: TokenUsage | null;
+  /**
+   * Set when the record of this failed call could not be written to the AI
+   * audit log, so the UI can say so instead of failing silently.
+   */
+  logFailure?: string;
 
   constructor(kind: AiErrorKind, detail?: string, status?: number, evidence: AiErrorEvidence = {}) {
     super(detail ? `${MESSAGES[kind]} (${detail})` : MESSAGES[kind]);

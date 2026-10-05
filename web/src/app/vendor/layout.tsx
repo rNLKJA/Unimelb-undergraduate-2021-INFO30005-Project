@@ -1,11 +1,10 @@
-import { LogOut } from "lucide-react";
 import Link from "next/link";
-import { vendorLogoutAction } from "@/app/vendor/actions";
 import { AiProvider } from "@/components/ai/ai-provider";
 import { AiSettingsButton } from "@/components/ai/ai-settings-button";
 import { VanMark } from "@/components/brand/van-mark";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { StorageNotice } from "@/components/shared/storage-notice";
+import { VendorLogoutButton } from "@/components/vendor/vendor-logout-button";
 import { VendorNav } from "@/components/vendor/vendor-nav";
 import { currentVan } from "@/server/auth";
 
@@ -64,15 +63,7 @@ export default async function VendorLayout({ children }: LayoutProps<"/vendor">)
               <AiSettingsButton className="text-crema-100 hover:bg-white/10 hover:text-white" />
             ) : null}
             {van ? (
-              <form action={vendorLogoutAction}>
-                <button
-                  type="submit"
-                  className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-crema-200 hover:bg-white/10 hover:text-white"
-                >
-                  <LogOut className="size-4" aria-hidden />
-                  <span className="hidden sm:inline">Log out</span>
-                </button>
-              </form>
+              <VendorLogoutButton />
             ) : (
               <Link
                 href="/"

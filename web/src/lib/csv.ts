@@ -1,4 +1,6 @@
 /** RFC 4180 CSV helpers for the admin "export table" feature. */
+const NUMBER = /^-?\d+(\.\d+)?(e[+-]?\d+)?$/i;
+
 export function csvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
   const text =
@@ -7,8 +9,10 @@ export function csvCell(value: unknown): string {
       : typeof value === "object"
         ? JSON.stringify(value)
         : String(value);
-  // Neutralise spreadsheet formula injection (=, +, -, @ at the start).
-  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  // Neutralise spreadsheet formula injection (=, +, -, @ at the start), but
+  // leave real numbers alone so negative values such as latitudes stay numeric.
+  const numeric = typeof value === "number" || NUMBER.test(text);
+  const safe = !numeric && /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
   return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 

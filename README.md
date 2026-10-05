@@ -48,16 +48,17 @@ them; both portals poll the server every few seconds.
 - **A/B-test designer** for the 15-minute late-discount rule (`/admin/experiments`):
   hypothesis, randomisation by customer, one primary metric, sample size from the minimum
   detectable effect, a seeded simulation with a known injected effect analysed with Newcombe
-  intervals, z and permutation tests, and a peeking warning backed by 10,000 A/A runs.
+  intervals at 1 − α, z and permutation tests, and a peeking warning backed by 10,000 A/A
+  runs. The analysis is calibrated against known truth by a committed script (`pnpm calibrate`).
 - **Audit trail**: an append-only `audit_log` table (database triggers block updates and
   deletes) for order status changes, van open/close and location, sign-ins, exports and AI
   review decisions.
 - **Optional AI shift summary, bring your own key** (vendor van page): never needed, never
   sees personal data, labelled, fact-checked, reviewed by the vendor and logged in an
-  `ai_audit_log` table (`/admin/ai-log`).
+  `ai_audit_log` table (`/admin/ai-log`) after the server re-checks each record.
 - **Methods and decision records** (`/methods`): data provenance, methods, evaluation design,
   assumptions, limitations, the AI use statement, privacy and retention, a model and data
-  card and four decision records. Screenshots: [`docs/showcase`](docs/showcase).
+  card and six decision records. Screenshots: [`docs/showcase`](docs/showcase).
 
 ### Ported business rules (with parity tests)
 
@@ -81,8 +82,10 @@ this written but commented out), order history is scoped to the signed-in van, t
 are real instants rendered in Melbourne time, and passwords are bcrypt for every account.
 The countdown ring turns "over time" at 15:00, together with the late-order discount badge
 (the original label only flipped at 16:00). To keep the public demo tidy, a one-click demo
-login closes out demo orders left active for more than 90 minutes (as if served on time),
-and simulated orders only ever come from the seeded synthetic customers.
+login closes out demo orders left active for more than 90 minutes (as if served on time;
+the order is flagged so the analytics leave its invented ready time out, see
+[DR-005](docs/decisions/DR-005-censor-housekeeping-close-outs.md)), and simulated orders only
+ever come from the seeded synthetic customers.
 
 ## Tech stack
 
@@ -167,6 +170,7 @@ history up to "now". Copy `.env.example` to `.env.local` to override anything.
 | `pnpm db:migrate` / `pnpm db:seed` | Migrate / seed `DATABASE_URL` (e.g. a Turso database) |
 | `pnpm db:studio` | Browse the database with Drizzle Studio |
 | `pnpm sync-docs` | Copy `../docs` into `content/docs` for the `/methods` pages (tests fail if they drift) |
+| `pnpm calibrate` | Recompute `../docs/calibration.json`, the experiment analysis checked against known truth (`--check` fails if it is stale) |
 
 ### Demo accounts
 
@@ -206,7 +210,8 @@ connected to Git; `cd web && vercel deploy --prod` from the CLI).
   database, then run `pnpm db:migrate && pnpm db:seed` against it once (or create the
   database from the snapshot: `turso db create snacks-in-a-van --from-file web/data/seed.db`).
   Remote databases do not migrate themselves: run `pnpm db:migrate` after pulling new
-  migrations (2026 added `0001_governance_tables` and `0002_append_only_triggers`).
+  migrations (2026 added `0001_governance_tables`, `0002_append_only_triggers`,
+  `0003_analytics_imputation_ai_verification` and `0004_ai_log_trigger_covers_verification`).
 - Without those variables the app copies `data/seed.db` to `/tmp` on each cold start
   (writable but ephemeral) and shows a "Demo mode" notice. Every function instance then
   has its own copy, and there are many: Vercel serves the App Router pages, the Route
@@ -248,13 +253,21 @@ uses AI, and without a key the app makes no AI calls.
   with the `anthropic-dangerous-direct-browser-access` header, or OpenAI's Chat Completions
   API) and carries only today's aggregate figures for the van, shown in full under "Exactly
   what is sent to the provider". No customer names, emails, order ids or comments.
-- The output is validated with zod, labelled **AI-generated** with the model, checked
-  number by number against the figures sent, and waits for the vendor to accept, edit or
-  reject it.
-- Each call (successful or not) is posted afterwards, **without the key**, to a server
-  action that writes it to the `ai_audit_log` table; anything shaped like a key is refused.
-  View it at **`/admin/ai-log`** (one-click demo admin) with JSON and CSV export, or as a table
-  in `/admin/records`. Policy: [AI use statement](docs/ai-use-statement.md).
+- Before contacting the provider the browser asks the server for a short-lived signed
+  reservation, so the session and rate limits are checked before anything is billed to your
+  key.
+- The output is validated with zod, labelled **AI-generated** with the provider and model
+  ("AI draft, edited by the vendor" once edited), checked number by number against the
+  figures sent (dates and times only in date or time form), and waits for the vendor to
+  accept, edit or reject it.
+- Each call made through the app (successful or not) is posted afterwards, **without the
+  key**, against its reservation. The server checks the prompt is the app's own with valid
+  figures for that van, validates the output, recomputes the fact check, refuses anything
+  shaped like a key, and writes it to the `ai_audit_log` table. The records are still
+  reported by the browser, and the server cannot prove they match a real provider response
+  ([DR-006](docs/decisions/DR-006-verifying-client-reported-ai-records.md)). View the log at
+  **`/admin/ai-log`** (one-click demo admin) with JSON and CSV export, or as a table in
+  `/admin/records`. Policy: [AI use statement](docs/ai-use-statement.md).
 
 ### Methods, cards and decision records
 
@@ -266,7 +279,9 @@ uses AI, and without a key the app makes no AI calls.
 - Decision records in [`docs/decisions`](docs/decisions), rendered under `/methods`:
   DR-001 MongoDB to libSQL/Drizzle, DR-002 MapLibre/OpenFreeMap/Photon instead of Google
   Maps, DR-003 porting the discount-window rule, DR-004 Turso versus the `/tmp` fallback
-  (including what went wrong). Past records are never edited; new ones supersede them.
+  (including what went wrong), DR-005 censoring housekeeping close-outs instead of counting
+  invented ready times, DR-006 reserving and re-verifying AI calls. Past records are never
+  edited; new ones supersede them.
 - [`docs/privacy-and-retention.md`](docs/privacy-and-retention.md): demo data only, what each
   table holds, retention.
 
@@ -281,9 +296,20 @@ cd scripts && uv run python verify_stats.py   # statsmodels / scipy: Wilson, New
 Rscript scripts/verify_km.R                    # R survival: Kaplan–Meier, Greenwood, log-log CIs
 ```
 
-The experiment simulation is also checked against known truth (2,000 simulated experiments:
-95% intervals covered the injected effect 94.9% of the time and the test had 79.8% power where
-80% was planned); see the [model and data card](docs/model-card.md).
+The experiment analysis is also calibrated against known truth by a committed script with
+fixed seeds:
+
+```bash
+cd web && pnpm calibrate           # writes docs/calibration.json (2,000 runs per row)
+cd web && pnpm calibrate --check   # fails if the committed file is not reproduced exactly
+```
+
+With 583 customers per arm, a baseline of 35% and an injected effect of +8 points (seeds 1 to
+2,000), the 95% interval covered the truth in 95.7% of runs (Wilson 95% CI 94.7% to 96.5%)
+and the z-test rejected in 79.8% (78.0% to 81.5%) where 80% power was planned; with no effect
+(seeds 2,001 to 4,000) it rejected in 4.6% (3.8% to 5.6%). The test suite re-runs both rows
+from the seeds and resampling pool stored in the file. Details in the
+[model and data card](docs/model-card.md).
 
 ## How the data was produced
 

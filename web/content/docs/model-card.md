@@ -23,6 +23,7 @@ Snacks in a Van trains no machine-learning model. What it does contain are three
 | Customers (10) | Synthetic, reserved example domains | No real person |
 | Orders (174), ratings (87), posts | Generated with seed 4399 over 21 days, using the app's own pricing and order-id code | Minutes to ready drawn uniformly from 4 to 21; each order cancelled with probability 0.12 (25 of 174 in the snapshot); ratings drawn from {5, 5, 5, 4, 4, 4, 3, 2} for 60% of collected orders |
 | Live rows | Whatever visitors do on a given server | Locally they persist in `data/app.db`; in production they are lost when an instance recycles ([DR-004](decisions/DR-004-turso-vs-tmp-fallback.md)) |
+| Housekeeping close-outs | A demo login closes out demo orders still active after 90 minutes | An order closed out before anyone marked it ready gets an invented ready time (12 minutes) so the order screens stay coherent. The row is flagged (`orders.fulfilment_imputed`, with `closed_out_at`), the analytics exclude that time, and the Kaplan–Meier curve treats the order as censored at its age when it was closed out. `/admin/analytics` states how many were excluded. The committed snapshot has none |
 
 Because the generator draws minutes to ready uniformly between 4 and 21, about 35% of served orders are late by construction. The analytics recover that (31.5%, Wilson 95% CI 24.6% to 39.4%, n = 149 in the committed snapshot), which checks the pipeline but says nothing about real vans.
 
@@ -43,14 +44,16 @@ Every statistical helper lives in `web/src/lib/stats/` and is unit-tested agains
 | Kaplan–Meier, Greenwood SE, log-log CI | time to fulfil | R `survfit(..., conf.type = "log-log")` | 12 decimal places, every step |
 | Percentile bootstrap | medians, 90th percentile, mean per day | determinism and bracketing tests | seeded (4399), 2,000 resamples |
 
-The experiment simulation was checked by running it many times with known truth (2,000 simulated experiments per row, 583 customers per arm, baseline 35%):
+The experiment analysis was calibrated against known truth: 2,000 simulated experiments per row, 583 customers per arm, baseline 35%, α = 0.05, minutes to ready resampled from the 149 served orders in the committed snapshot. The numbers below come from `docs/calibration.json`, which `cd web && pnpm calibrate` regenerates byte for byte (`pnpm calibrate --check` fails if the file is stale, and the test suite re-runs both rows from the seeds and pool recorded in it). Shares carry Wilson 95% intervals for simulation error; the mean difference carries its Monte Carlo standard error (SD / √2000).
 
-| Injected effect | Mean estimated difference | 95% interval covers the truth | Rejects H0 at α = 0.05 |
-| --- | --- | --- | --- |
-| +8 points | +7.95 points (± 0.13) | 94.9% (Wilson 95% CI 93.8% to 95.7%) | 79.8% (77.9% to 81.5%); planned power 80% |
-| 0 (A/A) | −0.05 points (± 0.12) | 94.9% (93.8% to 95.8%) | 5.1% (4.2% to 6.2%); nominal 5% |
+| Injected effect | Seeds | Mean estimated difference | 95% Newcombe interval covers the truth | z-test rejects H0 at α = 0.05 | Exact test rejects H0 |
+| --- | --- | --- | --- | --- | --- |
+| +8 points | seeds 1 to 2,000 | +7.97 points (Monte Carlo SE 0.06) | 95.7% (Wilson 95% CI 94.7% to 96.5%) | 79.8% (78.0% to 81.5%); planned power 80% | 77.8% (75.9% to 79.6%) |
+| 0 (A/A) | seeds 2,001 to 4,000 | +0.01 points (Monte Carlo SE 0.06) | 95.4% (94.4% to 96.2%) | 4.6% (3.8% to 5.6%); nominal 5% | 4.0% (3.2% to 5.0%) |
 
-The peeking panel's simulation (10,000 A/A experiments, seed 30005) gives the textbook pattern: looking once keeps the false-positive rate at 4.7% (4.3% to 5.1%), stopping at the first p < 0.05 over 10 looks raises it to 19.6% (18.8% to 20.4%), and Pocock's boundary brings it back to 5.0% (4.6% to 5.5%).
+The exact test is slightly conservative, as expected for a discrete test. The peeking panel's simulation (10,000 A/A experiments, seed 30005, also in `docs/calibration.json`) gives the textbook pattern: looking once keeps the false-positive rate at 4.7% (4.3% to 5.1%), stopping at the first p < 0.05 over 10 looks raises it to 19.6% (18.8% to 20.4%), and Pocock's boundary brings it back to 5.0% (4.6% to 5.5%).
+
+In the designer itself every interval is built at level 1 − α, so the interval and the test always agree on the α the user picked; the table above is at α = 0.05.
 
 ## Simulation model assumptions
 
@@ -64,7 +67,8 @@ The peeking panel's simulation (10,000 A/A experiments, seed 30005) gives the te
 - **Small samples.** Per-van rates rest on 4 to 44 orders; Wilson intervals are wide and the forest plot is there to show that, not to rank vans.
 - **Synthetic history.** Patterns in the demo data are properties of the generator (for example the uniform 4 to 21 minute service time), not findings.
 - **Censoring and competing outcomes.** The Kaplan–Meier curve treats open orders as censored and leaves cancelled orders out. If cancellations happen because an order is slow, the curve looks better than the customer's experience.
-- **Baselines.** The repeat-order baseline is an assumption: 10 synthetic customers cannot estimate it. A wrong baseline gives a wrong sample size.
+- **Baselines.** The repeat-order baseline is an assumption: 10 synthetic customers cannot estimate it. A wrong baseline gives a wrong sample size. The rating 4+ baseline is estimated with the metric's own denominator (every non-cancelled order, unrated counting as "no": 63 of 149, 42% in the snapshot); an earlier version divided by rated orders only (72%) and under-sized that experiment by about a quarter.
+- **Demo housekeeping.** Orders nobody finished are closed out after 90 minutes with an invented ready time. Those times are excluded from the analytics and the orders are censored instead; if they were counted, every demo login would add fake 12-minute "observations" and pull the late rate down.
 - **The percentile bootstrap on small samples** (for example the mean orders per day over 20 days) tends to give intervals that are slightly too narrow.
 - **Production storage.** Until Turso is connected, live rows on the public site are per instance and temporary, so the live analytics there mostly reflect the seed.
 

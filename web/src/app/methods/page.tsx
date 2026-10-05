@@ -3,6 +3,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Markdown } from "@/components/methods/markdown";
+import {
+  meanDifferenceText,
+  readCalibration,
+  seedRange,
+  shareWithCi,
+} from "@/lib/content/calibration";
 import { listDecisions, readDoc, withoutTitle } from "@/lib/content/docs";
 import { REPO_URL } from "@/lib/site";
 
@@ -45,6 +51,9 @@ const Code = ({ children }: { children: ReactNode }) => (
 
 export default function MethodsPage() {
   const decisions = listDecisions();
+  const calibration = readCalibration();
+  const [effectRow, aaRow] = calibration.rows;
+  const { design: calDesign, peeking } = calibration;
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
       <header className="max-w-3xl space-y-4">
@@ -135,6 +144,20 @@ export default function MethodsPage() {
                 counted separately.
               </li>
               <li>
+                <strong>Housekeeping close-outs.</strong> A demo login closes out demo orders still
+                active after 90 minutes and gives them an invented ready time so the order screens
+                stay coherent. Those orders are flagged: their invented times are left out of every
+                figure, the Kaplan–Meier curve censors them at their age when closed out, and the
+                page states how many there were (
+                <Link
+                  href="/methods/decisions/DR-005-censor-housekeeping-close-outs"
+                  className="underline underline-offset-4"
+                >
+                  DR-005
+                </Link>
+                ).
+              </li>
+              <li>
                 <strong>Late-discount rate by van</strong>: late served orders over all served
                 orders, with Wilson 95% intervals, as a dot-and-interval plot so that small vans
                 visibly carry wide intervals.
@@ -159,8 +182,10 @@ export default function MethodsPage() {
               </li>
               <li>
                 <strong>One primary metric, chosen in advance</strong>: repeat order within 14 days,
-                or a 4 or 5 star rating on the first rated order. Guardrail: the share of first
-                orders discounted (the cost of the promise).
+                or a 4 or 5 star rating on the first order (a customer who does not rate counts as
+                &quot;no&quot;). Its baseline is estimated with the same denominator: every
+                non-cancelled demo order, rated or not, not only the rated ones. Guardrail: the
+                share of first orders discounted (the cost of the promise).
               </li>
               <li>
                 <strong>Sample size</strong> for two proportions with the pooled-variance normal
@@ -176,18 +201,22 @@ export default function MethodsPage() {
                 Newcombe&apos;s hybrid score interval for the difference, Cohen&apos;s h and the
                 relative lift as effect sizes, the pooled z-test, a seeded Monte Carlo permutation
                 test (5,000 relabellings) and the exact permutation test (enumerated through the
-                hypergeometric distribution).
+                hypergeometric distribution). Every interval is built at level 1 − α for the α
+                chosen, so the interval and the test answer the same question. The export carries
+                the seed and the fulfilment pool, everything needed to rerun it.
               </li>
               <li>
                 <strong>Peeking</strong>: 10,000 simulated A/A tests show how stopping at the first
                 p &lt; 0.05 inflates false positives, and how Pocock&apos;s group-sequential
-                boundary restores the planned α.
+                boundary restores the planned α. Simulations run in a Web Worker, and the peeking
+                one is capped at 5,000 customers per arm, so a tiny minimum detectable effect cannot
+                freeze the page; a zero effect has no sample size and is refused.
               </li>
             </ul>
           </Section>
 
           <Section id="evaluation" title="Evaluation design">
-            <p>The statistics are checked in two independent ways, both in the test suite.</p>
+            <p>The statistics are checked in two independent ways.</p>
             <ol className="list-decimal space-y-1.5 pl-5">
               <li>
                 <strong>Against reference software.</strong> Every estimator is pinned to values
@@ -198,12 +227,93 @@ export default function MethodsPage() {
               </li>
               <li>
                 <strong>Against known truth.</strong> The experiment simulation injects a known
-                effect, so its analysis can be scored: over 2,000 simulated experiments the 95%
-                interval covered the truth 94.9% of the time (Wilson 95% CI 93.8% to 95.7%), the
-                test had 79.8% power (77.9% to 81.5%) where 80% was planned, and A/A runs rejected
-                5.1% of the time (4.2% to 6.2%).
+                effect, so its analysis can be scored. <Code>pnpm calibrate</Code> (
+                <Code>web/scripts/calibrate-simulation.ts</Code>) runs{" "}
+                {effectRow.reps.toLocaleString("en-AU")} simulated experiments per row at{" "}
+                {calDesign.perArm} customers per arm, baseline{" "}
+                {Math.round(calDesign.baseline * 100)}%, α = {calDesign.alpha}, and writes{" "}
+                <Code>docs/calibration.json</Code>, which this table is read from. The test suite
+                re-runs both rows from the seeds and resampling pool recorded in that file and
+                checks they match exactly; a faster 300-run check guards the simulation itself.
               </li>
             </ol>
+            <p id="calibration-caption" className="text-sm text-muted-foreground">
+              Calibration against known truth. Shares carry Wilson 95% intervals for simulation
+              error; the mean difference carries its Monte Carlo standard error.
+            </p>
+            <div
+              className="overflow-x-auto rounded-2xl border"
+              tabIndex={0}
+              role="region"
+              aria-labelledby="calibration-caption"
+            >
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <caption className="sr-only">Calibration against known truth</caption>
+                <thead className="text-xs text-muted-foreground">
+                  <tr className="border-b">
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      Injected effect
+                    </th>
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      Mean estimate
+                    </th>
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      {Math.round(calDesign.intervalLevel * 100)}% interval covers the truth
+                    </th>
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      z-test rejects H0
+                    </th>
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      Exact test rejects H0
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="tabular">
+                  {[
+                    {
+                      row: effectRow,
+                      label: `+${Math.round(effectRow.injectedEffect * 100)} points`,
+                      target: `planned power ${Math.round(calDesign.plannedPower * 100)}%`,
+                    },
+                    {
+                      row: aaRow,
+                      label: "0 (A/A)",
+                      target: `nominal ${Math.round(calDesign.alpha * 100)}%`,
+                    },
+                  ].map(({ row, label, target }) => (
+                    <tr key={label} className="border-b align-top last:border-0">
+                      <th scope="row" className="px-4 py-2 font-medium">
+                        {label}
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          {seedRange(row)}
+                        </span>
+                      </th>
+                      <td className="px-4 py-2">{meanDifferenceText(row)}</td>
+                      <td className="px-4 py-2">{shareWithCi(row.coverage, false)}</td>
+                      <td className="px-4 py-2">
+                        {shareWithCi(row.rejectZ, false)}
+                        <span className="block text-xs text-muted-foreground">{target}</span>
+                      </td>
+                      <td className="px-4 py-2">{shareWithCi(row.rejectExact, false)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p>
+              Peeking ({peeking.reps.toLocaleString("en-AU")} A/A experiments, seed {peeking.seed},{" "}
+              {peeking.looks} looks): looking once rejects{" "}
+              {shareWithCi(peeking.fixedHorizon, false)}, stopping at the first p &lt; 0.05 rejects{" "}
+              {shareWithCi(peeking.stopAtFirstSignificantLook, false)}
+              {peeking.pocock ? (
+                <>
+                  , and Pocock&apos;s boundary (|z| &gt; {peeking.pocockZ}) brings it back to{" "}
+                  {shareWithCi(peeking.pocock, false)}
+                </>
+              ) : null}
+              . Resampling pool: {calibration.fulfilmentPool.size} served orders from the seed
+              snapshot (SHA-256 <Code>{calibration.fulfilmentPool.sha256.slice(0, 12)}…</Code>).
+            </p>
             <p>
               The 2021 business rules keep their own parity tests, which run the original JavaScript
               next to the TypeScript ports.
@@ -249,6 +359,18 @@ export default function MethodsPage() {
               <li>
                 Per-van samples are small (4 to 44 served orders in the snapshot), so intervals
                 overlap heavily: the data cannot rank crews.
+              </li>
+              <li>
+                AI audit records are reported by the vendor&apos;s browser. The server checks the
+                prompt, the output format and the fact check, but cannot prove a record matches a
+                real provider response (
+                <Link
+                  href="/methods/decisions/DR-006-verifying-client-reported-ai-records"
+                  className="underline underline-offset-4"
+                >
+                  DR-006
+                </Link>
+                ).
               </li>
               <li>
                 Cancellations are treated as a separate outcome, not as competing risks in the

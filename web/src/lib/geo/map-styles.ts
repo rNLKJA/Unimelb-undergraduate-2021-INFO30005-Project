@@ -13,6 +13,41 @@ export function basemapUrl(theme: "light" | "dark"): string {
   return OPENFREEMAP_STYLES[theme];
 }
 
+const NUMERIC_COMPARISONS = new Set(["<", "<=", ">", ">="]);
+
+/**
+ * OpenFreeMap's styles compare optional feature properties with numbers
+ * (e.g. `["<=", ["get", "ref_length"], 6]` on road shields). Features without
+ * the property make MapLibre log "Expected value to be of type number, but
+ * found null" on every tile. Prepend `["has", key]` guards to such `all`
+ * filters; `all` short-circuits, so the comparison only runs when the
+ * property exists and the rendered result is unchanged.
+ */
+export function guardNumericFilter(filter: unknown): unknown {
+  if (!Array.isArray(filter)) return filter;
+  const clauses = filter[0] === "all" ? filter.slice(1) : [filter];
+  const keys: string[] = [];
+  for (const clause of clauses) {
+    if (
+      Array.isArray(clause) &&
+      NUMERIC_COMPARISONS.has(clause[0]) &&
+      Array.isArray(clause[1]) &&
+      clause[1][0] === "get" &&
+      clause[1].length === 2 &&
+      typeof clause[1][1] === "string" &&
+      typeof clause[2] === "number"
+    ) {
+      keys.push(clause[1][1]);
+    }
+  }
+  const missing = [...new Set(keys)].filter(
+    (key) =>
+      !clauses.some((c) => Array.isArray(c) && c[0] === "has" && c[1] === key && c.length === 2),
+  );
+  if (!missing.length) return filter;
+  return ["all", ...missing.map((key) => ["has", key]), ...clauses];
+}
+
 /** A MapLibre style object rendering FALLBACK_BASEMAP (no glyphs or sprites required). */
 export function fallbackStyle(theme: "light" | "dark") {
   const dark = theme === "dark";

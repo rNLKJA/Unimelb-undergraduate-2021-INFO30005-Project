@@ -117,12 +117,13 @@ export function VanControlPanel({ van }: { van: VanDTO }) {
             <MapPin className="size-4 text-primary" aria-hidden /> Van location
           </h2>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MousePointerClick className="size-3.5" aria-hidden /> Click the map to move the van
+            <MousePointerClick className="size-3.5" aria-hidden /> Tap or click the map to move the
+            van
           </p>
         </div>
         <VanMap
           className="h-[340px] lg:h-[420px]"
-          ariaLabel="Map of your van's position. Click to choose a new spot."
+          ariaLabel="Map of your van's position. Tap or click to choose a new spot."
           initialCenter={current}
           initialZoom={15}
           points={[
@@ -132,7 +133,7 @@ export function VanControlPanel({ van }: { van: VanDTO }) {
               lng: shown.lng,
               label: pending ? "New spot" : van.vanId,
               open: true,
-              rank: 1,
+              highlight: true,
             },
           ]}
           selectedId={van.vanId}
@@ -251,7 +252,7 @@ export function VanControlPanel({ van }: { van: VanDTO }) {
               <span
                 className={cn(
                   "grid size-5 shrink-0 place-items-center rounded-full text-[0.7rem] font-bold",
-                  step.done ? "bg-matcha-500 text-white" : "bg-secondary text-secondary-foreground",
+                  step.done ? "bg-matcha-600 text-white" : "bg-secondary text-secondary-foreground",
                 )}
                 aria-hidden
               >

@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { VanMark } from "@/components/brand/van-mark";
 import type { LatLng } from "@/lib/distance";
-import { basemapUrl, fallbackStyle } from "@/lib/geo/map-styles";
+import { basemapUrl, fallbackStyle, guardNumericFilter } from "@/lib/geo/map-styles";
 import { cn } from "@/lib/utils";
 
 export type MapPoint = {
@@ -16,8 +16,10 @@ export type MapPoint = {
   lng: number;
   label: string;
   open: boolean;
-  /** 1-based rank among the nearest vans (highlighted pins). */
+  /** 1-based rank among the nearest vans (highlighted pins, announced as "number N nearest"). */
   rank?: number;
+  /** Highlight the pin without implying a nearest-van rank (e.g. a single order's van). */
+  highlight?: boolean;
 };
 
 type Props = {
@@ -103,6 +105,24 @@ export function VanMap({
         pitchWithRotate: false,
       });
       map.touchZoomRotate.disableRotation();
+      // Some OpenFreeMap styles reference sprite images that are not shipped
+      // (e.g. "wood-pattern" in the dark style); register a transparent
+      // placeholder instead of logging a warning for every missing image.
+      map.on("styleimagemissing", (event) => {
+        if (!map.hasImage(event.id)) {
+          map.addImage(event.id, { width: 1, height: 1, data: new Uint8Array(4) });
+        }
+      });
+      // Silence the remote styles' null-vs-number filter warnings (see guardNumericFilter).
+      map.on("style.load", () => {
+        for (const layer of map.getStyle().layers ?? []) {
+          if (!("filter" in layer) || !layer.filter) continue;
+          const guarded = guardNumericFilter(layer.filter);
+          if (guarded !== layer.filter) {
+            map.setFilter(layer.id, guarded as typeof layer.filter, { validate: false });
+          }
+        }
+      });
       map.addControl(new lib.NavigationControl({ showCompass: false }), "top-right");
       mapRef.current = map;
 
@@ -176,6 +196,7 @@ export function VanMap({
       const marker = new lib.Marker({ element: el, anchor: "bottom" })
         .setLngLat([point.lng, point.lat])
         .addTo(map);
+      unwrapMarker(el);
       markers.current.set(point.id, marker);
       added[point.id] = el;
     }
@@ -214,6 +235,7 @@ export function VanMap({
       originMarker.current = new lib.Marker({ element: el })
         .setLngLat([origin.lng, origin.lat])
         .addTo(map);
+      unwrapMarker(el);
       setOriginEl(el);
     } else {
       originMarker.current.setLngLat([origin.lng, origin.lat]);
@@ -225,7 +247,7 @@ export function VanMap({
     const map = mapRef.current;
     const lib = libRef.current;
     if (!map || !lib || !ready || !fitKey) return;
-    const focus = points.filter((p) => p.rank != null);
+    const focus = points.filter((p) => p.rank != null || p.highlight);
     const coords: [number, number][] = focus.map((p) => [p.lng, p.lat]);
     if (origin) coords.push([origin.lng, origin.lat]);
     if (!coords.length) return;
@@ -247,7 +269,8 @@ export function VanMap({
   useEffect(() => {
     for (const point of points) {
       const el = markers.current.get(point.id)?.getElement();
-      if (el) el.style.zIndex = point.id === selectedId ? "4" : point.rank ? "3" : "1";
+      if (el)
+        el.style.zIndex = point.id === selectedId ? "4" : point.rank || point.highlight ? "3" : "1";
     }
     const originNode = originMarker.current?.getElement();
     if (originNode) originNode.style.zIndex = "2";
@@ -282,6 +305,7 @@ export function VanMap({
         const el = elements[point.id];
         if (!el) return null;
         const selected = point.id === selectedId;
+        const prominent = point.rank != null || point.highlight;
         return createPortal(
           <button
             type="button"
@@ -292,8 +316,8 @@ export function VanMap({
             aria-label={`${point.label}${point.rank ? `, number ${point.rank} nearest` : ""}${point.open ? "" : ", closed"}`}
             aria-pressed={selected}
             className={cn(
-              "group relative flex flex-col items-center transition-transform duration-200 outline-none focus-visible:scale-110",
-              selected ? "z-20 scale-110" : point.rank ? "z-10" : "opacity-75",
+              "group relative flex flex-col items-center rounded-full transition-transform duration-200 outline-none focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              selected ? "z-20 scale-110" : prominent ? "z-10" : "opacity-75",
               !point.open && "opacity-45 grayscale",
             )}
           >
@@ -347,4 +371,14 @@ export function VanMap({
       {children}
     </div>
   );
+}
+
+/**
+ * MapLibre marks every marker wrapper as `role="button"` with a generic
+ * "Map marker" label. Our wrappers only host a real, labelled <button> (or a
+ * decorative dot), so drop the wrapper semantics to avoid nested controls.
+ */
+function unwrapMarker(el: HTMLElement) {
+  el.removeAttribute("role");
+  el.removeAttribute("aria-label");
 }

@@ -1,7 +1,36 @@
 import { describe, expect, it } from "vitest";
 import { FALLBACK_BASEMAP } from "./fallback-basemap";
-import { basemapUrl, fallbackStyle } from "./map-styles";
+import { basemapUrl, fallbackStyle, guardNumericFilter } from "./map-styles";
 import { MELBOURNE_BBOX, nearestSuburb, searchSuburbs } from "./suburbs";
+
+describe("guardNumericFilter", () => {
+  it("guards numeric comparisons on optional properties", () => {
+    const shield = [
+      "all",
+      ["<=", ["get", "ref_length"], 6],
+      ["match", ["get", "network"], ["us-interstate"], true, false],
+    ];
+    expect(guardNumericFilter(shield)).toEqual([
+      "all",
+      ["has", "ref_length"],
+      ["<=", ["get", "ref_length"], 6],
+      ["match", ["get", "network"], ["us-interstate"], true, false],
+    ]);
+    expect(guardNumericFilter([">=", ["get", "rank"], 3])).toEqual([
+      "all",
+      ["has", "rank"],
+      [">=", ["get", "rank"], 3],
+    ]);
+  });
+
+  it("leaves other filters alone and is idempotent", () => {
+    const plain = ["==", ["get", "class"], "country"];
+    expect(guardNumericFilter(plain)).toBe(plain);
+    expect(guardNumericFilter(undefined)).toBeUndefined();
+    const once = guardNumericFilter(["all", ["<", ["get", "x"], 1]]);
+    expect(guardNumericFilter(once)).toBe(once);
+  });
+});
 
 describe("basemaps", () => {
   it("uses key-less OpenFreeMap styles", () => {

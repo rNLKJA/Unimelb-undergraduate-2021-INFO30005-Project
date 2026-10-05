@@ -1,7 +1,14 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import { createDb, enableForeignKeys, runMigrations, type Db, type DbHandle } from "./connection";
+import {
+  createDb,
+  enableForeignKeys,
+  migrateIfBehind,
+  runMigrations,
+  type Db,
+  type DbHandle,
+} from "./connection";
 import { rebaseHistory } from "./rebase";
 
 /**
@@ -52,15 +59,35 @@ type Instance = DbHandle & { mode: StorageMode };
 
 const globalForDb = globalThis as unknown as { __snacksDb?: Promise<Instance> };
 
+/**
+ * A remote (Turso) database applies its pending migrations once per server
+ * instance, so a deploy that adds a migration never queries an old schema and
+ * nobody has to remember `pnpm db:migrate`. When the schema is current this
+ * is one query. Failures are logged, not thrown: if two cold starts race to
+ * apply the same migration, the loser's batch rolls back and that instance
+ * still serves the schema the winner created.
+ */
+async function migrateRemote(handle: DbHandle): Promise<void> {
+  try {
+    const pending = await migrateIfBehind(handle);
+    if (pending > 0)
+      console.info(`[snacks] applied ${pending} pending migration(s) to the remote database`);
+  } catch (error) {
+    console.error("[snacks] could not apply pending migrations to the remote database", error);
+  }
+}
+
 async function init(): Promise<Instance> {
   const resolved = resolveDatabase();
   const handle = createDb(resolved.url, resolved.authToken);
   if (resolved.url.startsWith("file:")) {
     await enableForeignKeys(handle.client);
-    // File databases migrate themselves (idempotent); remote ones use `pnpm db:migrate`.
+    // File databases migrate themselves (idempotent).
     await runMigrations(handle.db);
     // A freshly copied snapshot gets its demo history moved up to "now".
     if (resolved.fresh) await rebaseHistory(handle.client);
+  } else {
+    await migrateRemote(handle);
   }
   return { ...handle, mode: resolved.mode };
 }

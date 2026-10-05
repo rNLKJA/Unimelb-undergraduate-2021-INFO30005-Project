@@ -22,7 +22,9 @@ app.use(express.static("public"));
 app.use(express.static("js"));
 app.use(
     session({
-        secret: "wood",
+        // REDACTED (2026 revival): the session secret was hard-coded here.
+        // Provide your own via the SESSION_SECRET environment variable.
+        secret: process.env.SESSION_SECRET || "REPLACE_WITH_A_LONG_RANDOM_SECRET",
         resave: false,
         saveUninitialized: false
     })

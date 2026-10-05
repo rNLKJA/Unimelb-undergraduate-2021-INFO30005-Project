@@ -13,7 +13,8 @@ describe("Integration test for setting status of van", () => {
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send({
                 van_id: "Ardeth Lavon",
-                password: "aPZaneuZVX"
+                // REDACTED (2026 revival): plaintext vendor password removed; set VAN_TEST_PASSWORD
+                password: process.env.VAN_TEST_PASSWORD || "REDACTED"
             })
 
             .then((res) => {

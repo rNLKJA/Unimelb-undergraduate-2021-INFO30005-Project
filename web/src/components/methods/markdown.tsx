@@ -107,8 +107,16 @@ const components: Components = {
     <thead className="bg-muted/60 text-left text-xs text-muted-foreground">{children}</thead>
   ),
   tr: ({ children }) => <tr className="border-b border-border/60 last:border-0">{children}</tr>,
-  th: ({ children }) => <th className="px-3 py-2 font-medium">{children}</th>,
-  td: ({ children }) => <td className="px-3 py-2 align-top">{children}</td>,
+  // Inline code elsewhere may break anywhere so long paths never overflow a
+  // line, but inside a table that would shrink the column until identifiers
+  // split mid-word ("ai_audi|t_log"). Cells size to whole words instead; the
+  // wrapper scrolls horizontally if the table gets too wide.
+  th: ({ children }) => (
+    <th className="px-3 py-2 font-medium [&_code]:[overflow-wrap:normal]">{children}</th>
+  ),
+  td: ({ children }) => (
+    <td className="px-3 py-2 align-top [&_code]:[overflow-wrap:normal]">{children}</td>
+  ),
   blockquote: ({ children }) => (
     <blockquote className="mt-3 border-l-2 border-primary/60 pl-4 text-muted-foreground">
       {children}

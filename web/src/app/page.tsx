@@ -61,7 +61,7 @@ const STACK = [
   [
     "Database",
     "MongoDB Atlas + Mongoose (now gone)",
-    "SQLite / libSQL (Turso in production) + Drizzle ORM, seeded demo data",
+    "SQLite / libSQL + Drizzle ORM, seeded demo data; Turso-ready (the public demo runs on a temporary copy)",
   ],
   [
     "Auth",

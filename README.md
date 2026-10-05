@@ -92,7 +92,7 @@ ever come from the seeded synthetic customers.
 | Layer | 2021 original | 2026 revival |
 | --- | --- | --- |
 | Framework | Express 4 + Handlebars | Next.js 16 App Router (Server Components, Server Actions, Route Handlers), React 19, TypeScript (strict) |
-| Data | MongoDB Atlas + Mongoose | SQLite / libSQL via Drizzle ORM; Turso in production, committed seed snapshot |
+| Data | MongoDB Atlas + Mongoose | SQLite / libSQL via Drizzle ORM, committed seed snapshot; Turso-ready (the public demo runs on a per-instance `/tmp` copy until it is connected, see DR-004) |
 | Auth | Passport-local + express-session | bcryptjs + signed httpOnly session cookies (jose), one per portal |
 | Maps | Google Maps JS API + OpenCage | MapLibre GL + OpenFreeMap tiles, Photon geocoding (Nominatim fallback), bundled offline basemap |
 | UI | Hand-written CSS | Tailwind CSS v4, shadcn/ui (Radix), lucide-react, motion, next-themes |

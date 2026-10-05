@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { formatDistance, walkingMinutes, type LatLng } from "@/lib/distance";
 import { fetcher } from "@/lib/fetcher";
-import { MELBOURNE_UNI, nearestVans } from "@/lib/nearest-vans";
+import { MELBOURNE_UNI, nearestVans, resolveSelectedVan } from "@/lib/nearest-vans";
 import type { VanDTO } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useCart } from "./cart-provider";
@@ -61,16 +61,17 @@ export function VanFinder({ initialVans }: { initialVans: VanDTO[] }) {
   const vans = useMemo(() => data?.vans ?? initialVans, [data, initialVans]);
 
   // Port of `locate_van`: open vans with an address, ranked by the legacy distance, top five.
-  const nearest = useMemo(
-    () =>
-      nearestVans(
-        vans.map((v) => ({ ...v, xCoord: v.lat, yCoord: v.lng })),
-        origin,
-      ),
-    [vans, origin],
+  const candidates = useMemo(
+    () => vans.map((v) => ({ ...v, xCoord: v.lat, yCoord: v.lng })),
+    [vans],
   );
+  const nearest = useMemo(() => nearestVans(candidates, origin), [candidates, origin]);
   const openCount = vans.filter((v) => v.open && v.address).length;
-  const selected = nearest.find((v) => v.vanId === selectedId) ?? nearest[0] ?? null;
+  // Any open van on the map can be picked, not only the top five.
+  const selected = useMemo(
+    () => resolveSelectedVan(candidates, nearest, selectedId, origin),
+    [candidates, nearest, selectedId, origin],
+  );
 
   const points = useMemo(() => {
     const rank = new Map(nearest.map((v, i) => [v.vanId, i + 1]));
@@ -100,10 +101,10 @@ export function VanFinder({ initialVans }: { initialVans: VanDTO[] }) {
   };
 
   return (
-    <div className="grid md:h-[calc(100dvh-4rem)] md:grid-cols-[400px_1fr] lg:grid-cols-[430px_1fr]">
+    <div className="grid grid-cols-1 md:h-[calc(100dvh-4rem)] md:grid-cols-[400px_1fr] lg:grid-cols-[430px_1fr]">
       <VanMap
         className="order-1 h-[44vh] min-h-72 md:order-2 md:h-full"
-        ariaLabel="Map of open snack vans. Click the map to drop a pin at your location."
+        ariaLabel="Map of open snack vans. Tap or click the map to drop a pin at your location."
         initialCenter={MELBOURNE_UNI}
         points={points}
         origin={origin}
@@ -115,7 +116,7 @@ export function VanFinder({ initialVans }: { initialVans: VanDTO[] }) {
         focusKey={focusCount ? `focus-${focusCount}` : undefined}
       />
 
-      <aside className="order-2 flex flex-col gap-4 overflow-y-auto border-r bg-background px-4 py-5 sm:px-6 md:order-1">
+      <aside className="order-2 flex min-w-0 flex-col gap-4 border-r bg-background px-4 py-5 sm:px-6 md:order-1 md:overflow-y-auto">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Find a van near you</h1>
           <p className="text-sm text-muted-foreground">
@@ -167,7 +168,7 @@ export function VanFinder({ initialVans }: { initialVans: VanDTO[] }) {
             onSelect={(r) => moveOrigin({ lat: r.lat, lng: r.lng }, "search", r.label)}
           />
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MousePointerClick className="size-3.5" aria-hidden /> Or click anywhere on the map to
+            <MousePointerClick className="size-3.5" aria-hidden /> Or tap anywhere on the map to
             drop a pin.
           </p>
         </div>
@@ -252,15 +253,21 @@ export function VanFinder({ initialVans }: { initialVans: VanDTO[] }) {
 
         {selected ? (
           <div className="sticky bottom-20 mt-auto rounded-2xl border bg-espresso-900 p-4 text-crema-100 shadow-xl md:bottom-0 dark:bg-espresso-800">
-            <p className="text-xs font-medium tracking-wide text-crema-300/80 uppercase">
-              {cart.van?.vanId === selected.vanId ? "Your current van" : "Selected van"}
+            <p className="flex items-center justify-between gap-2 text-xs font-medium tracking-wide text-crema-300/80 uppercase">
+              <span>
+                {cart.van?.vanId === selected.vanId ? "Your current van" : "Selected van"}
+              </span>
+              <span className="tabular normal-case">
+                {selected.rank ? `#${selected.rank} · ` : ""}
+                {formatDistance(selected.meters)} away
+              </span>
             </p>
             <p className="font-display text-xl font-semibold">{selected.vanId}</p>
             <p className="mt-0.5 line-clamp-2 text-sm text-crema-200/80">{selected.address}</p>
             <Button
               type="button"
               onClick={() => orderFrom(selected)}
-              className="mt-3 h-11 w-full rounded-xl bg-tomato-500 text-base font-semibold text-white hover:bg-tomato-600"
+              className="mt-3 h-11 w-full rounded-xl bg-tomato-600 text-base font-semibold text-white hover:bg-tomato-700"
             >
               Order from this van <ArrowRight aria-hidden />
             </Button>

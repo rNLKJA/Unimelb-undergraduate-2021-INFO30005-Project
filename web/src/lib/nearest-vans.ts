@@ -48,14 +48,42 @@ export function nearestVans<T extends VanLike>(
 ): RankedVan<T>[] {
   return vans
     .filter(isVisibleOnMap)
-    .map((van) => {
-      const position = { lat: van.xCoord, lng: van.yCoord };
-      return {
-        ...van,
-        dist: legacyEuclideanDistance(position, user),
-        meters: haversineMeters(position, user),
-      };
-    })
+    .map((van) => scoreVan(van, user))
     .sort((a, b) => a.dist - b.dist)
     .slice(0, count);
+}
+
+/** Attach the legacy ranking score and the display distance to one van. */
+export function scoreVan<T extends VanLike>(van: T, user: LatLng): RankedVan<T> {
+  const position = { lat: van.xCoord, lng: van.yCoord };
+  return {
+    ...van,
+    dist: legacyEuclideanDistance(position, user),
+    meters: haversineMeters(position, user),
+  };
+}
+
+export type SelectedVan<T extends VanLike> = RankedVan<T> & {
+  /** 1-based position in the nearest list, or null when the van is outside the top five. */
+  rank: number | null;
+};
+
+/**
+ * Resolve the van the customer picked. Any open van on the map can be chosen
+ * (the 2021 dropdown listed every open van), not only the five nearest; with
+ * no valid choice the closest van is the default.
+ */
+export function resolveSelectedVan<T extends VanLike>(
+  vans: readonly T[],
+  nearest: readonly RankedVan<T>[],
+  selectedId: string | null,
+  user: LatLng,
+): SelectedVan<T> | null {
+  if (selectedId) {
+    const index = nearest.findIndex((v) => v.vanId === selectedId);
+    if (index >= 0) return { ...nearest[index], rank: index + 1 };
+    const other = vans.find((v) => v.vanId === selectedId && isVisibleOnMap(v));
+    if (other) return { ...scoreVan(other, user), rank: null };
+  }
+  return nearest[0] ? { ...nearest[0], rank: 1 } : null;
 }

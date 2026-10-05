@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { loadLegacyUtility, type LegacyUtility } from "@/test/legacy";
 import { VAN_SEEDS } from "@/db/seed-data";
-import { MELBOURNE_UNI, nearestVans, type VanLike } from "./nearest-vans";
+import { MELBOURNE_UNI, nearestVans, resolveSelectedVan, type VanLike } from "./nearest-vans";
 
 let original: LegacyUtility;
 beforeAll(() => {
@@ -57,5 +57,39 @@ describe("nearestVans ports customerController.locate_van", () => {
       MELBOURNE_UNI,
     );
     expect(only.map((v) => v.vanId)).toEqual(["C"]);
+  });
+});
+
+describe("resolveSelectedVan", () => {
+  const nearest = nearestVans(vans, MELBOURNE_UNI);
+  const open = vans.filter((v) => v.status === "1" && v.address !== "");
+  const sixth = open.find((v) => !nearest.some((n) => n.vanId === v.vanId));
+
+  it("defaults to the closest van", () => {
+    expect(resolveSelectedVan(vans, nearest, null, MELBOURNE_UNI)).toMatchObject({
+      vanId: nearest[0].vanId,
+      rank: 1,
+    });
+  });
+
+  it("keeps the rank of a van inside the top five", () => {
+    expect(resolveSelectedVan(vans, nearest, nearest[3].vanId, MELBOURNE_UNI)).toMatchObject({
+      vanId: nearest[3].vanId,
+      rank: 4,
+    });
+  });
+
+  it("selects an open van outside the top five instead of falling back to #1", () => {
+    expect(sixth).toBeDefined();
+    const picked = resolveSelectedVan(vans, nearest, sixth!.vanId, MELBOURNE_UNI);
+    expect(picked).toMatchObject({ vanId: sixth!.vanId, rank: null });
+    expect(picked!.meters).toBeGreaterThan(0);
+  });
+
+  it("ignores closed or unknown vans", () => {
+    const closed = vans.find((v) => v.status !== "1");
+    for (const id of [closed?.vanId ?? "nope", "nope"]) {
+      expect(resolveSelectedVan(vans, nearest, id, MELBOURNE_UNI)?.vanId).toBe(nearest[0].vanId);
+    }
   });
 });

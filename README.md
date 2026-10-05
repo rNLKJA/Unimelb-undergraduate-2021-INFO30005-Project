@@ -167,7 +167,8 @@ history up to "now". Copy `.env.example` to `.env.local` to override anything.
 | `pnpm db:reset` | Delete, migrate and seed `data/app.db` |
 | `pnpm db:snapshot` | Regenerate the committed `data/seed.db` |
 | `pnpm db:generate` | Generate a migration after editing `src/db/schema.ts` |
-| `pnpm db:migrate` / `pnpm db:seed` | Migrate / seed `DATABASE_URL` (e.g. a Turso database) |
+| `pnpm db:migrate` | Apply pending migrations to `DATABASE_URL` (default `data/app.db`; also a Turso database) |
+| `pnpm db:seed` | Wipe and re-seed `DATABASE_URL`; refuses a remote database (see the deployment notes) |
 | `pnpm db:studio` | Browse the database with Drizzle Studio |
 | `pnpm sync-docs` | Copy `../docs` into `content/docs` for the `/methods` pages (tests fail if they drift) |
 | `pnpm calibrate` | Recompute `../docs/calibration.json`, the experiment analysis checked against known truth (`--check` fails if it is stale) |
@@ -207,11 +208,17 @@ connected to Git; `cd web && vercel deploy --prod` from the CLI).
 
 - Set `SESSION_SECRET` (32+ random bytes) on Vercel. This is done for production.
 - For persistent, shared records set `DATABASE_URL` and `DATABASE_AUTH_TOKEN` to a Turso
-  database, then run `pnpm db:migrate && pnpm db:seed` against it once (or create the
-  database from the snapshot: `turso db create snacks-in-a-van --from-file web/data/seed.db`).
-  Remote databases do not migrate themselves: run `pnpm db:migrate` after pulling new
-  migrations (2026 added `0001_governance_tables`, `0002_append_only_triggers`,
-  `0003_analytics_imputation_ai_verification` and `0004_ai_log_trigger_covers_verification`).
+  database. Create it from the snapshot, so it starts with the demo data:
+  `turso db create snacks-in-a-van --from-file web/data/seed.db`.
+- Migrations apply themselves. On its first database query each server instance compares
+  `__drizzle_migrations` with the committed `drizzle/` journal and applies anything pending
+  (one query when the schema is current; a failure is logged, not thrown). To apply them by
+  hand before a deploy, from `web/`:
+  `DATABASE_URL=$(turso db show snacks-in-a-van --url) DATABASE_AUTH_TOKEN=$(turso db tokens create snacks-in-a-van) pnpm db:migrate`.
+- **Never run `pnpm db:seed` against Turso.** Seeding deletes every table first, including
+  visitors' orders and the append-only audit tables, so the CLI refuses a remote
+  `DATABASE_URL` unless `ALLOW_REMOTE_SEED=1` is set. To remove one bad record, delete just
+  that row with `turso db shell snacks-in-a-van` instead.
 - Without those variables the app copies `data/seed.db` to `/tmp` on each cold start
   (writable but ephemeral) and shows a "Demo mode" notice. Every function instance then
   has its own copy, and there are many: Vercel serves the App Router pages, the Route

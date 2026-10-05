@@ -17,6 +17,7 @@ Decision records:
 - [DR-005: Treat housekeeping close-outs as censored, not as observed ready times](decisions/DR-005-censor-housekeeping-close-outs.md)
 - [DR-006: Reserve AI calls before they happen and re-verify their records on the server](decisions/DR-006-verifying-client-reported-ai-records.md)
 - [DR-007: Run production on the shared Turso database; keep /tmp for deployments without one](decisions/DR-007-production-on-turso.md)
+- [DR-008: Apply pending migrations to the remote database on startup; refuse to seed it](decisions/DR-008-remote-migrations-on-startup.md)
 
 These files are rendered on the website under `/methods`. The site reads a synced copy in `web/content/docs/` (Vercel builds only `web/`); run `pnpm sync-docs` in `web/` after editing, and the test suite fails if the copies drift.
 

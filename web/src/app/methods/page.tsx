@@ -398,6 +398,14 @@ export default function MethodsPage() {
                 >
                   DR-007
                 </Link>
+                ). Pending schema migrations now apply to it on startup, and the seed command
+                refuses to wipe it (
+                <Link
+                  href="/methods/decisions/DR-008-remote-migrations-on-startup"
+                  className="underline underline-offset-4"
+                >
+                  DR-008
+                </Link>
                 ).
               </li>
             </ul>

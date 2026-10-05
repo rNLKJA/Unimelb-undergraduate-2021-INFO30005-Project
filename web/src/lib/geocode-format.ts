@@ -90,6 +90,31 @@ export function formatNominatimAddress(a: NominatimAddress, fallback = ""): stri
   return joinParts([name, streetLine, region], ", ") || fallback;
 }
 
+/** One hit from Nominatim's `/search?format=jsonv2&addressdetails=1`. */
+export type NominatimPlace = {
+  lat?: string;
+  lon?: string;
+  name?: string;
+  display_name?: string;
+  address?: NominatimAddress;
+};
+
+export function nominatimPlaceToResult(place: NominatimPlace): GeocodeResult | null {
+  const lat = Number(place.lat);
+  const lng = Number(place.lon);
+  if (!place.lat || !place.lon || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const a = place.address ?? {};
+  const suburb = a.suburb ?? a.neighbourhood ?? a.town ?? a.city;
+  const rawName = place.name?.trim() || a.amenity || a.building;
+  // Like Photon: a name that only repeats the street or suburb adds nothing.
+  const name = rawName && rawName !== a.road && rawName !== suburb ? rawName : undefined;
+  const streetLine = joinParts([a.house_number, a.road], " ");
+  const region = joinParts([suburb, stateAbbreviation(a.state), a.postcode], " ");
+  const label = joinParts([name, streetLine, region], ", ") || place.display_name?.trim() || "";
+  if (!label) return null;
+  return { lat, lng, label, source: "nominatim" };
+}
+
 /** Round coordinates for cache keys (~11 m at 4 dp). */
 export function coordKey(point: LatLng, dp = 4): string {
   return `${point.lat.toFixed(dp)},${point.lng.toFixed(dp)}`;

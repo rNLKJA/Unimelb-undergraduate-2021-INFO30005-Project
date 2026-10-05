@@ -3,6 +3,7 @@ import {
   coordKey,
   formatNominatimAddress,
   formatPhotonAddress,
+  nominatimPlaceToResult,
   photonFeatureToResult,
   stateAbbreviation,
 } from "./geocode-format";
@@ -60,6 +61,48 @@ describe("geocoder formatting", () => {
       }),
     ).toBe("Wilson Avenue, Parkville VIC 3052");
     expect(formatNominatimAddress({}, "fallback")).toBe("fallback");
+  });
+
+  it("maps a Nominatim search hit (the response seen for Flinders Street Station)", () => {
+    expect(
+      nominatimPlaceToResult({
+        lat: "-37.8184161",
+        lon: "144.9664779",
+        name: "Flinders Street",
+        display_name: "Flinders Street, Melbourne, Victoria, 3000, Australia",
+        address: {
+          road: "Flinders Street",
+          suburb: "Melbourne",
+          city: "Melbourne",
+          state: "Victoria",
+          postcode: "3000",
+        },
+      }),
+    ).toEqual({
+      lat: -37.8184161,
+      lng: 144.9664779,
+      label: "Flinders Street, Melbourne VIC 3000",
+      source: "nominatim",
+    });
+    expect(
+      nominatimPlaceToResult({
+        lat: "-37.8098",
+        lon: "144.9652",
+        name: "State Library Victoria",
+        address: {
+          house_number: "328",
+          road: "Swanston Street",
+          suburb: "Melbourne",
+          state: "Victoria",
+          postcode: "3000",
+        },
+      })?.label,
+    ).toBe("State Library Victoria, 328 Swanston Street, Melbourne VIC 3000");
+    expect(
+      nominatimPlaceToResult({ lat: "-37.8", lon: "144.9", display_name: "Somewhere" })?.label,
+    ).toBe("Somewhere");
+    expect(nominatimPlaceToResult({ name: "No coordinates" })).toBeNull();
+    expect(nominatimPlaceToResult({ lat: "-37.8", lon: "144.9" })).toBeNull();
   });
 
   it("abbreviates states and builds cache keys", () => {

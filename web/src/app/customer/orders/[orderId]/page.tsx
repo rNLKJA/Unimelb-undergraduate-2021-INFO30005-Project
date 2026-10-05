@@ -2,26 +2,33 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { OrderTracker } from "@/components/customer/order-tracker";
-import { requireCustomer } from "@/server/auth";
+import { currentCustomer, requireCustomer } from "@/server/auth";
 import { serverNow } from "@/server/clock";
 import { listMenu } from "@/server/menu";
 import { getCustomerOrder } from "@/server/orders";
+
+/** One lookup per request, shared by the metadata and the page. */
+const loadOrder = cache(async (customerId: string, orderId: string) =>
+  getCustomerOrder(customerId, orderId),
+);
 
 export async function generateMetadata(
   props: PageProps<"/customer/orders/[orderId]">,
 ): Promise<Metadata> {
   const { orderId } = await props.params;
-  return { title: `Order ${orderId}` };
+  const customer = await currentCustomer();
+  const order = customer ? await loadOrder(customer.customerId, orderId) : null;
+  // The orders segment streams a loading state, so a missing order renders the
+  // not-found UI after the head is sent; keep the tab title in step with it.
+  return { title: order ? `Order ${order.orderId}` : "Order not found" };
 }
 
 export default async function OrderPage(props: PageProps<"/customer/orders/[orderId]">) {
   const { orderId } = await props.params;
   const customer = await requireCustomer(`/customer/orders/${orderId}`);
-  const [order, menu] = await Promise.all([
-    getCustomerOrder(customer.customerId, orderId),
-    listMenu(),
-  ]);
+  const [order, menu] = await Promise.all([loadOrder(customer.customerId, orderId), listMenu()]);
   if (!order) notFound();
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">

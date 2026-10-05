@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Database, FlaskConical } from "lucide-react";
+import { BarChart3, Bot, Database, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ const TABS = [
   { href: "/admin/records", label: "Records", icon: Database },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/experiments", label: "Experiments", icon: FlaskConical },
+  { href: "/admin/ai-log", label: "AI log", icon: Bot },
 ] as const;
 
 export function AdminNav({ className }: { className?: string }) {

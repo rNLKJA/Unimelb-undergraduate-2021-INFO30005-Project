@@ -10,6 +10,8 @@ import { createDb, enableForeignKeys, runMigrations, type DbHandle } from "@/db/
 import * as schema from "@/db/schema";
 import { DEMO_CREDENTIALS } from "@/db/seed-data";
 import { seedDatabase } from "@/db/seed";
+import type { AiCallRecord } from "@/lib/ai/audit-record";
+import { decideAiCall, insertAiCall, listAiCalls } from "./ai-audit";
 import { auditTrail, DEMO_HOUSEKEEPING, recordAudit } from "./audit";
 import {
   advanceOrder,
@@ -177,5 +179,104 @@ describe("audit trail", () => {
       entityId: VAN,
     });
     await expectBlocked(handle.db.delete(schema.auditLog), /append-only/);
+  });
+});
+
+describe("AI audit log", () => {
+  const record = (id: string, extra: Partial<AiCallRecord> = {}): AiCallRecord => ({
+    id,
+    feature: "shift-summary",
+    provider: "anthropic",
+    model: "claude-haiku-4-5",
+    input: { system: "sys", user: '{"ordersPlaced": 4}', schema: "shift_summary" },
+    output: { headline: "4 orders" },
+    outputText: '{"headline":"4 orders"}',
+    error: null,
+    latencyMs: 812.4,
+    usage: { inputTokens: 300, outputTokens: 60 },
+    factCheck: { checked: 1, unsupported: [] },
+    ...extra,
+  });
+  const ID = "6f1c1d1e-2b3a-4c5d-8e9f-0a1b2c3d4e5f";
+  const FAILED = "7f1c1d1e-2b3a-4c5d-8e9f-0a1b2c3d4e5f";
+
+  it("stores each call and lets the van that made it decide once", async () => {
+    await insertAiCall(record(ID), VAN, NOW);
+    await insertAiCall(
+      record(FAILED, {
+        output: null,
+        outputText: null,
+        error: { kind: "invalid-key", message: "bad" },
+        usage: null,
+      }),
+      VAN,
+      NOW + 1,
+    );
+    const [failed, ok] = await listAiCalls();
+    expect(failed).toMatchObject({
+      id: FAILED,
+      humanDecision: "not-applicable",
+      errorKind: "invalid-key",
+    });
+    expect(ok).toMatchObject({
+      id: ID,
+      humanDecision: "pending",
+      latencyMs: 812,
+      inputTokens: 300,
+      actorId: VAN,
+    });
+    expect(JSON.parse(ok.input)).toEqual(record(ID).input);
+
+    expect(
+      await decideAiCall({ id: ID, actorId: "Another Van", decision: "accepted" }),
+    ).toMatchObject({ ok: false });
+    expect(await decideAiCall({ id: FAILED, actorId: VAN, decision: "accepted" })).toMatchObject({
+      ok: false,
+    });
+    expect(
+      await decideAiCall({ id: ID, actorId: VAN, decision: "edited", editedText: "  " }),
+    ).toMatchObject({
+      ok: false,
+    });
+    expect(
+      await decideAiCall({
+        id: ID,
+        actorId: VAN,
+        decision: "edited",
+        editedText: "Shorter note",
+        now: NOW + 5,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    expect(await decideAiCall({ id: ID, actorId: VAN, decision: "rejected" })).toEqual({
+      ok: false,
+      message: "This output has already been reviewed.",
+    });
+    const [, decided] = await listAiCalls();
+    expect(decided).toMatchObject({ humanDecision: "edited", editedOutput: "Shorter note" });
+    expect(decided.decidedAt?.getTime()).toBe(NOW + 5);
+    const trail = await rows();
+    expect(trail.map((r) => [r.action, r.entityId])).toEqual([["ai_output.edited", ID]]);
+  });
+
+  it("keeps call records immutable and decisions single, at the database level", async () => {
+    await insertAiCall(record(ID), VAN, NOW);
+    await expectBlocked(
+      handle.db.update(schema.aiAuditLog).set({ outputText: "rewritten" }),
+      /immutable/,
+    );
+    await expectBlocked(handle.db.delete(schema.aiAuditLog), /append-only/);
+    await handle.db
+      .update(schema.aiAuditLog)
+      .set({ humanDecision: "accepted", decidedAt: new Date(NOW) });
+    await expectBlocked(
+      handle.db.update(schema.aiAuditLog).set({ humanDecision: "rejected" }),
+      /reviewed only once/,
+    );
+    await expectBlocked(
+      handle.db.update(schema.aiAuditLog).set({ humanDecision: "pending" }),
+      /reviewed only once/,
+    );
   });
 });

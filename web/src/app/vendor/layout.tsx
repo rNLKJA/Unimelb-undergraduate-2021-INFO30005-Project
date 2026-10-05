@@ -1,6 +1,8 @@
 import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { vendorLogoutAction } from "@/app/vendor/actions";
+import { AiProvider } from "@/components/ai/ai-provider";
+import { AiSettingsButton } from "@/components/ai/ai-settings-button";
 import { VanMark } from "@/components/brand/van-mark";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { StorageNotice } from "@/components/shared/storage-notice";
@@ -12,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function VendorLayout({ children }: LayoutProps<"/vendor">) {
   const van = await currentVan();
   return (
-    <>
+    <AiProvider>
       <StorageNotice />
       <header className="sticky top-0 z-40 bg-espresso-900 text-crema-100 shadow-md dark:bg-espresso-950">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-3 sm:px-5">
@@ -59,6 +61,9 @@ export default async function VendorLayout({ children }: LayoutProps<"/vendor">)
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle className="text-crema-100 hover:bg-white/10 hover:text-white" />
             {van ? (
+              <AiSettingsButton className="text-crema-100 hover:bg-white/10 hover:text-white" />
+            ) : null}
+            {van ? (
               <form action={vendorLogoutAction}>
                 <button
                   type="submit"
@@ -87,6 +92,6 @@ export default async function VendorLayout({ children }: LayoutProps<"/vendor">)
       <main id="main" className="flex-1 bg-muted/40">
         {children}
       </main>
-    </>
+    </AiProvider>
   );
 }

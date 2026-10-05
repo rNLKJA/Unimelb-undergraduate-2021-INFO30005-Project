@@ -36,6 +36,7 @@ describe("rendered docs", () => {
       "DR-004",
       "DR-005",
       "DR-006",
+      "DR-007",
     ]);
     for (const d of list) {
       expect(d.title.length).toBeGreaterThan(10);

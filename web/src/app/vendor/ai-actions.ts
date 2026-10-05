@@ -17,8 +17,7 @@ import { signAiReservation, verifyAiReservation } from "@/server/session";
 import { shiftMetricsFor } from "@/server/shift";
 
 export type AiReserveResult =
-  | { ok: true; id: string; token: string }
-  | { ok: false; message: string };
+  { ok: true; id: string; token: string } | { ok: false; message: string };
 
 const WINDOW_MS = 10 * 60_000;
 

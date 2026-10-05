@@ -173,10 +173,12 @@ connected to Git; `cd web && vercel deploy --prod` from the CLI).
   database from the snapshot: `turso db create snacks-in-a-van --from-file web/data/seed.db`).
 - Without those variables the app copies `data/seed.db` to `/tmp` on each cold start
   (writable but ephemeral) and shows a "demo storage resets periodically" notice. Each
-  serverless instance then has its own copy, so an order placed by the customer demo may not
-  reach a vendor board served by another instance. **The current production deployment runs
-  in this mode until a Turso database is connected**; locally both portals share
-  `data/app.db` and the full cross-portal flow works.
+  serverless instance then has its own copy, and consecutive requests are often served by
+  different instances, so writes are not reliable: a new account may not be able to log in
+  on the next request, a just-placed order can show "not found", and orders do not reach the
+  vendor board. Browsing (map, menus, community, records, the seeded vendor board) works.
+  **The current production deployment runs in this mode until a Turso database is
+  connected**; locally both portals share `data/app.db` and the full cross-portal flow works.
 
 ## How the data was produced
 

@@ -29,7 +29,7 @@ export const PRIMARY_METRICS = {
     label: "Rates the first order 4 or 5 stars",
     short: "rating 4+",
     description:
-      "Share of customers whose first rated order in the experiment gets 4 or 5 stars (customers who never rate count as 'no', so the metric is defined for everyone randomised).",
+      "Share of customers whose first order in the experiment is rated 4 or 5 stars (a customer who does not rate it counts as 'no', so the metric is defined for everyone randomised).",
   },
 } as const;
 
@@ -73,7 +73,13 @@ export interface SampleSizePlan {
   treatmentRate: number;
 }
 
-export function planSampleSize(design: ExperimentDesign): SampleSizePlan {
+/**
+ * Sample size for a design, or null when the design cannot be planned (see
+ * `designErrors`): there is no finite sample size for a zero effect, a rate
+ * outside (0, 1) or no customers arriving.
+ */
+export function planSampleSize(design: ExperimentDesign): SampleSizePlan | null {
+  if (designErrors(design).length) return null;
   const base = {
     baseline: design.baseline,
     mde: design.mde,
@@ -108,20 +114,62 @@ export function planMeanSampleSize(input: {
   return { d: res.d, perArmZ: Math.ceil(res.z), perArmT: Math.ceil(res.t) };
 }
 
-/** Plain-language problems with a design, shown next to the inputs. */
+export type DesignField = "baseline" | "mde" | "per-day" | "window";
+
+export interface DesignError {
+  /** Id of the input to highlight. */
+  field: DesignField;
+  message: string;
+}
+
+/** Problems that make a sample size impossible; each names the input to fix. */
+export function designErrors(design: ExperimentDesign): DesignError[] {
+  const errors: DesignError[] = [];
+  const { baseline, mde, customersPerDay, treatmentWindow } = design;
+  const baselineOk = Number.isFinite(baseline) && baseline > 0 && baseline < 1;
+  if (!baselineOk) {
+    errors.push({
+      field: "baseline",
+      message: "The baseline rate must be between 0% and 100% (exclusive).",
+    });
+  }
+  if (!Number.isFinite(mde) || mde === 0) {
+    errors.push({
+      field: "mde",
+      message:
+        "A minimum detectable effect of 0 means there is no effect to detect: no finite sample size can find it.",
+    });
+  } else if (baselineOk && !(baseline + mde > 0 && baseline + mde < 1)) {
+    errors.push({
+      field: "mde",
+      message: "Baseline plus the minimum detectable effect must stay between 0% and 100%.",
+    });
+  }
+  if (!Number.isFinite(customersPerDay) || customersPerDay <= 0) {
+    errors.push({
+      field: "per-day",
+      message: "New customers per day must be above 0 to turn a sample size into a duration.",
+    });
+  }
+  if (!Number.isFinite(treatmentWindow) || treatmentWindow <= 0) {
+    errors.push({
+      field: "window",
+      message: "The treatment window must be a positive number of minutes.",
+    });
+  }
+  return errors;
+}
+
+/** Plain-language concerns about a design that can still be planned, shown next to the inputs. */
 export function designWarnings(design: ExperimentDesign): string[] {
   const warnings: string[] = [];
-  const treatment = design.baseline + design.mde;
-  if (!(treatment > 0 && treatment < 1)) {
-    warnings.push("Baseline plus the minimum detectable effect must stay between 0% and 100%.");
-  }
   if (design.treatmentWindow === CONTROL_WINDOW_MINUTES) {
     warnings.push("The treatment window equals the control window: both arms get the same rule.");
   }
   if (design.alpha > 0.1) warnings.push("A significance level above 10% is unusually lenient.");
   if (design.power < 0.8)
     warnings.push("Power below 80% risks missing a real effect of this size.");
-  if (Math.abs(design.mde) < 0.02) {
+  if (design.mde !== 0 && Math.abs(design.mde) < 0.02) {
     warnings.push("Effects under 2 points need very large samples; check the MDE is worth it.");
   }
   return warnings;

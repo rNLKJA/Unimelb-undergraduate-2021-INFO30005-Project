@@ -26,6 +26,14 @@ export const POCOCK_Z_ALPHA_05: Readonly<Record<number, number>> = {
   10: 2.555,
 };
 
+/**
+ * The designer caps the peeking simulation at this many customers per arm so
+ * a tiny minimum detectable effect cannot stall the page; the axis label
+ * says when the cap applies. The inflation of false positives depends on the
+ * number of looks, not on n, so the lesson is the same.
+ */
+export const PEEKING_MAX_PER_ARM = 5000;
+
 export interface PeekingInput {
   perArm: number;
   baseline: number;
@@ -62,6 +70,12 @@ export function simulatePeeking(input: PeekingInput): PeekingResult {
   const { perArm, baseline, looks, reps, alpha, seed } = input;
   if (looks < 1 || !Number.isInteger(looks))
     throw new RangeError("looks must be a positive integer");
+  // An infinite or NaN sample size (e.g. from a zero effect) would never finish.
+  if (!Number.isFinite(perArm) || perArm < 1)
+    throw new RangeError("perArm must be a finite number of at least 1");
+  if (!Number.isInteger(reps) || reps < 1) throw new RangeError("reps must be a positive integer");
+  if (!(baseline >= 0 && baseline <= 1)) throw new RangeError("baseline must be in [0, 1]");
+  if (!(alpha > 0 && alpha < 1)) throw new RangeError("alpha must be in (0, 1)");
   const zCrit = normalQuantile(1 - alpha / 2);
   const pocockZ = Math.abs(alpha - 0.05) < 1e-12 ? (POCOCK_Z_ALPHA_05[looks] ?? null) : null;
   // Look k analyses the first round(k * n / K) customers of each arm.

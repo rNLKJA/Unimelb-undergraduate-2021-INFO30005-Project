@@ -113,23 +113,34 @@ export interface ExperimentAnalysis {
   exact: PermutationResult;
   /** Guardrail: change in the share of first orders discounted (cost). */
   discountDifference: DifferenceCI;
-  /** Did the 95% interval cover the injected effect? */
+  /** Did the interval (at `level`) cover the injected effect? */
   coversTruth: boolean | null;
   trueEffect: number | null;
+  /** Confidence level of every interval in the analysis: 1 − α, so the test and the interval agree. */
+  level: number;
 }
 
 export function analyseExperiment(
   customers: readonly SimulatedCustomer[],
-  options: { permutationReps?: number; seed: number; trueEffect?: number },
+  options: {
+    permutationReps?: number;
+    seed: number;
+    trueEffect?: number;
+    /** Confidence level for the intervals (default 0.95); pass 1 − α to match the test. */
+    level?: number;
+  },
 ): ExperimentAnalysis {
+  const level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1)) throw new RangeError("level must be in (0, 1)");
   const byArm = (arm: Arm) => customers.filter((c) => c.arm === arm);
   const summarise = (group: readonly SimulatedCustomer[]): ArmSummary => ({
     n: group.length,
     outcome: wilson(
       group.reduce((s, c) => s + c.outcome, 0),
       group.length,
+      level,
     ),
-    discounted: wilson(group.filter((c) => c.discounted).length, group.length),
+    discounted: wilson(group.filter((c) => c.discounted).length, group.length, level),
   });
   const t = byArm("treatment");
   const c = byArm("control");
@@ -140,6 +151,7 @@ export function analyseExperiment(
     treatment.n,
     control.outcome.successes,
     control.n,
+    level,
   );
   const trueEffect = options.trueEffect ?? null;
   return {
@@ -170,17 +182,23 @@ export function analyseExperiment(
       treatment.n,
       control.discounted.successes,
       control.n,
+      level,
     ),
     coversTruth:
       trueEffect == null ? null : difference.lower <= trueEffect && trueEffect <= difference.upper,
     trueEffect,
+    level,
   };
 }
+
+/** "95%" for a level of 0.95, "99%" for 0.99. */
+export const levelLabel = (level: number) => `${Math.round(level * 1000) / 10}%`;
 
 /** Flat rows for the CSV / JSON export of a simulated experiment's results. */
 export function analysisRows(
   analysis: ExperimentAnalysis,
 ): Record<string, string | number | boolean | null>[] {
+  const ci = levelLabel(analysis.level);
   const arm = (name: Arm, s: ArmSummary) => ({
     row: `arm:${name}`,
     n: s.n,
@@ -188,7 +206,7 @@ export function analysisRows(
     estimate: s.outcome.p,
     ci_lower: s.outcome.lower,
     ci_upper: s.outcome.upper,
-    method: "Wilson 95%",
+    method: `Wilson ${ci}`,
     p_value: null,
   });
   return [
@@ -201,7 +219,7 @@ export function analysisRows(
       estimate: analysis.difference.estimate,
       ci_lower: analysis.difference.lower,
       ci_upper: analysis.difference.upper,
-      method: "Newcombe hybrid score 95%",
+      method: `Newcombe hybrid score ${ci}`,
       p_value: analysis.zTest.p,
     },
     {
@@ -231,7 +249,7 @@ export function analysisRows(
       estimate: analysis.discountDifference.estimate,
       ci_lower: analysis.discountDifference.lower,
       ci_upper: analysis.discountDifference.upper,
-      method: "Newcombe hybrid score 95%",
+      method: `Newcombe hybrid score ${ci}`,
       p_value: null,
     },
   ];

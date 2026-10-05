@@ -217,8 +217,11 @@ export function IntervalPlot({
   const ticks = niceTicks(domain[0], domain[1], 4).filter(
     (t) => t >= domain[0] - 1e-12 && t <= domain[1] + 1e-12,
   );
+  // A figure, not role="img": the row labels and printed values stay readable
+  // by screen readers; only the drawn marks are hidden from them.
   return (
-    <div role="img" aria-label={label} className="min-w-0 text-xs">
+    <figure className="min-w-0 text-xs">
+      <figcaption className="sr-only">{label}</figcaption>
       <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] gap-x-3 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)_auto]">
         {rows.map((r) => {
           const s = SERIES[r.series ?? "a"];
@@ -229,7 +232,7 @@ export function IntervalPlot({
               <div className={cn("py-1.5 leading-snug break-words", r.emphasis && "font-semibold")}>
                 {r.label}
               </div>
-              <div className="group relative py-1.5">
+              <div className="group relative py-1.5" aria-hidden>
                 <div className="relative h-4">
                   {ticks.map((t) => (
                     <div
@@ -294,7 +297,7 @@ export function IntervalPlot({
           ))}
         </p>
       ) : null}
-    </div>
+    </figure>
   );
 }
 

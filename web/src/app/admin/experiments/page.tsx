@@ -4,12 +4,14 @@ import { ExperimentDesigner } from "@/components/admin/experiment-designer";
 import { PageIntro } from "@/components/admin/page-intro";
 import { requireAdmin } from "@/server/auth";
 import { experimentFacts } from "@/server/analytics";
+import { defaultExperimentResults } from "@/server/experiments";
 
 export const metadata: Metadata = { title: "Experiment designer" };
 
 export default async function ExperimentsPage() {
   await requireAdmin();
   const facts = await experimentFacts();
+  const defaults = defaultExperimentResults(facts.fulfilmentPool);
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6">
       <PageIntro eyebrow="Records · experiments" title="A/B test the 15-minute late-discount rule">
@@ -29,7 +31,7 @@ export default async function ExperimentsPage() {
           .
         </p>
       </PageIntro>
-      <ExperimentDesigner facts={facts} />
+      <ExperimentDesigner facts={facts} initialSim={defaults.sim} initialPeek={defaults.peek} />
     </div>
   );
 }

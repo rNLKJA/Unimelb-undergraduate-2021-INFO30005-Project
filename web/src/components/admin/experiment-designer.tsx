@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Download, FlaskConical, Loader2, Play, Users } from "lucide-react";
-import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { IntervalPlot } from "@/components/charts/charts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,15 +12,32 @@ import { downloadText } from "@/lib/download";
 import {
   CONTROL_WINDOW_MINUTES,
   DEFAULT_DESIGN,
+  designErrors,
   designWarnings,
   planMeanSampleSize,
   planSampleSize,
   PRIMARY_METRICS,
+  type DesignField,
   type ExperimentDesign,
   type PrimaryMetric,
 } from "@/lib/experiments/design";
-import { simulatePeeking } from "@/lib/experiments/peeking";
-import { analyseExperiment, analysisRows, simulateExperiment } from "@/lib/experiments/simulate";
+import { PEEKING_MAX_PER_ARM, type PeekingResult } from "@/lib/experiments/peeking";
+import {
+  DEFAULT_PEEK_RUN,
+  DEFAULT_SIM_RUN,
+  handleWorkerRequest,
+  PEEKING_ALPHA,
+  PEEKING_REPS,
+  PEEKING_SEED,
+  peekingPerArm,
+  PERMUTATION_REPS,
+  SIM_MAX_PER_ARM,
+  type PeekRun,
+  type SimRun,
+  type WorkerRequest,
+  type WorkerResponse,
+} from "@/lib/experiments/runs";
+import { analysisRows, levelLabel, type ExperimentAnalysis } from "@/lib/experiments/simulate";
 import {
   formatNumber,
   formatP,
@@ -32,7 +49,9 @@ import type { ProportionCI } from "@/lib/stats/proportion";
 import { cn } from "@/lib/utils";
 
 export type DesignerFacts = {
+  /** Share of non-cancelled orders rated 4+, unrated counting as "no" (the metric's denominator). */
   ratingFourPlus: ProportionCI;
+  ratedOrders: number;
   ratingMean: number;
   ratingSd: number;
   fulfilmentPool: number[];
@@ -43,23 +62,80 @@ export type DesignerFacts = {
 const ALPHAS = [0.01, 0.05, 0.1] as const;
 const POWERS = [0.8, 0.9] as const;
 const LOOKS = [2, 3, 5, 10] as const;
-const DEFAULT_SIM_SEED = 2021;
-const PERMUTATION_REPS = 5000;
-const PEEKING_REPS = 10_000;
-const PEEKING_SEED = 30005;
 
 const round2 = (x: number) => Math.round(x * 100) / 100;
+
+type WorkerJob = WorkerRequest extends infer R
+  ? R extends WorkerRequest
+    ? Omit<R, "id">
+    : never
+  : never;
+
+/**
+ * Runs the simulations in a Web Worker so a large run never freezes the
+ * page. Falls back to the main thread (after a paint) where Workers are
+ * unavailable or the worker fails to load.
+ */
+function useExperimentWorker() {
+  const worker = useRef<Worker | null | undefined>(undefined);
+  const pending = useRef(
+    new Map<number, { req: WorkerRequest; resolve: (r: WorkerResponse) => void }>(),
+  );
+  const nextId = useRef(1);
+  useEffect(() => () => worker.current?.terminate(), []);
+
+  return useCallback((job: WorkerJob): Promise<WorkerResponse> => {
+    const req = { ...job, id: nextId.current++ } as WorkerRequest;
+    const onMainThread = () =>
+      new Promise<WorkerResponse>((resolve) =>
+        setTimeout(() => resolve(handleWorkerRequest(req)), 0),
+      );
+    if (worker.current === undefined) {
+      try {
+        const w = new Worker(new URL("./experiment.worker.ts", import.meta.url), {
+          type: "module",
+        });
+        w.onmessage = (event: MessageEvent<WorkerResponse>) => {
+          const entry = pending.current.get(event.data.id);
+          pending.current.delete(event.data.id);
+          entry?.resolve(event.data);
+        };
+        w.onerror = () => {
+          // The worker could not load or crashed: finish its jobs here instead.
+          w.terminate();
+          worker.current = null;
+          for (const [id, entry] of pending.current) {
+            pending.current.delete(id);
+            setTimeout(() => entry.resolve(handleWorkerRequest(entry.req)), 0);
+          }
+        };
+        worker.current = w;
+      } catch {
+        worker.current = null;
+      }
+    }
+    const w = worker.current;
+    if (!w) return onMainThread();
+    return new Promise<WorkerResponse>((resolve) => {
+      pending.current.set(req.id, { req, resolve });
+      w.postMessage(req);
+    });
+  }, []);
+}
 
 function Field({
   id,
   label,
   hint,
+  error,
   children,
   group = false,
 }: {
   id: string;
   label: string;
   hint?: ReactNode;
+  /** Shown under the input (give the input aria-invalid and aria-describedby={`${id}-error`}). */
+  error?: string;
   children: ReactNode;
   /** The control is a group of buttons: name it with aria-labelledby, not a <label>. */
   group?: boolean;
@@ -79,6 +155,14 @@ function Field({
         </Label>
       )}
       {children}
+      {error ? (
+        <p
+          id={`${id}-error`}
+          className="text-[0.7rem] leading-snug font-medium text-tomato-700 dark:text-tomato-300"
+        >
+          {error}
+        </p>
+      ) : null}
       {hint ? <p className="text-[0.7rem] leading-snug text-muted-foreground">{hint}</p> : null}
     </div>
   );
@@ -157,20 +241,28 @@ function Step({
   );
 }
 
-export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
+export function ExperimentDesigner({
+  facts,
+  initialSim,
+  initialPeek,
+}: {
+  facts: DesignerFacts;
+  /** The default simulation (DEFAULT_SIM_RUN), computed on the server so the page loads without it. */
+  initialSim: ExperimentAnalysis;
+  /** The default peeking simulation (DEFAULT_PEEK_RUN), computed on the server. */
+  initialPeek: PeekingResult;
+}) {
   const [design, setDesign] = useState<ExperimentDesign>(DEFAULT_DESIGN);
   const [meanMde, setMeanMde] = useState(0.2);
   const set = <K extends keyof ExperimentDesign>(key: K, value: ExperimentDesign[K]) =>
     setDesign((d) => ({ ...d, [key]: value }));
 
+  const errors = designErrors(design);
+  const errorFor = (field: DesignField) => errors.find((e) => e.field === field)?.message;
+  const invalid = (field: DesignField) =>
+    errorFor(field) ? { "aria-invalid": true as const, "aria-describedby": `${field}-error` } : {};
   const warnings = designWarnings(design);
-  const plan = useMemo(() => {
-    try {
-      return warnings.some((w) => w.startsWith("Baseline")) ? null : planSampleSize(design);
-    } catch {
-      return null;
-    }
-  }, [design, warnings]);
+  const plan = useMemo(() => planSampleSize(design), [design]);
   const meanPlan = useMemo(() => {
     try {
       return planMeanSampleSize({
@@ -184,6 +276,9 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
     }
   }, [meanMde, facts.ratingSd, design.alpha, design.power]);
 
+  // The secondary metric only counts customers who rate; scale its n up by 1 / (share who rate).
+  const shareWhoRate = facts.ratingFourPlus.n ? facts.ratedOrders / facts.ratingFourPlus.n : NaN;
+
   const chooseMetric = (metric: PrimaryMetric) => {
     setDesign((d) => ({
       ...d,
@@ -195,73 +290,78 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
   };
 
   // --- Simulation: inputs are drafts until "Run" commits them. ------------
+  // Results run in a Web Worker; the defaults arrive pre-computed from the server.
+  const compute = useExperimentWorker();
   const [simDraft, setSimDraft] = useState({
     effect: 8,
     perArm: "",
-    seed: String(DEFAULT_SIM_SEED),
+    seed: String(DEFAULT_SIM_RUN.seed),
   });
-  const [simRun, setSimRun] = useState({
-    design: DEFAULT_DESIGN,
-    effect: DEFAULT_DESIGN.mde,
-    perArm: planSampleSize(DEFAULT_DESIGN).perArm,
-    seed: DEFAULT_SIM_SEED,
+  const [simState, setSimState] = useState<{ run: SimRun; analysis: ExperimentAnalysis }>({
+    run: DEFAULT_SIM_RUN,
+    analysis: initialSim,
   });
-  const [running, startRun] = useTransition();
-  const sim = useMemo(() => {
-    const customers = simulateExperiment({
-      perArm: simRun.perArm,
-      baseline: simRun.design.baseline,
-      trueEffect: simRun.effect,
-      treatmentWindow: simRun.design.treatmentWindow,
-      seed: simRun.seed,
-      fulfilmentPool: facts.fulfilmentPool,
-    });
-    return analyseExperiment(customers, {
-      seed: simRun.seed,
-      permutationReps: PERMUTATION_REPS,
-      trueEffect: simRun.effect,
-    });
-  }, [simRun, facts.fulfilmentPool]);
+  const [simBusy, setSimBusy] = useState(false);
+  const [simError, setSimError] = useState<string | null>(null);
+  const latestSim = useRef(0);
+  const simRun = simState.run;
+  const sim = simState.analysis;
 
-  const runSimulation = () => {
-    const perArm = Number(simDraft.perArm) || plan?.perArm || simRun.perArm;
+  const runSimulation = async () => {
+    if (!plan) return;
+    const perArm = Math.min(
+      SIM_MAX_PER_ARM,
+      Math.max(10, Math.round(Number(simDraft.perArm) || plan.perArm)),
+    );
     const seed = Number.parseInt(simDraft.seed, 10);
     const effect = simDraft.effect / 100;
-    if (!plan || !Number.isFinite(seed)) return;
-    if (design.baseline + effect < 0 || design.baseline + effect > 1) return;
-    startRun(() =>
-      setSimRun({
-        design,
-        effect,
-        perArm: Math.min(20000, Math.max(10, Math.round(perArm))),
-        seed,
-      }),
-    );
+    if (!Number.isFinite(seed) || !Number.isFinite(effect)) {
+      setSimError("Enter an injected effect and a whole-number seed.");
+      return;
+    }
+    if (design.baseline + effect < 0 || design.baseline + effect > 1) {
+      setSimError("Baseline plus the injected effect must stay between 0% and 100%.");
+      return;
+    }
+    const run: SimRun = { design, effect, perArm, seed };
+    const ticket = ++latestSim.current;
+    setSimError(null);
+    setSimBusy(true);
+    const res = await compute({ kind: "sim", run, pool: facts.fulfilmentPool });
+    if (ticket !== latestSim.current) return;
+    setSimBusy(false);
+    if (res.ok && res.kind === "sim") setSimState({ run, analysis: res.result });
+    else setSimError(res.ok ? "Unexpected result." : res.message);
   };
 
   // --- Peeking ---------------------------------------------------------------
   const [looks, setLooks] = useState<(typeof LOOKS)[number]>(10);
-  const [peekRun, setPeekRun] = useState({
-    looks: 10,
-    perArm: simRun.perArm,
-    baseline: DEFAULT_DESIGN.baseline,
+  const [peekState, setPeekState] = useState<{ run: PeekRun; result: PeekingResult }>({
+    run: DEFAULT_PEEK_RUN,
+    result: initialPeek,
   });
-  const [peeking, startPeek] = useTransition();
-  const peek = useMemo(
-    () =>
-      simulatePeeking({
-        perArm: peekRun.perArm,
-        baseline: peekRun.baseline,
-        looks: peekRun.looks,
-        reps: PEEKING_REPS,
-        alpha: 0.05,
-        seed: PEEKING_SEED,
-      }),
-    [peekRun],
-  );
+  const [peekBusy, setPeekBusy] = useState(false);
+  const latestPeek = useRef(0);
+  const peekRun = peekState.run;
+  const peek = peekState.result;
+  const peekCapped = peekRun.perArm > PEEKING_MAX_PER_ARM;
+
+  const runPeeking = async () => {
+    if (!plan) return;
+    const run: PeekRun = { looks, perArm: plan.perArm, baseline: design.baseline };
+    const ticket = ++latestPeek.current;
+    setPeekBusy(true);
+    const res = await compute({ kind: "peek", run });
+    if (ticket !== latestPeek.current) return;
+    setPeekBusy(false);
+    if (res.ok && res.kind === "peek") setPeekState({ run, result: res.result });
+  };
 
   const metric = PRIMARY_METRICS[simRun.design.metric];
-  const significant = sim.zTest.p < simRun.design.alpha;
+  const alpha = simRun.design.alpha;
+  const ci = levelLabel(sim.level);
+  const missOneIn = Math.round(1 / alpha);
+  const significant = sim.zTest.p < alpha;
   const exportBase = `snacks-experiment-seed${simRun.seed}`;
   const exportPayload = () => ({
     exportedAt: new Date().toISOString(),
@@ -272,7 +372,9 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
       injectedEffect: simRun.effect,
       seed: simRun.seed,
       permutationReps: PERMUTATION_REPS,
-      fulfilmentPoolSize: facts.fulfilmentPool.length,
+      intervalLevel: sim.level,
+      // Everything needed to rerun it: the seed alone is not enough without the pool.
+      fulfilmentPool: facts.fulfilmentPool,
     },
     results: analysisRows(sim),
   });
@@ -336,12 +438,14 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
               <Field
                 id="baseline"
                 label="Baseline rate (%)"
+                error={errorFor("baseline")}
                 hint={
                   design.metric === "rating-4plus" ? (
                     <>
                       Observed: {formatPct(facts.ratingFourPlus.p, 0)}{" "}
-                      {formatPctInterval(facts.ratingFourPlus.lower, facts.ratingFourPlus.upper, 0)}{" "}
-                      of {facts.ratingFourPlus.n} rated demo orders (per order, synthetic).
+                      {formatPctInterval(facts.ratingFourPlus.lower, facts.ratingFourPlus.upper, 0)}
+                      : {facts.ratingFourPlus.successes} of {facts.ratingFourPlus.n} non-cancelled
+                      demo orders rated 4 or 5 stars, unrated counting as no (per order, synthetic).
                     </>
                   ) : (
                     <>
@@ -359,12 +463,14 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   step={1}
                   value={Math.round(design.baseline * 100)}
                   onChange={(e) => set("baseline", Number(e.target.value) / 100)}
+                  {...invalid("baseline")}
                 />
               </Field>
               <Field
                 id="mde"
                 label="Min. detectable effect (points)"
                 hint="Smallest change worth acting on."
+                error={errorFor("mde")}
               >
                 <Input
                   id="mde"
@@ -374,12 +480,14 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   step={1}
                   value={Math.round(design.mde * 100)}
                   onChange={(e) => set("mde", Number(e.target.value) / 100)}
+                  {...invalid("mde")}
                 />
               </Field>
               <Field
                 id="window"
                 label="Treatment window (min)"
                 hint={`Control keeps the ${CONTROL_WINDOW_MINUTES}-minute rule.`}
+                error={errorFor("window")}
               >
                 <Input
                   id="window"
@@ -389,6 +497,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   step={1}
                   value={design.treatmentWindow}
                   onChange={(e) => set("treatmentWindow", Number(e.target.value))}
+                  {...invalid("window")}
                 />
               </Field>
               <Field id="alpha" label="Significance level α (two-sided)" group>
@@ -411,6 +520,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                 id="per-day"
                 label="New customers per day"
                 hint="To turn a sample size into a duration."
+                error={errorFor("per-day")}
               >
                 <Input
                   id="per-day"
@@ -419,6 +529,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   max={10000}
                   value={design.customersPerDay}
                   onChange={(e) => set("customersPerDay", Number(e.target.value))}
+                  {...invalid("per-day")}
                 />
               </Field>
             </div>
@@ -455,7 +566,14 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   </p>
                 </>
               ) : (
-                <p className="mt-3 text-sm">Fix the inputs below to get a sample size.</p>
+                <div className="mt-3 space-y-1.5 text-sm" role="status">
+                  <p className="font-medium">Fix the highlighted inputs to get a sample size:</p>
+                  <ul className="list-disc space-y-1 pl-5 text-xs text-tomato-700 dark:text-tomato-300">
+                    {errors.map((e) => (
+                      <li key={e.field + e.message}>{e.message}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
             {warnings.length ? (
@@ -477,7 +595,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   label="Difference in mean stars to detect"
                   hint={
                     <>
-                      SD {formatNumber(facts.ratingSd, 2)} stars from {facts.ratingFourPlus.n} demo
+                      SD {formatNumber(facts.ratingSd, 2)} stars from {facts.ratedOrders} demo
                       ratings (mean {formatNumber(facts.ratingMean, 2)}).
                     </>
                   }
@@ -500,7 +618,19 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                   per arm (z-test),{" "}
                   <strong className="tabular">{meanPlan.perArmT.toLocaleString("en-AU")}</strong>{" "}
                   with the t-test correction. Only customers who rate count here, so the real
-                  requirement is larger by 1 / (share who rate).
+                  requirement is larger by 1 / (share who rate)
+                  {Number.isFinite(shareWhoRate) && shareWhoRate > 0 ? (
+                    <>
+                      : at the demo&apos;s {formatPct(shareWhoRate, 0)} ({facts.ratedOrders} of{" "}
+                      {facts.ratingFourPlus.n} orders rated), about{" "}
+                      <strong className="tabular">
+                        {Math.ceil(meanPlan.perArmT / shareWhoRate).toLocaleString("en-AU")}
+                      </strong>{" "}
+                      customers per arm would need to be randomised.
+                    </>
+                  ) : (
+                    "."
+                  )}
                 </p>
               ) : null}
             </div>
@@ -555,19 +685,29 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
             type="button"
             className="h-9 rounded-xl"
             onClick={runSimulation}
-            disabled={running || !plan}
+            disabled={simBusy || !plan}
           >
-            {running ? <Loader2 className="animate-spin" aria-hidden /> : <Play aria-hidden />} Run
+            {simBusy ? <Loader2 className="animate-spin" aria-hidden /> : <Play aria-hidden />} Run
             simulation
           </Button>
         </div>
+        {!plan ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Fix the design in step 1 to run a simulation.
+          </p>
+        ) : null}
+        {simError ? (
+          <p role="alert" className="mt-2 text-xs font-medium text-tomato-700 dark:text-tomato-300">
+            {simError}
+          </p>
+        ) : null}
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_1fr]" aria-live="polite">
           <div className="min-w-0 space-y-4">
             <p id="sim-caption" className="text-xs text-muted-foreground">
               {metric.label}, by arm. Seed {simRun.seed}, injected effect{" "}
               {formatSigned(simRun.effect * 100, 0)} points, {simRun.perArm.toLocaleString("en-AU")}{" "}
-              customers per arm.
+              customers per arm, α = {alpha} so every interval is a {ci} interval.
             </p>
             <div
               className="overflow-x-auto rounded-xl border"
@@ -588,7 +728,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                       Yes
                     </th>
                     <th scope="col" className="px-3 py-2 font-medium">
-                      Rate [95% CI, Wilson]
+                      Rate [{ci} CI, Wilson]
                     </th>
                     <th scope="col" className="px-3 py-2 font-medium">
                       Discounted first orders
@@ -632,7 +772,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
             </div>
 
             <IntervalPlot
-              label={`Difference in ${metric.short}, treatment minus control, with 95% Newcombe interval; zero and the injected effect marked.`}
+              label={`Difference in ${metric.short}, treatment minus control, with ${ci} Newcombe interval; zero and the injected effect marked.`}
               domain={[
                 Math.min(-0.05, sim.difference.lower - 0.03, simRun.effect - 0.03),
                 Math.max(0.05, sim.difference.upper + 0.03, simRun.effect + 0.03),
@@ -665,7 +805,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
               ]}
             />
             <IntervalPlot
-              label="Guardrail: change in the share of first orders discounted, treatment minus control, with 95% Newcombe interval."
+              label={`Guardrail: change in the share of first orders discounted, treatment minus control, with ${ci} Newcombe interval.`}
               domain={[
                 Math.min(-0.05, sim.discountDifference.lower - 0.05),
                 Math.max(0.05, sim.discountDifference.upper + 0.05),
@@ -695,7 +835,7 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
           <div className="min-w-0 space-y-4">
             <dl className="grid grid-cols-2 gap-2">
               <Stat
-                label="Difference (Newcombe 95% CI)"
+                label={`Difference (Newcombe ${ci} CI)`}
                 value={`${formatSigned(sim.difference.estimate * 100, 1)} pts`}
                 note={`[${formatSigned(sim.difference.lower * 100, 1)}, ${formatSigned(sim.difference.upper * 100, 1)}]`}
               />
@@ -726,13 +866,13 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
               <p className="font-semibold">Reading this run</p>
               <p className="mt-1 text-muted-foreground">
                 {significant
-                  ? `At α = ${simRun.design.alpha} the difference is statistically significant`
-                  : `At α = ${simRun.design.alpha} the test does not reject "no difference"`}
-                ; the 95% interval {sim.coversTruth ? "covers" : "misses"} the injected{" "}
+                  ? `At α = ${alpha} the difference is statistically significant`
+                  : `At α = ${alpha} the test does not reject "no difference"`}
+                ; the {ci} interval {sim.coversTruth ? "covers" : "misses"} the injected{" "}
                 {formatSigned(simRun.effect * 100, 0)} points.{" "}
                 {sim.coversTruth
-                  ? "About 1 run in 20 will miss it by design; change the seed to see the spread."
-                  : "That happens in about 1 run in 20; this is one of them."}{" "}
+                  ? `About 1 run in ${missOneIn} will miss it by design; change the seed to see the spread.`
+                  : `That happens in about 1 run in ${missOneIn}; this is one of them.`}{" "}
                 The guardrail shows the cost side: the share of first orders discounted changes by{" "}
                 {formatSigned(sim.discountDifference.estimate * 100, 0)} points (treatment minus
                 control).
@@ -785,8 +925,9 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
             </p>
             <p className="text-muted-foreground">
               The panel runs {PEEKING_REPS.toLocaleString("en-AU")} A/A experiments (both arms get
-              the same rule, so every &quot;win&quot; is false) at the planned sample size, each
-              analysed at equally spaced looks. Seed {PEEKING_SEED}.
+              the same rule, so every &quot;win&quot; is false) at the planned sample size (capped
+              at {PEEKING_MAX_PER_ARM.toLocaleString("en-AU")} per arm), each analysed at equally
+              spaced looks at α = {PEEKING_ALPHA}. Seed {PEEKING_SEED}.
             </p>
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               <li>
@@ -817,18 +958,10 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
                 type="button"
                 variant="secondary"
                 className="h-9 rounded-xl"
-                disabled={peeking}
-                onClick={() =>
-                  startPeek(() =>
-                    setPeekRun({
-                      looks,
-                      perArm: plan?.perArm ?? simRun.perArm,
-                      baseline: design.baseline,
-                    }),
-                  )
-                }
+                disabled={peekBusy || !plan}
+                onClick={runPeeking}
               >
-                {peeking ? (
+                {peekBusy ? (
                   <Loader2 className="animate-spin" aria-hidden />
                 ) : (
                   <FlaskConical aria-hidden />
@@ -837,10 +970,10 @@ export function ExperimentDesigner({ facts }: { facts: DesignerFacts }) {
               </Button>
             </div>
             <IntervalPlot
-              label={`False-positive rates over ${peek.reps} A/A experiments with ${peek.looks} looks: fixed horizon ${formatPct(peek.fixedHorizon.p, 1)}, naive peeking ${formatPct(peek.peeking.p, 1)}.`}
+              label={`False-positive rates over ${peek.reps.toLocaleString("en-AU")} A/A experiments with ${peek.looks} looks: fixed horizon ${formatPct(peek.fixedHorizon.p, 1)}, naive peeking ${formatPct(peek.peeking.p, 1)}${peek.pocock ? `, Pocock boundary ${formatPct(peek.pocock.p, 1)}` : ""}.`}
               domain={[0, Math.max(0.3, peek.peeking.upper + 0.02)]}
               format={(v) => formatPct(v, 0)}
-              axisLabel={`${peek.looks} looks, ${peek.perArm.toLocaleString("en-AU")} customers per arm at the end, baseline ${formatPct(peekRun.baseline, 0)}`}
+              axisLabel={`${peek.looks} looks, ${peekingPerArm(peekRun).toLocaleString("en-AU")} customers per arm at the end${peekCapped ? ` (capped from the planned ${peekRun.perArm.toLocaleString("en-AU")} to keep the page responsive; the inflation depends on the number of looks, not on n)` : ""}, baseline ${formatPct(peekRun.baseline, 0)}`}
               references={[{ value: 0.05, label: "nominal α = 5%" }]}
               rows={[
                 {

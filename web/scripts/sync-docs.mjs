@@ -12,7 +12,12 @@ const web = path.resolve(import.meta.dirname, "..");
 const src = path.resolve(web, "..", "docs");
 const dest = path.join(web, "content", "docs");
 
-export const RENDERED = ["model-card.md", "ai-use-statement.md", "privacy-and-retention.md"];
+export const RENDERED = [
+  "model-card.md",
+  "ai-use-statement.md",
+  "privacy-and-retention.md",
+  "calibration.json",
+];
 
 rmSync(dest, { recursive: true, force: true });
 mkdirSync(path.join(dest, "decisions"), { recursive: true });

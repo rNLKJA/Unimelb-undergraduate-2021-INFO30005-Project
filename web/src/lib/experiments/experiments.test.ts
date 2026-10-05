@@ -1,14 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { sampleSizeTwoProportions } from "@/lib/stats/power";
-import { DEFAULT_DESIGN, designWarnings, planMeanSampleSize, planSampleSize } from "./design";
+import { calibrate } from "./calibrate";
+import {
+  DEFAULT_DESIGN,
+  designErrors,
+  designWarnings,
+  planMeanSampleSize,
+  planSampleSize,
+} from "./design";
 import { simulatePeeking } from "./peeking";
-import { analyseExperiment, analysisRows, simulateExperiment } from "./simulate";
+import { DEFAULT_PEEK_RUN, DEFAULT_SIM_RUN, handleWorkerRequest, peekingPerArm } from "./runs";
+import { analyseExperiment, analysisRows, levelLabel, simulateExperiment } from "./simulate";
 
 const POOL = [4.2, 5.5, 6.1, 7, 8.4, 9, 9.9, 10.5, 11.2, 12, 12.8, 13.5, 14.4, 16, 17.5, 19, 21];
 
 describe("experiment design", () => {
   it("plans the default design with the pooled formula and the arcsine cross-check", () => {
-    const plan = planSampleSize(DEFAULT_DESIGN);
+    const plan = planSampleSize(DEFAULT_DESIGN)!;
     // statsmodels: 582.33 (one-tail pooled) and 582.00 (arcsine) customers per arm.
     expect(plan.perArm).toBe(583);
     expect(plan.perArmArcsine).toBe(583);
@@ -27,16 +35,38 @@ describe("experiment design", () => {
     });
   });
 
+  it("sizes the rating 4+ metric on its own baseline (unrated counts as no)", () => {
+    // 63 of 149 non-cancelled demo orders rated 4+: statsmodels
+    // samplesize_proportions_2indep_onetail(0.06, 0.42, 0.8) = 1078.04 per arm.
+    const plan = planSampleSize({
+      ...DEFAULT_DESIGN,
+      metric: "rating-4plus",
+      baseline: 0.42,
+      mde: 0.06,
+    });
+    expect(plan?.perArm).toBe(1079);
+  });
+
   it("warns about designs that cannot answer the question", () => {
     expect(designWarnings(DEFAULT_DESIGN)).toEqual([]);
-    const bad = designWarnings({
-      ...DEFAULT_DESIGN,
-      baseline: 0.95,
-      mde: 0.1,
-      treatmentWindow: 15,
-      power: 0.5,
-    });
-    expect(bad).toHaveLength(3);
+    expect(designErrors(DEFAULT_DESIGN)).toEqual([]);
+    const weak = designWarnings({ ...DEFAULT_DESIGN, treatmentWindow: 15, power: 0.5, mde: 0.01 });
+    expect(weak).toHaveLength(3);
+  });
+
+  it("refuses designs with no finite sample size and says which input to fix", () => {
+    const fields = (d: Partial<typeof DEFAULT_DESIGN>) =>
+      designErrors({ ...DEFAULT_DESIGN, ...d }).map((e) => e.field);
+    expect(fields({ mde: 0 })).toEqual(["mde"]);
+    expect(fields({ baseline: 0.95, mde: 0.1 })).toEqual(["mde"]);
+    expect(fields({ baseline: 0 })).toEqual(["baseline"]);
+    expect(fields({ baseline: 1 })).toEqual(["baseline"]);
+    expect(fields({ baseline: NaN })).toEqual(["baseline"]);
+    expect(fields({ customersPerDay: 0 })).toEqual(["per-day"]);
+    expect(fields({ treatmentWindow: 0 })).toEqual(["window"]);
+    for (const d of [{ mde: 0 }, { baseline: 0 }, { customersPerDay: 0 }]) {
+      expect(planSampleSize({ ...DEFAULT_DESIGN, ...d })).toBeNull();
+    }
   });
 });
 
@@ -107,6 +137,43 @@ describe("simulated experiment", () => {
     expect(rejected / reps).toBeLessThan(0.88);
   });
 
+  it("builds every interval at the level it is given (1 − α)", () => {
+    const sim = simulateExperiment(input);
+    const at95 = analyseExperiment(sim, { seed: 1, permutationReps: 10, trueEffect: 0.08 });
+    const at99 = analyseExperiment(sim, {
+      seed: 1,
+      permutationReps: 10,
+      trueEffect: 0.08,
+      level: 0.99,
+    });
+    expect(at95.level).toBe(0.95);
+    expect(at99.difference.level).toBe(0.99);
+    expect(at99.treatment.outcome.level).toBe(0.99);
+    expect(at99.discountDifference.level).toBe(0.99);
+    expect(at99.difference.lower).toBeLessThan(at95.difference.lower);
+    expect(at99.difference.upper).toBeGreaterThan(at95.difference.upper);
+    expect(analysisRows(at99)[2].method).toBe("Newcombe hybrid score 99%");
+    expect([levelLabel(0.9), levelLabel(0.95), levelLabel(0.99)]).toEqual(["90%", "95%", "99%"]);
+  });
+
+  it("calibrates deterministically from its seed range", () => {
+    const base = {
+      perArm: 200,
+      baseline: 0.35,
+      effect: 0.08,
+      alpha: 0.05,
+      treatmentWindow: 10,
+      reps: 40,
+      firstSeed: 1,
+      pool: POOL,
+    };
+    const a = calibrate(base);
+    expect(calibrate(base)).toEqual(a);
+    expect(a.seeds).toEqual({ first: 1, last: 40 });
+    expect(a.coverage.n).toBe(40);
+    expect(calibrate({ ...base, firstSeed: 41 })).not.toEqual(a);
+  });
+
   it("rejects impossible rates", () => {
     expect(() => simulateExperiment({ ...input, baseline: 0.95, trueEffect: 0.1 })).toThrow(
       RangeError,
@@ -152,5 +219,38 @@ describe("peeking", () => {
     expect(() =>
       simulatePeeking({ perArm: 20, baseline: 0.3, looks: 0, reps: 10, alpha: 0.05, seed: 1 }),
     ).toThrow();
+  });
+
+  it("refuses an infinite sample size instead of looping forever", () => {
+    for (const perArm of [Infinity, NaN, 0]) {
+      expect(() =>
+        simulatePeeking({ perArm, baseline: 0.3, looks: 5, reps: 10, alpha: 0.05, seed: 1 }),
+      ).toThrow(RangeError);
+    }
+  });
+});
+
+describe("designer runs", () => {
+  it("caps the peeking simulation and reports errors instead of throwing", () => {
+    expect(peekingPerArm({ ...DEFAULT_PEEK_RUN, perArm: 35_943 })).toBe(5000);
+    expect(peekingPerArm(DEFAULT_PEEK_RUN)).toBe(583);
+    const bad = handleWorkerRequest({
+      id: 7,
+      kind: "peek",
+      run: { ...DEFAULT_PEEK_RUN, perArm: Infinity, baseline: NaN },
+    });
+    expect(bad).toMatchObject({ id: 7, ok: false });
+  });
+
+  it("analyses the default simulation at 1 − α", () => {
+    const res = handleWorkerRequest({ id: 1, kind: "sim", run: DEFAULT_SIM_RUN, pool: POOL });
+    expect(res.ok && res.kind === "sim" && res.result.level).toBeCloseTo(0.95, 12);
+    const strict = handleWorkerRequest({
+      id: 2,
+      kind: "sim",
+      run: { ...DEFAULT_SIM_RUN, design: { ...DEFAULT_SIM_RUN.design, alpha: 0.01 } },
+      pool: POOL,
+    });
+    expect(strict.ok && strict.kind === "sim" && strict.result.level).toBeCloseTo(0.99, 12);
   });
 });

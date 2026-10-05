@@ -1,10 +1,10 @@
 import { BadgeCheck, Clock3, DollarSign, ReceiptText, Soup } from "lucide-react";
 import { formatPrice } from "@/lib/pricing";
-import type { DayStats } from "@/lib/stats/day-stats";
+import { onTimeNote, type DayStats } from "@/lib/stats/day-stats";
 import { cn } from "@/lib/utils";
 
 export function StatTiles({ stats, className }: { stats: DayStats; className?: string }) {
-  const tiles = [
+  const tiles: { icon: typeof ReceiptText; label: string; value: string; note?: string }[] = [
     { icon: ReceiptText, label: "Orders today", value: String(stats.orders) },
     { icon: Soup, label: "In progress", value: String(stats.active) },
     { icon: DollarSign, label: "Sales today", value: formatPrice(stats.revenue) },
@@ -12,11 +12,13 @@ export function StatTiles({ stats, className }: { stats: DayStats; className?: s
       icon: Clock3,
       label: "Avg. prep",
       value: stats.avgPrepMinutes != null ? `${stats.avgPrepMinutes} min` : "—",
+      note: stats.served ? `n = ${stats.served} served` : undefined,
     },
     {
       icon: BadgeCheck,
       label: "On time",
       value: stats.onTimeRate != null ? `${Math.round(stats.onTimeRate * 100)}%` : "—",
+      note: onTimeNote(stats),
     },
   ];
   return (
@@ -33,6 +35,11 @@ export function StatTiles({ stats, className }: { stats: DayStats; className?: s
           <dd className="tabular mt-0.5 truncate font-display text-lg font-semibold sm:text-2xl">
             {t.value}
           </dd>
+          {t.note ? (
+            <dd className="tabular mt-0.5 text-[0.65rem] leading-snug text-muted-foreground sm:text-[0.7rem]">
+              {t.note}
+            </dd>
+          ) : null}
         </div>
       ))}
     </dl>

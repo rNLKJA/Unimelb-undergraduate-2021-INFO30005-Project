@@ -1,5 +1,6 @@
 import { melbourneDayKey } from "../format";
 import type { OrderStatus } from "../order-rules";
+import { wilson } from "./proportion";
 
 export type StatOrder = {
   status: OrderStatus;
@@ -16,6 +17,10 @@ export type DayStats = {
   active: number;
   avgPrepMinutes: number | null;
   onTimeRate: number | null;
+  /** Today's orders with a ready time: the n behind "Avg. prep" and "On time". */
+  served: number;
+  /** Of those, ready before `discount_time`. */
+  onTime: number;
 };
 
 /**
@@ -38,7 +43,20 @@ export function dayStats(orders: readonly StatOrder[], now: number): DayStats {
       ? Math.round((prep.reduce((a, b) => a + b, 0) / prep.length) * 10) / 10
       : null,
     onTimeRate: fulfilled.length ? onTime / fulfilled.length : null,
+    served: fulfilled.length,
+    onTime,
   };
+}
+
+/**
+ * The n and Wilson 95% interval behind the on-time rate, for the vendor tile:
+ * "4 of 4 · 95% CI 51–100%". A 100% from four orders is not a 100% from forty.
+ */
+export function onTimeNote(stats: Pick<DayStats, "onTime" | "served">): string | undefined {
+  if (!stats.served) return undefined;
+  const ci = wilson(stats.onTime, stats.served);
+  const pct = (x: number) => Math.round(x * 100);
+  return `${stats.onTime} of ${stats.served} · 95% CI ${pct(ci.lower)}–${pct(ci.upper)}%`;
 }
 
 /** Mean of 1–5 ratings, one decimal place. */

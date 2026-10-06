@@ -15,3 +15,11 @@ Dockerfile text eol=lf
 # Text
 *.md text eol=lf
 *.txt text eol=lf
+
+# Binary data
+*.db binary
+*.png binary
+*.pdf binary
+*.gif binary
+*.mp4 binary
+*.webp binary

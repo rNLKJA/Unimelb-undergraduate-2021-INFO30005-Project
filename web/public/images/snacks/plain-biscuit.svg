@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="t">
+  <title id="t">Plain Biscuit</title>
+  <circle cx="80" cy="80" r="76" fill="#fdf3e3"/>
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#f0d3a8" stroke-width="2" stroke-dasharray="3 7"/>
+  <ellipse cx="80" cy="128" rx="54" ry="8" fill="#ecdcc6"/>
+  <g>
+    <ellipse cx="80" cy="112" rx="46" ry="13" fill="#c9965c"/>
+    <ellipse cx="80" cy="107" rx="46" ry="13" fill="#e5bb80"/>
+    <ellipse cx="80" cy="96" rx="44" ry="12.5" fill="#c9965c"/>
+    <ellipse cx="80" cy="91" rx="44" ry="12.5" fill="#e5bb80"/>
+  </g>
+  <g transform="rotate(-8 84 62)">
+    <circle cx="84" cy="66" r="34" fill="#c9965c"/>
+    <circle cx="84" cy="62" r="34" fill="#f0d3a8"/>
+    <circle cx="84" cy="62" r="28" fill="none" stroke="#e5bb80" stroke-width="2.5" stroke-dasharray="2 5" stroke-linecap="round"/>
+    <g fill="#c9965c">
+      <circle cx="74" cy="54" r="2"/><circle cx="84" cy="50" r="2"/><circle cx="94" cy="54" r="2"/>
+      <circle cx="72" cy="65" r="2"/><circle cx="84" cy="62" r="2"/><circle cx="96" cy="65" r="2"/>
+      <circle cx="78" cy="74" r="2"/><circle cx="90" cy="74" r="2"/>
+    </g>
+    <path d="M60 50c3-6 8-10 14-12" stroke="#fffaf2" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+  </g>
+</svg>

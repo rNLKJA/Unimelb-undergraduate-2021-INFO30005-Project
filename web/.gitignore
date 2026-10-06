@@ -1,0 +1,41 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+/.vitest
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+pnpm-debug.log*
+
+# env files (.env.example is committed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# local SQLite database (data/seed.db is the committed snapshot)
+/data/app.db
+/data/app.db-*
+/data/*.db-journal
+/data/*.db-wal
+/data/*.db-shm
+
+# showcase tour (pnpm showcase): raw recordings, Playwright output, local ffmpeg link
+/.showcase
+/.playwright
+/test-results
+/playwright-report

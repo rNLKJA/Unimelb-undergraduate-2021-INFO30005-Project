@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="t">
+  <title id="t">Flat White</title>
+  <circle cx="80" cy="80" r="76" fill="#fdf3e3"/>
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#f0d3a8" stroke-width="2" stroke-dasharray="3 7"/>
+  <g fill="none" stroke="#b9977a" stroke-width="3.5" stroke-linecap="round" opacity="0.7">
+    <path d="M72 38c-5 6 5 10 0 17"/>
+    <path d="M90 34c-5 6 5 10 0 17"/>
+  </g>
+  <ellipse cx="80" cy="124" rx="48" ry="10" fill="#ecdcc6"/>
+  <ellipse cx="80" cy="119" rx="48" ry="11" fill="#ffffff" stroke="#e2cfb5" stroke-width="2"/>
+  <path d="M110 80c12-2 18 6 15 14s-12 11-20 9" fill="none" stroke="#35241a" stroke-width="8" stroke-linecap="round"/>
+  <path d="M44 74h72l-6 34c-1.3 6-6 10-12 10H62c-6 0-10.7-4-12-10z" fill="#35241a"/>
+  <path d="M47 86h66" stroke="#4b3325" stroke-width="3"/>
+  <ellipse cx="80" cy="74" rx="36" ry="10" fill="#4b3325"/>
+  <ellipse cx="80" cy="73.5" rx="32" ry="8" fill="#b9977a"/>
+  <path d="M80 80c-9-4-14-7-14-11.5 0-3 2.4-4.8 5-4.8 3.6 0 6.6 2.4 9 6 2.4-3.6 5.4-6 9-6 2.6 0 5 1.8 5 4.8 0 4.5-5 7.5-14 11.5z" fill="#fffaf2"/>
+  <path d="M80 70c-2-3-4-4.4-6-4.4" stroke="#b9977a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="t">
+  <title id="t">Small Cake</title>
+  <circle cx="80" cy="80" r="76" fill="#fdf3e3"/>
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#f0d3a8" stroke-width="2" stroke-dasharray="3 7"/>
+  <ellipse cx="80" cy="130" rx="50" ry="8" fill="#ecdcc6"/>
+  <ellipse cx="80" cy="124" rx="50" ry="10" fill="#ffffff" stroke="#e2cfb5" stroke-width="2"/>
+  <path d="M46 84h68v30c0 6-15 10-34 10s-34-4-34-10z" fill="#f0d3a8"/>
+  <path d="M46 98c0 5 15 9 34 9s34-4 34-9v5c0 5-15 9-34 9s-34-4-34-9z" fill="#fffaf2"/>
+  <path d="M46 98c0 5 15 9 34 9s34-4 34-9" fill="none" stroke="#e8462c" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
+  <ellipse cx="80" cy="84" rx="34" ry="9" fill="#e5bb80"/>
+  <path d="M50 82c-2-10 10-16 18-12 2-8 22-8 24 0 8-4 20 2 18 12-2 6-10 6-14 4-4 4-12 6-16 2-4 4-12 2-16-2-4 2-12 2-14-4z" fill="#fffaf2" stroke="#ecdcc6" stroke-width="1.5"/>
+  <path d="M80 48c-11 0-16 8-14 17s9 14 14 14 12-5 14-14-3-17-14-17z" fill="#e8462c"/>
+  <path d="M72 46c3 2 5 2 8 0 3 2 5 2 8 0-1 5-4 6-8 5-4 1-7 0-8-5z" fill="#4f9a45"/>
+  <g fill="#ffd98a">
+    <ellipse cx="74" cy="58" rx="1" ry="1.6"/><ellipse cx="82" cy="56" rx="1" ry="1.6"/>
+    <ellipse cx="88" cy="62" rx="1" ry="1.6"/><ellipse cx="76" cy="66" rx="1" ry="1.6"/>
+    <ellipse cx="84" cy="70" rx="1" ry="1.6"/><ellipse cx="72" cy="72" rx="1" ry="1.6"/>
+  </g>
+  <path d="M71 54c1-3 3-4 5-4" stroke="#ff9a85" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

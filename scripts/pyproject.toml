@@ -1,0 +1,13 @@
+[project]
+name = "snacks-in-a-van-scripts"
+version = "0.1.0"
+description = "Reference values for the web app's statistics helpers (statsmodels / scipy), used by the Vitest suite."
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=2.1",
+  "scipy>=1.14",
+  "statsmodels>=0.14.4",
+]
+
+[tool.uv]
+package = false

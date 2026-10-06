@@ -1,0 +1,13 @@
+.next
+node_modules
+pnpm-lock.yaml
+drizzle/meta
+data
+public/data
+next-env.d.ts
+content
+.showcase
+.playwright
+test-results
+playwright-report
+public/showcase

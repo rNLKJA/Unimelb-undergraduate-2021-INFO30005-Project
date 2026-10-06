@@ -1,0 +1,51 @@
+WEBVTT
+
+NOTE Admin and experiments: captions match the on-screen steps.
+
+1
+00:00:00.200 --> 00:00:02.800
+Step 1 of 12. Open the records area with the one-click demo admin.
+
+2
+00:00:02.800 --> 00:00:07.681
+Step 2 of 12. Every table with record counts, search, pagination and CSV export; password hashes redacted.
+
+3
+00:00:07.681 --> 00:00:13.010
+Step 3 of 12. The append-only audit log: sign-ins, order status changes, van updates.
+
+4
+00:00:13.010 --> 00:00:18.945
+Step 4 of 12. Operations analytics: every figure comes with its uncertainty and its n.
+
+5
+00:00:18.945 --> 00:00:25.611
+Step 5 of 12. Minutes to ready, and the Kaplan–Meier time-to-fulfil curve with its 95% band.
+
+6
+00:00:25.611 --> 00:00:29.546
+Step 6 of 12. Late-discount rate by van, each with a Wilson 95% interval.
+
+7
+00:00:29.546 --> 00:00:35.393
+Step 7 of 12. The A/B-test designer: hypothesis, one primary metric, randomised by customer.
+
+8
+00:00:35.393 --> 00:00:38.729
+Step 8 of 12. Power analysis: 583 customers per arm to detect 35% → 43% at α = 0.05 and 80% power.
+
+9
+00:00:38.729 --> 00:00:45.650
+Step 9 of 12. A smaller effect needs more customers: 6 points raises the sample size.
+
+10
+00:00:45.650 --> 00:00:54.057
+Step 10 of 12. Simulate a known +8 point effect (seed 2021): the Newcombe 95% interval covers it, both tests reject.
+
+11
+00:00:54.057 --> 00:01:05.134
+Step 11 of 12. Rerun with seed 4399: this run misses the truth, as about 1 run in 20 does by design.
+
+12
+00:01:05.134 --> 00:01:12.200
+Step 12 of 12. Don't peek: 10,000 A/A tests show how stopping early inflates false positives.

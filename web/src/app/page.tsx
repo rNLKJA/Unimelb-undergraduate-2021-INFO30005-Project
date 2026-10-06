@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BadgePercent,
   ChefHat,
+  CirclePlay,
   Clock,
   Database,
   LayoutDashboard,
@@ -134,6 +135,13 @@ export default function HomePage() {
                 One click, no sign-up. Tip: open the customer and vendor demos in two tabs and watch
                 an order move between them.
               </p>
+              <Link
+                href="/tour"
+                className="inline-flex items-center gap-2 rounded-full text-sm font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                <CirclePlay className="size-5" aria-hidden /> Watch the guided tour: three short
+                videos
+              </Link>
             </div>
             <LiveDemoStory />
           </div>

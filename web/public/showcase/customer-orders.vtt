@@ -1,0 +1,39 @@
+WEBVTT
+
+NOTE Customer orders: captions match the on-screen steps.
+
+1
+00:00:00.200 --> 00:00:10.360
+Step 1 of 9. Start on the landing page and try the customer app with the one-click demo account.
+
+2
+00:00:10.360 --> 00:00:17.290
+Step 2 of 9. Use my location: open vans are ranked by distance and the five nearest are listed.
+
+3
+00:00:17.290 --> 00:00:23.294
+Step 3 of 9. Pick the nearest van, Ardeth Lavon at the University of Melbourne.
+
+4
+00:00:23.294 --> 00:00:31.838
+Step 4 of 9. Its menu: add a flat white, make it two, and add a fancy biscuit.
+
+5
+00:00:31.838 --> 00:00:37.425
+Step 5 of 9. Review the cart and place the order (the server recomputes the price).
+
+6
+00:00:37.425 --> 00:00:42.867
+Step 6 of 9. Confirm: the order goes straight to the van.
+
+7
+00:00:42.867 --> 00:00:50.720
+Step 7 of 9. The live tracker: status timeline, the 15-minute ring and 10 minutes to change or cancel.
+
+8
+00:00:50.720 --> 00:00:54.841
+Step 8 of 9. Time-lapse: the browser clock jumps to 10 s before the 15-minute deadline (the server is untouched). (Time-lapse: only the browser clock is moved.)
+
+9
+00:00:54.841 --> 00:01:07.280
+Step 9 of 9. At 15:00 the ring turns red and the late-order discount applies; changes closed at 10 minutes. (Time-lapse: only the browser clock is moved.)

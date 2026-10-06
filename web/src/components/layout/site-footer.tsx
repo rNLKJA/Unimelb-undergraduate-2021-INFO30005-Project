@@ -66,6 +66,11 @@ export function SiteFooter() {
               </a>
             </li>
             <li>
+              <Link className="hover:text-foreground hover:underline" href="/tour">
+                Guided tour (videos)
+              </Link>
+            </li>
+            <li>
               <Link className="hover:text-foreground hover:underline" href="/methods">
                 Methods &amp; decisions
               </Link>

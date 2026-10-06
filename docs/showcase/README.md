@@ -1,4 +1,32 @@
-# Showcase: the 2026 upgrade
+# Showcase
+
+Two sets of media live here.
+
+## The guided tour (`pnpm showcase`)
+
+Made on 6 October 2026 by [`web/e2e/showcase.spec.ts`](../../web/e2e/showcase.spec.ts), a
+Playwright script on the system Chrome, against a local production build on the committed
+demo data (`cd web && pnpm build && BASE_URL=http://localhost:3000 pnpm showcase --fresh-db`).
+The same script runs against production with `pnpm showcase`. It uses the one-click demo
+accounts (no password is typed) and enters no AI key; the browser's location is fixed at the
+University of Melbourne and the experiment uses fixed seeds. Every step is asserted, so a broken
+feature fails the tour rather than producing a misleading recording. All data is synthetic.
+
+| Files | What they are |
+| --- | --- |
+| `01-landing-light.png` … `13-methods.png` | Key features at 1440 × 900 (the landing page in light and dark mode). |
+| `14-mobile-landing.png` … `16-mobile-order-tracker.png` | The same app on a 390 × 844 phone (captured at 2×, stored at 1.5×). |
+| `customer-orders.gif` | Find the nearest van, order, and follow the tracker. Steps 8 and 9 are a labelled time-lapse: only the browser's clock is fast-forwarded (Playwright's clock) so the 15-minute ring can run out; the server's order is untouched. |
+| `vendor-fulfils.gif` | The vendor's live board receives the order, marks it fulfilled and collected; the customer's tracker follows without a reload. Ends on the bring-your-own-key AI settings (opened and closed, no key). |
+| `admin-experiments.gif` | Records and the append-only audit log, the operations analytics with intervals, and the A/B-test designer: sample size, a simulated run that covers the injected effect (seed 2021), one that misses it (seed 4399), and the peeking simulation. |
+
+The GIFs are 960 px wide at 10 fps, sped up 1.25× with waits and scripted scrolls cut. The full
+captioned videos (H.264 MP4 with WebVTT captions) are in
+[`web/public/showcase`](../../web/public/showcase) and play on the site's
+[guided tour](https://snacks-in-a-van.vercel.app/tour). The step captions are defined once in
+[`web/src/lib/showcase.ts`](../../web/src/lib/showcase.ts).
+
+## Earlier screenshots: the 2026 upgrade
 
 These screenshots were taken on 6 October 2026 (and retaken after the review fixes the same day) against a **local production build** (`pnpm build && pnpm start`) using a local SQLite copy of the committed seed snapshot, with Playwright driving the system Chrome. They were not taken on the public deployment, because at the time production ran without a shared database and its writes did not survive between serverless instances ([DR-004](../decisions/DR-004-turso-vs-tmp-fallback.md); connected later that day, [DR-007](../decisions/DR-007-production-on-turso.md)). All data is synthetic.
 

@@ -17,6 +17,89 @@
 > INFO30005 Web Information Technologies, University of Melbourne, Semester 1 2021.
 > Group 4399 (tutorial T03). Revived in 2026 by **Sunchuangyu (Rin) Huang**.
 
+## Showcase
+
+![Customer orders: find the nearest van, order, and follow the order to the late-discount ring](docs/showcase/customer-orders.gif)
+
+A customer finds the nearest van, orders and follows the order on the live tracker. All three
+walkthroughs, as captioned videos with transcripts, plus every screenshot in a lightbox, are on
+the **[guided tour](https://snacks-in-a-van.vercel.app/tour)**.
+
+### Key features
+
+| | |
+| --- | --- |
+| ![Landing page](docs/showcase/01-landing-light.png)<br>**Landing page.** The story, the live customer/vendor demo and one-click demo accounts. | ![Landing page, dark mode](docs/showcase/02-landing-dark.png)<br>**Landing page, dark mode.** The same page in dark mode. |
+| ![Find a van](docs/showcase/03-van-finder.png)<br>**Find a van.** The five nearest open vans, ranked by the ported 2021 distance rule. | ![Menu and cart](docs/showcase/04-menu.png)<br>**Menu and cart.** A van's eight-item menu with the running order total. |
+| ![Order tracker](docs/showcase/05-order-tracker.png)<br>**Order tracker.** Live status timeline, the 15-minute ring and the 10-minute change window. | ![Community board](docs/showcase/06-community.png)<br>**Community board.** Snackers' posts, recent ratings and the top-rated vans. |
+| ![Vendor order board](docs/showcase/07-vendor-board.png)<br>**Vendor order board.** Outstanding, ready and collected, with per-order countdowns and today's tiles. | ![Van status and location](docs/showcase/08-vendor-van.png)<br>**Van status and location.** Open or close the van, set its spot on the map, and the optional AI shift summary. |
+| ![Bring your own key](docs/showcase/09-ai-settings.png)<br>**Bring your own key.** Optional AI settings: the key stays in this browser and goes only to the provider. | ![Records and audit log](docs/showcase/10-records-audit-log.png)<br>**Records and audit log.** Every table with counts and CSV export; the append-only audit log. |
+| ![Operations analytics](docs/showcase/11-analytics.png)<br>**Operations analytics.** Orders per day, time to ready and Kaplan–Meier, each with its interval and n. | ![A/B-test designer](docs/showcase/12-experiments.png)<br>**A/B-test designer.** Sample size from the minimum detectable effect, then a seeded simulation. |
+| ![Methods and decisions](docs/showcase/13-methods.png)<br>**Methods and decisions.** Provenance, evaluation design, limitations, decision records and AI use. | <img src="docs/showcase/14-mobile-landing.png" alt="Mobile: landing" width="280"><br>**Mobile: landing.** The landing page at 390 px. |
+| <img src="docs/showcase/15-mobile-van-finder.png" alt="Mobile: find a van" width="280"><br>**Mobile: find a van.** The map and the nearest vans on a phone. | <img src="docs/showcase/16-mobile-order-tracker.png" alt="Mobile: order tracker" width="280"><br>**Mobile: order tracker.** Tracking an order on a phone. |
+
+### Workflow walkthrough
+
+The recordings and screenshots come from one Playwright script,
+[`web/e2e/showcase.spec.ts`](web/e2e/showcase.spec.ts), which also asserts what each step shows
+(the nearest van, the order reaching the vendor's board, the tracker following the vendor, the
+sample size and both simulated runs). They were made against a local production build on the
+committed demo data (`BASE_URL=http://localhost:3000 pnpm showcase --fresh-db`); `pnpm showcase`
+runs the same tour against production. The one-click demo accounts are used, so no password is
+typed, and no AI key is entered.
+
+**1. Customer orders** (`/customer`): From the landing page to a live order: find the nearest open van, add to the cart, place the order and follow it on the tracker, including what happens when the 15-minute promise runs out.
+
+1. Start on the landing page and try the customer app with the one-click demo account
+2. Use my location: open vans are ranked by distance and the five nearest are listed
+3. Pick the nearest van, Ardeth Lavon at the University of Melbourne
+4. Its menu: add a flat white, make it two, and add a fancy biscuit
+5. Review the cart and place the order (the server recomputes the price)
+6. Confirm: the order goes straight to the van
+7. The live tracker: status timeline, the 15-minute ring and 10 minutes to change or cancel
+8. Time-lapse: the browser clock jumps to 10 s before the 15-minute deadline (the server is untouched)
+9. At 15:00 the ring turns red and the late-order discount applies; changes closed at 10 minutes
+
+Steps 8 and 9 are a time-lapse, labelled on screen: only the browser's clock is moved (Playwright's
+clock), so the ring can run out in seconds. The order on the server keeps its real times.
+
+<sub>Setup: One-click demo customer; the browser's location is set to the University of Melbourne; order 2 × Flat White and 1 × Fancy Biscuit from Ardeth Lavon.</sub>
+
+**2. Vendor fulfils** (`/vendor/orders`): Behind the hatch: the demo vendor's live board receives a new order, marks it fulfilled and then collected, and the customer's tracker follows along without a reload.
+
+![Vendor fulfils walkthrough](docs/showcase/vendor-fulfils.gif)
+
+1. Log in as the demo vendor, van Ardeth Lavon, with one click
+2. The live board refreshes every 3 s: outstanding, ready for pickup, recently collected
+3. Today's tiles: the on-time rate comes with its n and a Wilson 95% interval
+4. A new order arrives from the demo customer, with its 15-minute countdown
+5. Mark it fulfilled: the ticket moves to Ready for pickup
+6. The customer's tracker, in the same browser, now says Ready for pickup
+7. The van marks it collected, and the tracker updates by itself within seconds
+8. Back on the board, the order sits under Recently collected
+9. Optional AI shift summary: bring your own key, kept in this browser only
+
+<sub>Setup: One-click demo vendor (van Ardeth Lavon). During the recording the demo customer, signed in in the same browser, orders 2 × Cappuccino and 1 × Small Cake.</sub>
+
+**3. Admin and experiments** (`/admin/records`): The records area: every table and the append-only audit trail, the operations analytics with their intervals, and the A/B-test designer with a power analysis, a seeded simulation and the cost of peeking.
+
+![Admin and experiments walkthrough](docs/showcase/admin-experiments.gif)
+
+1. Open the records area with the one-click demo admin
+2. Every table with record counts, search, pagination and CSV export; password hashes redacted
+3. The append-only audit log: sign-ins, order status changes, van updates
+4. Operations analytics: every figure comes with its uncertainty and its n
+5. Minutes to ready, and the Kaplan–Meier time-to-fulfil curve with its 95% band
+6. Late-discount rate by van, each with a Wilson 95% interval
+7. The A/B-test designer: hypothesis, one primary metric, randomised by customer
+8. Power analysis: 583 customers per arm to detect 35% → 43% at α = 0.05 and 80% power
+9. A smaller effect needs more customers: 6 points raises the sample size
+10. Simulate a known +8 point effect (seed 2021): the Newcombe 95% interval covers it, both tests reject
+11. Rerun with seed 4399: this run misses the truth, as about 1 run in 20 does by design
+12. Don't peek: 10,000 A/A tests show how stopping early inflates false positives
+
+<sub>Setup: One-click demo admin, on the committed demo data. Experiment: late-discount rule, baseline 35%, minimum detectable effect +8 points, α = 0.05, power 80%; simulation seeds 2021 (the default) and 4399; A/A peeking seed 30005 with 5 looks.</sub>
+
 ## Overview
 
 Snacks in a Van is a two-portal food-ordering web app for a business of roving snack vans.
@@ -58,7 +141,9 @@ them; both portals poll the server every few seconds.
   `ai_audit_log` table (`/admin/ai-log`) after the server re-checks each record.
 - **Methods and decision records** (`/methods`): data provenance, methods, evaluation design,
   assumptions, limitations, the AI use statement, privacy and retention, a model and data
-  card and seven decision records. Screenshots: [`docs/showcase`](docs/showcase).
+  card and the decision records.
+- **Guided tour** (`/tour`): three captioned walkthrough videos and every screenshot, recorded
+  by a Playwright script that doubles as an end-to-end test (see [Showcase](#showcase)).
 
 ### Ported business rules (with parity tests)
 
@@ -117,7 +202,9 @@ ever come from the seeded synthetic customers.
 └── web/                       # the deployable Next.js app (Vercel root)
     ├── data/seed.db           # committed SQLite snapshot (demo data)
     ├── drizzle/               # generated SQL migrations
+    ├── e2e/                   # the guided tour (Playwright): screenshots, recordings, journey checks
     ├── public/images/snacks/  # illustrated snack SVGs drawn for the revival
+    ├── public/showcase/       # tour videos (MP4, captions, posters) and screenshot copies
     └── src/
         ├── app/               # routes: /, /customer/*, /vendor/*, /admin/*, /api/*
         ├── components/        # ui/ (shadcn), layout/, brand/, customer/, vendor/, admin/, map/, shared/
@@ -144,6 +231,7 @@ ever come from the seeded synthetic customers.
 | `/admin/analytics` | Operations analytics with intervals (2026) |
 | `/admin/experiments` | A/B-test designer and simulation for the late-discount rule (2026) |
 | `/admin/ai-log` | AI audit log with JSON / CSV export (2026) |
+| `/tour` | Guided tour: three captioned walkthrough videos and every screenshot (2026) |
 | `/methods`, `/methods/model-card`, `/methods/decisions/[slug]` | Methods, AI use statement, privacy, model and data card, decision records (2026) |
 | `/api/vans`, `/api/customer/orders[/id]`, `/api/vendor/board`, `/api/geocode/*`, `/api/admin/export/[table]`, `/api/admin/ai-log/export` | Route Handlers used by the UI |
 
@@ -172,6 +260,7 @@ history up to "now". Copy `.env.example` to `.env.local` to override anything.
 | `pnpm db:studio` | Browse the database with Drizzle Studio |
 | `pnpm sync-docs` | Copy `../docs` into `content/docs` for the `/methods` pages (tests fail if they drift) |
 | `pnpm calibrate` | Recompute `../docs/calibration.json`, the experiment analysis checked against known truth (`--check` fails if it is stale) |
+| `pnpm showcase` | Run the guided tour (Playwright, system Chrome) and rebuild the screenshots, videos and GIFs; `BASE_URL=http://localhost:3000 pnpm showcase --fresh-db` after `pnpm build` for a local run on fresh demo data |
 
 ### Demo accounts
 

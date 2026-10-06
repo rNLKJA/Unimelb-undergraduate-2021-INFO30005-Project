@@ -10,3 +10,8 @@ data/*.db-wal
 data/*.db-shm
 *.tsbuildinfo
 .vercel
+# Showcase tour (pnpm showcase): raw recordings, Playwright output, local ffmpeg link
+.showcase
+.playwright
+test-results
+playwright-report

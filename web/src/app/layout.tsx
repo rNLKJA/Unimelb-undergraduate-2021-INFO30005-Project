@@ -1,28 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Mono, DM_Sans, Fredoka } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const display = Fredoka({
+// Self-hosted latin subsets from @fontsource-variable 5.3.0 and @fontsource
+// 5.3.0 (DM Mono is static only). OFL, licences in ./fonts, so the build never
+// depends on fetching Google Fonts.
+const display = localFont({
+  src: "./fonts/fredoka-latin-wght-normal.woff2",
   variable: "--font-display-face",
-  subsets: ["latin"],
-  weight: "variable",
+  weight: "300 700",
+  style: "normal",
   display: "swap",
 });
 
-const body = DM_Sans({
+const body = localFont({
+  src: "./fonts/dm-sans-latin-wght-normal.woff2",
   variable: "--font-body",
-  subsets: ["latin"],
-  weight: "variable",
+  weight: "100 1000",
+  style: "normal",
   display: "swap",
 });
 
-const mono = DM_Mono({
+const mono = localFont({
+  src: [
+    { path: "./fonts/dm-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/dm-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-code",
-  subsets: ["latin"],
-  weight: ["400", "500"],
   display: "swap",
 });
 

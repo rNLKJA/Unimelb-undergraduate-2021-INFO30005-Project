@@ -14,7 +14,7 @@ submitted, moved here with `git mv` so its history is intact. The revived app li
 | `controllers/` | `customerController.js` (orders, cart, map, blog, profile), `vendorController.js` (van status, order states, search) |
 | `models/` | Mongoose schemas: customer, van, menu (product), order (+ order items), blog |
 | `config/` | Passport local strategies (customer + vendor) and route guards |
-| `views/` | 32 Handlebars templates, partials and layout |
+| `views/` | 38 Handlebars files: 25 page templates, 12 partials and the layout |
 | `public/`, `js/` | CSS, images, static HTML and browser-side helpers (cart, order update, utility) |
 | `__tests__/` | Jest unit + Supertest integration tests for the vendor status flow |
 | `Mockup 1` – `Mockup 4` | Milestone deliverables: design PDF and XD files, Postman collection, screenshots, notes |

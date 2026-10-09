@@ -2,7 +2,7 @@
 
 - **Decision:** the public deployment reads and writes the Turso (libSQL) database `snacks-in-a-van` through `DATABASE_URL` and `DATABASE_AUTH_TOKEN`, set for Production on Vercel. The `/tmp` copy from [DR-004](DR-004-turso-vs-tmp-fallback.md) stays only as the fallback for deployments without those variables, and still shows its "Demo mode" notice there.
 - **Status:** accepted on 6 October 2026, when the database was connected (recorded the same day, after the fact).
-- **Supersedes:** DR-004's status ("the fallback is what production runs on today") and its findings about production writes. DR-004's decision itself, Turso as the target with a fallback, stands.
+- **Supersedes:** DR-004's status ("the fallback is what production runs on today") and its findings about production writes, and DR-001's note that "the production half of the decision is not realised" because Turso was never provisioned. DR-004's decision itself, Turso as the target with a fallback, stands, as does DR-001's.
 
 ## Context
 
